@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Posture Pal Lite
 
-## Getting Started
+Webカメラを使い、リアルタイムで猫背を検知してスコアを表示するアプリケーションである。
 
-First, run the development server:
+## 概要
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+`Posture Pal Lite`は、TensorFlow.jsとMoveNetモデルを利用し、ユーザーの姿勢をリアルタイムで分析する。特に、耳と目の位置関係から「猫背スコア」を算出し、ユーザーにフィードバックを提供する。スコアが高くなる（猫背になる）ほど、表示スコアの色が赤に近づく仕様である。
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 特徴
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **リアルタイム姿勢分析**: Webカメラの映像からリアルタイムで姿勢を分析する。
+- **プライバシー配慮**: 映像処理はすべてブラウザ上で完結し、外部にデータが送信されることはない。
+- **簡易的な検知**: 肩が完全に映っていなくても、顔のパーツから姿勢を推定可能である。
+- **シンプルなUI**: 猫背スコアとカメラ映像のみを表示する、直感的なインターフェースを持つ。
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 技術スタック
 
-## Learn More
+- [Next.js](https://nextjs.org/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [TensorFlow.js](https://www.tensorflow.org/js)
+  - [@tensorflow-models/pose-detection](https://github.com/tensorflow/tfjs-models/tree/master/pose-detection) (MoveNet)
+- [Tailwind CSS](https://tailwindcss.com/)
 
-To learn more about Next.js, take a look at the following resources:
+## セットアップと実行方法
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1.  **依存関係のインストール:**
+    ```bash
+    npm install
+    ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+2.  **開発サーバーの起動:**
+    ```bash
+    npm run dev
+    ```
 
-## Deploy on Vercel
+3.  **ブラウザで確認:**
+    [http://localhost:3000](http://localhost:3000) をブラウザで開く。
+    カメラへのアクセスを許可すると、猫背スコアの測定が開始される。
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 猫背スコアの計算について
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+本アプリケーションは、以下のキーポイントを基に猫背の度合いをスコア化する。
+
+-   **主要キーポイント**: `left_ear`, `right_ear`, `left_eye`, `right_eye`, `left_shoulder`, `right_shoulder`
+-   **計算ロジック**:
+    1.  耳と目のY座標の平均値をそれぞれ算出する。
+    2.  肩が表示されている場合は両肩のY座標の平均値を、表示されていない場合は目と耳の位置関係から肩のおおよその位置を推定する。
+    3.  「目と肩の垂直距離」を基準とした「耳と肩の垂直距離」の比率 (`postureRatio`) を計算する。
+    4.  この比率が一定の閾値を超えると、猫背と判断しスコアを0から100の範囲で正規化する。
+    5.  スコアの急な変動を抑制するため、直近10フレームの移動平均を最終的なスコアとして表示する。
