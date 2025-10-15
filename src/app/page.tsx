@@ -33,7 +33,7 @@ export default function Home() {
       if (!detector || !videoRef.current) return;
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: 640, height: 480 },
+          video: { width: 480, height: 360 },
           audio: false,
         });
         const video = videoRef.current;
@@ -111,7 +111,7 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gray-900 text-white p-6">
-      <h1 className="text-3xl font-bold mb-4">Posture Pal Lite</h1>
+      <h1 className="text-3xl font-bold mb-4">syakitto</h1>
       <p className="text-xl mb-2">猫背スコア</p>
       <p className="text-5xl font-bold mb-6" style={{ color: borderColor }}>
         {Math.round(slouchScore)}%
@@ -119,8 +119,8 @@ export default function Home() {
 
       <video
         ref={videoRef}
-        width={320}
-        height={240}
+        width={480}
+        height={360}
         className="rounded-lg border border-gray-700"
         style={{ transform: "scaleX(-1)" }}
       />
