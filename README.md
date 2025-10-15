@@ -1,10 +1,16 @@
-# Posture Pal Lite
+# syakitto
 
 Webカメラを使い、リアルタイムで猫背を検知してスコアを表示するアプリケーションである。
 
 ## 概要
 
-`Posture Pal Lite`は、TensorFlow.jsとMoveNetモデルを利用し、ユーザーの姿勢をリアルタイムで分析する。特に、耳と目の位置関係から「猫背スコア」を算出し、ユーザーにフィードバックを提供する。スコアが高くなる（猫背になる）ほど、表示スコアの色が赤に近づく仕様である。
+`syakitto`は、TensorFlow.jsとMoveNetモデルを利用し、ユーザーの姿勢をリアルタイムで分析する。特に、耳と目の位置関係から「猫背スコア」を算出し、ユーザーにフィードバックを提供する。スコアが高くなる（猫背になる）ほど、表示スコアの色が赤に近づく仕様である。
+
+## 使い方
+
+1.  デプロイ先のURLにアクセスする。
+2.  ブラウザからカメラへのアクセスを許可する。
+3.  画面に表示される猫背スコアを確認する。
 
 ## 特徴
 
@@ -21,21 +27,33 @@ Webカメラを使い、リアルタイムで猫背を検知してスコアを�
   - [@tensorflow-models/pose-detection](https://github.com/tensorflow/tfjs-models/tree/master/pose-detection) (MoveNet)
 - [Tailwind CSS](https://tailwindcss.com/)
 
-## セットアップと実行方法
+## 開発者向けセットアップ
 
-1.  **依存関係のインストール:**
+ローカル環境で開発を行う場合は、以下の手順でセットアップを行う。
+
+1.  **リポジトリのクローン:**
+    ```bash
+    git clone https://github.com/TsubasaShioda/syakitto.git
+    cd syakitto
+    ```
+2.  **依存関係のインストール:**
     ```bash
     npm install
     ```
-
-2.  **開発サーバーの起動:**
+3.  **開発サーバーの起動:**
     ```bash
     npm run dev
     ```
-
-3.  **ブラウザで確認:**
+4.  **ブラウザで確認:**
     [http://localhost:3000](http://localhost:3000) をブラウザで開く。
-    カメラへのアクセスを許可すると、猫背スコアの測定が開始される。
+
+### ビルド確認
+
+変更をコミットする前に、以下のコマンドでローカルでのビルドが成功することを確認する。
+
+```bash
+npm run build
+```
 
 ## 猫背スコアの計算について
 
