@@ -50,7 +50,6 @@ export default function Home() {
   // --- 軽量ループ（2FPS） ---
   useEffect(() => {
     if (!detector || !isCameraReady || !videoRef.current) return;
-    let intervalId: NodeJS.Timeout;
 
     const analyze = async () => {
       try {
@@ -64,7 +63,7 @@ export default function Home() {
       }
     };
 
-    intervalId = setInterval(analyze, 500); // 2FPS (0.5秒ごと)
+    const intervalId = setInterval(analyze, 500); // 2FPS (0.5秒ごと)
     return () => clearInterval(intervalId);
   }, [detector, isCameraReady]);
 
