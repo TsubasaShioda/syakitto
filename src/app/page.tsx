@@ -13,6 +13,7 @@ export default function Home() {
   const scoreHistory = useRef<number[]>([]);
   const notificationTimer = useRef<NodeJS.Timeout | null>(null);
   const [lastNotificationTime, setLastNotificationTime] = useState(0);
+  const [notificationType, setNotificationType] = useState("voice");
 
   // --- 初期化 ---
   useEffect(() => {
@@ -110,6 +111,8 @@ export default function Home() {
 
   // --- 音声通知 ---
   useEffect(() => {
+    if (notificationType !== 'voice') return;
+
     const NOTIFICATION_THRESHOLD = 40; // 猫背スコアの閾値
     const NOTIFICATION_DELAY = 5000; // 5秒
     const NOTIFICATION_COOLDOWN = 60000; // 60秒
@@ -132,7 +135,7 @@ export default function Home() {
         notificationTimer.current = null;
       }
     }
-  }, [slouchScore, lastNotificationTime]);
+  }, [slouchScore, lastNotificationTime, notificationType]);
 
   const borderColor = `hsl(${120 * (1 - slouchScore / 100)}, 100%, 50%)`;
 
@@ -155,6 +158,42 @@ export default function Home() {
       <p className="mt-4 text-sm text-gray-400">
         ※ カメラ映像はローカル処理のみ。肩が見えなくてもOK。
       </p>
+
+      <div className="mt-8 text-center">
+        <h2 className="text-lg font-medium text-gray-300 mb-3">通知方法</h2>
+        <div className="flex justify-center items-center space-x-6">
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <input
+              type="radio"
+              name="notificationType"
+              value="none"
+              checked={notificationType === 'none'}
+              onChange={(e) => setNotificationType(e.target.value)}
+            />
+            <span className="text-gray-400">なし</span>
+          </label>
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <input
+              type="radio"
+              name="notificationType"
+              value="voice"
+              checked={notificationType === 'voice'}
+              onChange={(e) => setNotificationType(e.target.value)}
+            />
+            <span className="text-gray-400">音声</span>
+          </label>
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <input
+              type="radio"
+              name="notificationType"
+              value="desktop"
+              checked={notificationType === 'desktop'}
+              onChange={(e) => setNotificationType(e.target.value)}
+            />
+            <span className="text-gray-400">デスクトップ</span>
+          </label>
+        </div>
+      </div>
     </main>
   );
 }
