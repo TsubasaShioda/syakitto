@@ -109,10 +109,17 @@ export default function Home() {
     setSlouchScore(avg);
   };
 
-  // --- 音声通知 ---
+  // --- デスクトップ通知の許可 ---
   useEffect(() => {
-    if (notificationType !== 'voice') return;
+    if (notificationType === 'desktop') {
+      if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+        Notification.requestPermission();
+      }
+    }
+  }, [notificationType]);
 
+  // --- 通知トリガー ---
+  useEffect(() => {
     const NOTIFICATION_THRESHOLD = 40; // 猫背スコアの閾値
     const NOTIFICATION_DELAY = 5000; // 5秒
     const NOTIFICATION_COOLDOWN = 60000; // 60秒
@@ -122,9 +129,16 @@ export default function Home() {
     if (slouchScore > NOTIFICATION_THRESHOLD) {
       if (!notificationTimer.current && now - lastNotificationTime > NOTIFICATION_COOLDOWN) {
         notificationTimer.current = setTimeout(() => {
-          const utterance = new SpeechSynthesisUtterance("猫背になっています。姿勢を直してください。");
-          utterance.lang = "ja-JP";
-          speechSynthesis.speak(utterance);
+          if (notificationType === 'voice') {
+            const utterance = new SpeechSynthesisUtterance("猫背になっています。姿勢を直してください。");
+            utterance.lang = "ja-JP";
+            speechSynthesis.speak(utterance);
+          } else if (notificationType === 'desktop' && Notification.permission === 'granted') {
+            new Notification("syakitto", {
+              body: "猫背になっています！姿勢を正しましょう。",
+              silent: true, // 音は鳴らさない
+            });
+          }
           setLastNotificationTime(Date.now());
           notificationTimer.current = null; // タイマーをリセット
         }, NOTIFICATION_DELAY);
