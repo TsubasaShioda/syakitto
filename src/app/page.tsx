@@ -11,6 +11,8 @@ export default function Home() {
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [slouchScore, setSlouchScore] = useState(0);
   const scoreHistory = useRef<number[]>([]);
+  const notificationTimer = useRef<NodeJS.Timeout | null>(null);
+  const [lastNotificationTime, setLastNotificationTime] = useState(0);
 
   // --- 初期化 ---
   useEffect(() => {
@@ -105,6 +107,32 @@ export default function Home() {
     const avg = history.reduce((a, b) => a + b, 0) / history.length;
     setSlouchScore(avg);
   };
+
+  // --- 音声通知 ---
+  useEffect(() => {
+    const NOTIFICATION_THRESHOLD = 40; // 猫背スコアの閾値
+    const NOTIFICATION_DELAY = 5000; // 5秒
+    const NOTIFICATION_COOLDOWN = 60000; // 60秒
+
+    const now = Date.now();
+
+    if (slouchScore > NOTIFICATION_THRESHOLD) {
+      if (!notificationTimer.current && now - lastNotificationTime > NOTIFICATION_COOLDOWN) {
+        notificationTimer.current = setTimeout(() => {
+          const utterance = new SpeechSynthesisUtterance("猫背になっています。姿勢を直してください。");
+          utterance.lang = "ja-JP";
+          speechSynthesis.speak(utterance);
+          setLastNotificationTime(Date.now());
+          notificationTimer.current = null; // タイマーをリセット
+        }, NOTIFICATION_DELAY);
+      }
+    } else {
+      if (notificationTimer.current) {
+        clearTimeout(notificationTimer.current);
+        notificationTimer.current = null;
+      }
+    }
+  }, [slouchScore, lastNotificationTime]);
 
   const borderColor = `hsl(${120 * (1 - slouchScore / 100)}, 100%, 50%)`;
 
