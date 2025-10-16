@@ -24,6 +24,7 @@ export default function Home() {
   const [notificationType, setNotificationType] = useState("voice");
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [isContinuouslyNotifying, setIsContinuouslyNotifying] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
 
 
@@ -64,7 +65,7 @@ export default function Home() {
 
   // --- 軽量ループ（2FPS） ---
   useEffect(() => {
-    if (!detector || !isCameraReady || !videoRef.current) return;
+    if (isPaused || !detector || !isCameraReady || !videoRef.current) return;
 
     const analyze = async () => {
       try {
@@ -80,7 +81,7 @@ export default function Home() {
 
     const intervalId = setInterval(analyze, 500); // 2FPS (0.5秒ごと)
     return () => clearInterval(intervalId);
-  }, [detector, isCameraReady]);
+  }, [isPaused, detector, isCameraReady]);
 
   // --- 猫背スコア計算 ---
   const calculateSlouchScore = (keypoints: poseDetection.Keypoint[]): number | null => {
@@ -145,6 +146,7 @@ export default function Home() {
 
   // --- 通知トリガー ---
   useEffect(() => {
+    if (isPaused) return;
     const { threshold, delay, reNotificationMode, cooldownTime } = settings;
     const now = Date.now();
 
@@ -171,11 +173,11 @@ export default function Home() {
         setIsContinuouslyNotifying(false);
       }
     }
-  }, [slouchScore, lastNotificationTime, settings, isContinuouslyNotifying, triggerNotification]);
+  }, [slouchScore, lastNotificationTime, settings, isContinuouslyNotifying, triggerNotification, isPaused]);
 
   // --- 連続通知の実行 ---
   useEffect(() => {
-    if (!isContinuouslyNotifying) return;
+    if (!isContinuouslyNotifying || isPaused) return;
 
     // 最初の通知を実行
     triggerNotification();
@@ -189,7 +191,7 @@ export default function Home() {
     return () => {
       clearInterval(interval);
     };
-  }, [isContinuouslyNotifying, settings.continuousInterval, triggerNotification]);
+  }, [isContinuouslyNotifying, settings.continuousInterval, triggerNotification, isPaused]);
 
   const borderColor = `hsl(${120 * (1 - slouchScore / 100)}, 100%, 50%)`;
 
@@ -201,13 +203,27 @@ export default function Home() {
         {Math.round(slouchScore)}%
       </p>
 
-      <video
-        ref={videoRef}
-        width={480}
-        height={360}
-        className="rounded-lg border border-gray-700"
-        style={{ transform: "scaleX(-1)" }}
-      />
+      <div className="relative w-max mx-auto mb-4">
+        <video
+          ref={videoRef}
+          width={480}
+          height={360}
+          className="rounded-lg border border-gray-700"
+          style={{ transform: "scaleX(-1)" }}
+        />
+        {isPaused && (
+          <div className="absolute inset-0 bg-black bg-opacity-80 flex items-center justify-center rounded-lg">
+            <p className="text-white text-2xl font-bold">PAUSED</p>
+          </div>
+        )}
+      </div>
+
+      <button
+        onClick={() => setIsPaused(!isPaused)}
+        className="w-40 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 transition-colors"
+      >
+        {isPaused ? '▶ 再開' : '❚❚ 一時停止'}
+      </button>
 
       <p className="mt-4 text-sm text-gray-400">
         ※ カメラ映像はローカル処理のみ。肩が見えなくてもOK。
