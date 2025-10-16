@@ -1,9 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import * as poseDetection from "@tensorflow-models/pose-detection";
 import * as tf from "@tensorflow/tfjs-core";
 import "@tensorflow/tfjs-backend-webgl";
+
+const DEFAULT_SETTINGS = {
+  threshold: 40, // %
+  delay: 5, // seconds
+  reNotificationMode: 'cooldown', // 'cooldown' or 'continuous'
+  cooldownTime: 60, // seconds
+  continuousInterval: 10, // seconds
+};
 
 export default function Home() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -14,6 +22,10 @@ export default function Home() {
   const notificationTimer = useRef<NodeJS.Timeout | null>(null);
   const [lastNotificationTime, setLastNotificationTime] = useState(0);
   const [notificationType, setNotificationType] = useState("voice");
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [isContinuouslyNotifying, setIsContinuouslyNotifying] = useState(false);
+
+
 
   // --- 初期化 ---
   useEffect(() => {
@@ -109,6 +121,19 @@ export default function Home() {
     setSlouchScore(avg);
   };
 
+  const triggerNotification = useCallback(() => {
+    if (notificationType === 'voice') {
+      const utterance = new SpeechSynthesisUtterance("猫背になっています。姿勢を直してください。");
+      utterance.lang = "ja-JP";
+      speechSynthesis.speak(utterance);
+    } else if (notificationType === 'desktop' && Notification.permission === 'granted') {
+      new Notification("syakitto", {
+        body: "猫背になっています！姿勢を正しましょう。",
+        silent: true,
+      });
+    }
+  }, [notificationType]);
+
   // --- デスクトップ通知の許可 ---
   useEffect(() => {
     if (notificationType === 'desktop') {
@@ -120,36 +145,51 @@ export default function Home() {
 
   // --- 通知トリガー ---
   useEffect(() => {
-    const NOTIFICATION_THRESHOLD = 40; // 猫背スコアの閾値
-    const NOTIFICATION_DELAY = 5000; // 5秒
-    const NOTIFICATION_COOLDOWN = 60000; // 60秒
-
+    const { threshold, delay, reNotificationMode, cooldownTime } = settings;
     const now = Date.now();
 
-    if (slouchScore > NOTIFICATION_THRESHOLD) {
-      if (!notificationTimer.current && now - lastNotificationTime > NOTIFICATION_COOLDOWN) {
+    if (slouchScore > threshold) {
+      if (reNotificationMode === 'cooldown' && !notificationTimer.current && now - lastNotificationTime > cooldownTime * 1000) {
         notificationTimer.current = setTimeout(() => {
-          if (notificationType === 'voice') {
-            const utterance = new SpeechSynthesisUtterance("猫背になっています。姿勢を直してください。");
-            utterance.lang = "ja-JP";
-            speechSynthesis.speak(utterance);
-          } else if (notificationType === 'desktop' && Notification.permission === 'granted') {
-            new Notification("syakitto", {
-              body: "猫背になっています！姿勢を正しましょう。",
-              silent: true, // 音は鳴らさない
-            });
-          }
+          triggerNotification();
           setLastNotificationTime(Date.now());
-          notificationTimer.current = null; // タイマーをリセット
-        }, NOTIFICATION_DELAY);
+          notificationTimer.current = null;
+        }, delay * 1000);
+      } else if (reNotificationMode === 'continuous' && !isContinuouslyNotifying) {
+        notificationTimer.current = setTimeout(() => {
+          if (!isContinuouslyNotifying) { // タイマー発火時にもう一度チェック
+            setIsContinuouslyNotifying(true);
+          }
+        }, delay * 1000);
       }
     } else {
       if (notificationTimer.current) {
         clearTimeout(notificationTimer.current);
         notificationTimer.current = null;
       }
+      if (isContinuouslyNotifying) {
+        setIsContinuouslyNotifying(false);
+      }
     }
-  }, [slouchScore, lastNotificationTime, notificationType]);
+  }, [slouchScore, lastNotificationTime, settings, isContinuouslyNotifying, triggerNotification]);
+
+  // --- 連続通知の実行 ---
+  useEffect(() => {
+    if (!isContinuouslyNotifying) return;
+
+    // 最初の通知を実行
+    triggerNotification();
+    setLastNotificationTime(Date.now());
+
+    const interval = setInterval(() => {
+      triggerNotification();
+      setLastNotificationTime(Date.now());
+    }, settings.continuousInterval * 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isContinuouslyNotifying, settings.continuousInterval, triggerNotification]);
 
   const borderColor = `hsl(${120 * (1 - slouchScore / 100)}, 100%, 50%)`;
 
@@ -173,39 +213,120 @@ export default function Home() {
         ※ カメラ映像はローカル処理のみ。肩が見えなくてもOK。
       </p>
 
-      <div className="mt-8 text-center">
-        <h2 className="text-lg font-medium text-gray-300 mb-3">通知方法</h2>
-        <div className="flex justify-center items-center space-x-6">
-          <label className="flex items-center space-x-2 cursor-pointer">
+      <div className="w-full max-w-lg mt-8 p-6 bg-gray-800 border border-gray-700 rounded-lg">
+        <h2 className="text-xl font-bold text-white mb-4">通知設定</h2>
+
+        {/* 通知タイプ */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-300 mb-2">通知タイプ</label>
+          <div className="flex items-center space-x-4">
+            {['none', 'voice', 'desktop'].map(type => (
+              <label key={type} className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="notificationType"
+                  value={type}
+                  checked={notificationType === type}
+                  onChange={(e) => setNotificationType(e.target.value)}
+                />
+                <span className="text-gray-400 capitalize">{type}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* トリガー条件 */}
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label htmlFor="threshold" className="block text-sm font-medium text-gray-300">スコアしきい値 (%)</label>
             <input
-              type="radio"
-              name="notificationType"
-              value="none"
-              checked={notificationType === 'none'}
-              onChange={(e) => setNotificationType(e.target.value)}
+              type="number"
+              id="threshold"
+              value={settings.threshold}
+              onChange={(e) => setSettings(s => ({ ...s, threshold: Number(e.target.value) }))}
+              className="mt-1 block w-full bg-gray-700 border-gray-600 rounded-md shadow-sm text-white p-2"
             />
-            <span className="text-gray-400">なし</span>
-          </label>
-          <label className="flex items-center space-x-2 cursor-pointer">
+          </div>
+          <div>
+            <label htmlFor="delay" className="block text-sm font-medium text-gray-300">継続時間 (秒)</label>
             <input
-              type="radio"
-              name="notificationType"
-              value="voice"
-              checked={notificationType === 'voice'}
-              onChange={(e) => setNotificationType(e.target.value)}
+              type="number"
+              id="delay"
+              value={settings.delay}
+              onChange={(e) => setSettings(s => ({ ...s, delay: Number(e.target.value) }))}
+              className="mt-1 block w-full bg-gray-700 border-gray-600 rounded-md shadow-sm text-white p-2"
             />
-            <span className="text-gray-400">音声</span>
-          </label>
-          <label className="flex items-center space-x-2 cursor-pointer">
-            <input
-              type="radio"
-              name="notificationType"
-              value="desktop"
-              checked={notificationType === 'desktop'}
-              onChange={(e) => setNotificationType(e.target.value)}
-            />
-            <span className="text-gray-400">デスクトップ</span>
-          </label>
+          </div>
+        </div>
+
+        {/* 再通知ルール */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-300 mb-2">再通知ルール</label>
+          <div className="flex items-center space-x-4">
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="radio"
+                name="reNotificationMode"
+                value="cooldown"
+                checked={settings.reNotificationMode === 'cooldown'}
+                onChange={(e) => setSettings(s => ({ ...s, reNotificationMode: e.target.value }))}
+              />
+              <span className="text-gray-400">クールダウン</span>
+            </label>
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="radio"
+                name="reNotificationMode"
+                value="continuous"
+                checked={settings.reNotificationMode === 'continuous'}
+                onChange={(e) => setSettings(s => ({ ...s, reNotificationMode: e.target.value }))}
+              />
+              <span className="text-gray-400">連続通知</span>
+            </label>
+          </div>
+        </div>
+
+        {/* 再通知時間 */}
+        <div className="mb-6">
+        {settings.reNotificationMode === 'cooldown' ? (
+            <div>
+              <label htmlFor="cooldownTime" className="block text-sm font-medium text-gray-300">クールダウン時間 (秒)</label>
+              <input
+                type="number"
+                id="cooldownTime"
+                value={settings.cooldownTime}
+                onChange={(e) => setSettings(s => ({ ...s, cooldownTime: Number(e.target.value) }))}
+                className="mt-1 block w-full bg-gray-700 border-gray-600 rounded-md shadow-sm text-white p-2"
+              />
+            </div>
+          ) : (
+            <div>
+              <label htmlFor="continuousInterval" className="block text-sm font-medium text-gray-300">連続通知の間隔 (秒)</label>
+              <input
+                type="number"
+                id="continuousInterval"
+                value={settings.continuousInterval}
+                onChange={(e) => setSettings(s => ({ ...s, continuousInterval: Number(e.target.value) }))}
+                className="mt-1 block w-full bg-gray-700 border-gray-600 rounded-md shadow-sm text-white p-2"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* アクションボタン */}
+        <div className="mt-6 border-t border-gray-700 pt-6 flex items-center justify-between">
+          <button
+            onClick={() => setSettings(DEFAULT_SETTINGS)}
+            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-500"
+          >
+            設定をリセット
+          </button>
+          <button
+            onClick={() => setLastNotificationTime(0)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500"
+          >
+            クールダウンをリセット
+          </button>
         </div>
       </div>
     </main>
