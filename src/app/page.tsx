@@ -118,7 +118,7 @@ export default function Home() {
   const smoothAndSetScore = (score: number) => {
     const history = scoreHistory.current;
     history.push(score);
-    if (history.length > 10) history.shift();
+    if (history.length > 3) history.shift();
     const avg = history.reduce((a, b) => a + b, 0) / history.length;
     setSlouchScore(avg);
   };
