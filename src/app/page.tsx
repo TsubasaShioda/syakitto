@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import * as poseDetection from "@tensorflow-models/pose-detection";
-import * as tf from "@tensorflow/tfjs-core";
-import "@tensorflow/tfjs-backend-webgl";
+import { usePoseDetection } from "@/app/usePoseDetection";
+import { useDrowsinessDetection } from "@/app/useDrowsinessDetection";
 
 const DEFAULT_SETTINGS = {
   threshold: 40, // %
@@ -11,132 +10,46 @@ const DEFAULT_SETTINGS = {
   reNotificationMode: 'cooldown', // 'cooldown' or 'continuous'
   cooldownTime: 60, // seconds
   continuousInterval: 10, // seconds
+  drowsinessEarThreshold: 0.2,
+  drowsinessTimeThreshold: 2, // seconds
 };
 
 export default function Home() {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [detector, setDetector] = useState<poseDetection.PoseDetector | null>(null);
-  const [isCameraReady, setIsCameraReady] = useState(false);
-  const [slouchScore, setSlouchScore] = useState(0);
-  const scoreHistory = useRef<number[]>([]);
-  const notificationTimer = useRef<NodeJS.Timeout | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isDrowsinessDetectionEnabled, setIsDrowsinessDetectionEnabled] = useState(false);
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+
+  // --- カスタムフック ---
+  const { slouchScore, isCameraReady } = usePoseDetection({ videoRef, isPaused });
+  const { isDrowsy, ear } = useDrowsinessDetection({ 
+    videoRef, 
+    isEnabled: isDrowsinessDetectionEnabled, 
+    isPaused, 
+    settings 
+  });
+
+  // --- 状態管理 ---
+  const [notificationTimer, setNotificationTimer] = useState<NodeJS.Timeout | null>(null);
   const [lastNotificationTime, setLastNotificationTime] = useState(0);
   const [notificationType, setNotificationType] = useState("voice");
-  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [isContinuouslyNotifying, setIsContinuouslyNotifying] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-
-
-  // --- 初期化 ---
-  useEffect(() => {
-    const init = async () => {
-      await tf.ready();
-      await tf.setBackend("webgl");
-      const model = poseDetection.SupportedModels.MoveNet;
-      const detectorConfig = {
-        modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
-      };
-      const poseDetector = await poseDetection.createDetector(model, detectorConfig);
-      setDetector(poseDetector);
-    };
-    init();
-  }, []);
-
-  // --- カメラセットアップ ---
-  useEffect(() => {
-    const setupCamera = async () => {
-      if (!detector || !videoRef.current) return;
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: 480, height: 360 },
-          audio: false,
-        });
-        const video = videoRef.current;
-        video.srcObject = stream;
-        video.onloadedmetadata = () => video.play();
-        video.onplaying = () => setIsCameraReady(true);
-      } catch (error) {
-        console.error("Error accessing camera:", error);
-      }
-    };
-    setupCamera();
-  }, [detector]);
-
-  // --- 軽量ループ（2FPS） ---
-  useEffect(() => {
-    if (isPaused || !detector || !isCameraReady || !videoRef.current) return;
-
-    const analyze = async () => {
-      try {
-        const poses = await detector.estimatePoses(videoRef.current!);
-        if (poses.length > 0) {
-          const score = calculateSlouchScore(poses[0].keypoints);
-          if (score !== null) smoothAndSetScore(score);
-        }
-      } catch (e) {
-        console.warn(e);
-      }
-    };
-
-    const intervalId = setInterval(analyze, 500); // 2FPS (0.5秒ごと)
-    return () => clearInterval(intervalId);
-  }, [isPaused, detector, isCameraReady]);
-
-  // --- 猫背スコア計算 ---
-  const calculateSlouchScore = (keypoints: poseDetection.Keypoint[]): number | null => {
-    const get = (name: string) => keypoints.find((k) => k.name === name);
-    const leftEar = get("left_ear");
-    const rightEar = get("right_ear");
-    const leftEye = get("left_eye");
-    const rightEye = get("right_eye");
-    const leftShoulder = get("left_shoulder");
-    const rightShoulder = get("right_shoulder");
-
-    // 必要最低限の部位（耳 or 目）は必須
-    if (![leftEar, rightEar, leftEye, rightEye].every(kp => kp && kp.score! > 0.4)) return null;
-
-    const earY = (leftEar!.y + rightEar!.y) / 2;
-    const eyeY = (leftEye!.y + rightEye!.y) / 2;
-    const shoulderY = (leftShoulder && rightShoulder) 
-      ? (leftShoulder.y + rightShoulder.y) / 2
-      : eyeY + (eyeY - earY) * 2.2; // 肩が見えない場合の推定位置
-
-    const bodyHeight = Math.abs(shoulderY - eyeY);
-    if (bodyHeight < 40) return null;
-
-    const postureRatio = (shoulderY - earY) / bodyHeight; // 正常: ~0.8, 猫背: ~1.1
-    // console.log("postureRatio:", postureRatio.toFixed(3));
-
-    // 正常0.8以下, 猫背1.1以上
-    const normalized = Math.min(1, Math.max(0, (postureRatio - 0.8) / 0.3));
-    return normalized * 100;
-  };
-
-  // --- スムージング ---
-  const smoothAndSetScore = (score: number) => {
-    const history = scoreHistory.current;
-    history.push(score);
-    if (history.length > 3) history.shift();
-    const avg = history.reduce((a, b) => a + b, 0) / history.length;
-    setSlouchScore(avg);
-  };
-
-  const triggerNotification = useCallback(() => {
+  // --- 通知ロジック ---
+  const triggerNotification = useCallback((message: string) => {
     if (notificationType === 'voice') {
-      const utterance = new SpeechSynthesisUtterance("猫背になっています。姿勢を直してください。");
+      const utterance = new SpeechSynthesisUtterance(message);
       utterance.lang = "ja-JP";
       speechSynthesis.speak(utterance);
     } else if (notificationType === 'desktop' && Notification.permission === 'granted') {
       new Notification("syakitto", {
-        body: "猫背になっています！姿勢を正しましょう。",
+        body: message,
         silent: true,
       });
     }
   }, [notificationType]);
 
-  // --- デスクトップ通知の許可 ---
   useEffect(() => {
     if (notificationType === 'desktop') {
       if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
@@ -145,47 +58,48 @@ export default function Home() {
     }
   }, [notificationType]);
 
-  // --- 通知トリガー ---
+  // 猫背通知トリガー
   useEffect(() => {
     if (isPaused) return;
     const { threshold, delay, reNotificationMode, cooldownTime } = settings;
     const now = Date.now();
 
     if (slouchScore > threshold) {
-      if (reNotificationMode === 'cooldown' && !notificationTimer.current && now - lastNotificationTime > cooldownTime * 1000) {
-        notificationTimer.current = setTimeout(() => {
-          triggerNotification();
+      if (reNotificationMode === 'cooldown' && !notificationTimer && now - lastNotificationTime > cooldownTime * 1000) {
+        const timer = setTimeout(() => {
+          triggerNotification("猫背になっています。姿勢を直してください。");
           setLastNotificationTime(Date.now());
-          notificationTimer.current = null;
+          setNotificationTimer(null);
         }, delay * 1000);
+        setNotificationTimer(timer);
       } else if (reNotificationMode === 'continuous' && !isContinuouslyNotifying) {
-        notificationTimer.current = setTimeout(() => {
-          if (!isContinuouslyNotifying) { // タイマー発火時にもう一度チェック
+        const timer = setTimeout(() => {
+          if (!isContinuouslyNotifying) {
             setIsContinuouslyNotifying(true);
           }
         }, delay * 1000);
+        setNotificationTimer(timer);
       }
     } else {
-      if (notificationTimer.current) {
-        clearTimeout(notificationTimer.current);
-        notificationTimer.current = null;
+      if (notificationTimer) {
+        clearTimeout(notificationTimer);
+        setNotificationTimer(null);
       }
       if (isContinuouslyNotifying) {
         setIsContinuouslyNotifying(false);
       }
     }
-  }, [slouchScore, lastNotificationTime, settings, isContinuouslyNotifying, triggerNotification, isPaused]);
+  }, [slouchScore, lastNotificationTime, settings, isContinuouslyNotifying, triggerNotification, isPaused, notificationTimer]);
 
-  // --- 連続通知の実行 ---
+  // 連続通知
   useEffect(() => {
     if (!isContinuouslyNotifying || isPaused) return;
 
-    // 最初の通知を実行
-    triggerNotification();
+    triggerNotification("猫背になっています。姿勢を直してください。");
     setLastNotificationTime(Date.now());
 
     const interval = setInterval(() => {
-      triggerNotification();
+      triggerNotification("猫背になっています。姿勢を直してください。");
       setLastNotificationTime(Date.now());
     }, settings.continuousInterval * 1000);
 
@@ -194,15 +108,35 @@ export default function Home() {
     };
   }, [isContinuouslyNotifying, settings.continuousInterval, triggerNotification, isPaused]);
 
+  // --- 眠気通知トリガー ---
+  useEffect(() => {
+    if (isDrowsy) {
+      triggerNotification("眠気を検知しました。休憩してください。");
+    }
+  }, [isDrowsy, triggerNotification]);
+
+
   const borderColor = `hsl(${120 * (1 - slouchScore / 100)}, 100%, 50%)`;
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center bg-gray-900 text-white p-6">
       <h1 className="text-3xl font-bold mb-4">syakitto</h1>
-      <p className="text-xl mb-2">猫背スコア</p>
-      <p className="text-5xl font-bold mb-6" style={{ color: borderColor }}>
-        {Math.round(slouchScore)}%
-      </p>
+      <div className="flex space-x-8">
+        <div>
+          <p className="text-xl mb-2 text-center">猫背スコア</p>
+          <p className="text-5xl font-bold mb-6 text-center" style={{ color: borderColor }}>
+            {Math.round(slouchScore)}%
+          </p>
+        </div>
+        {isDrowsinessDetectionEnabled && (
+          <div>
+            <p className="text-xl mb-2 text-center">目の開き具合 (EAR)</p>
+            <p className="text-5xl font-bold mb-6 text-center">
+              {ear.toFixed(2)}
+            </p>
+          </div>
+        )}
+      </div>
 
       <div className="relative w-max mx-auto mb-4">
         <video
@@ -369,6 +303,55 @@ export default function Home() {
                       onChange={(e) => setSettings(s => ({ ...s, continuousInterval: Number(e.target.value) }))}
                       className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer mt-2"
                     />
+                  </div>
+                )}
+              </div>
+
+              {/* 眠気検知 */}
+              <div className="border-t border-gray-700 pt-4">
+                <label htmlFor="drowsinessDetection" className="flex items-center justify-between cursor-pointer text-gray-300">
+                  <span>眠気検知を有効にする</span>
+                  <input
+                    type="checkbox"
+                    id="drowsinessDetection"
+                    checked={isDrowsinessDetectionEnabled}
+                    onChange={(e) => setIsDrowsinessDetectionEnabled(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="relative w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                </label>
+                {isDrowsinessDetectionEnabled && (
+                  <div className="pl-4 mt-4 space-y-4 border-l border-gray-600">
+                    <div>
+                      <label htmlFor="drowsinessEarThreshold" className="block text-sm font-medium text-gray-300">
+                        目の開き具合のしきい値: <span className="font-bold text-blue-400">{settings.drowsinessEarThreshold.toFixed(2)}</span>
+                      </label>
+                      <input
+                        type="range"
+                        id="drowsinessEarThreshold"
+                        min="0.05"
+                        max="0.4"
+                        step="0.01"
+                        value={settings.drowsinessEarThreshold}
+                        onChange={(e) => setSettings(s => ({ ...s, drowsinessEarThreshold: Number(e.target.value) }))}
+                        className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer mt-2"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="drowsinessTimeThreshold" className="block text-sm font-medium text-gray-300">
+                        眠気と判断するまでの時間: <span className="font-bold text-blue-400">{settings.drowsinessTimeThreshold}秒</span>
+                      </label>
+                      <input
+                        type="range"
+                        id="drowsinessTimeThreshold"
+                        min="1"
+                        max="180"
+                        step="1"
+                        value={settings.drowsinessTimeThreshold}
+                        onChange={(e) => setSettings(s => ({ ...s, drowsinessTimeThreshold: Number(e.target.value) }))}
+                        className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer mt-2"
+                      />
+                    </div>
                   </div>
                 )}
               </div>
