@@ -19,6 +19,7 @@ export default function Home() {
   const [isPaused, setIsPaused] = useState(false);
   const [isDrowsinessDetectionEnabled, setIsDrowsinessDetectionEnabled] = useState(false);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // --- カスタムフック ---
   const { slouchScore, isCameraReady } = usePoseDetection({ videoRef, isPaused });
@@ -30,25 +31,44 @@ export default function Home() {
   });
 
   // --- 状態管理 ---
-  const [notificationTimer, setNotificationTimer] = useState<NodeJS.Timeout | null>(null);
+  const [timerId, setTimerId] = useState<NodeJS.Timeout | null>(null);
   const [lastNotificationTime, setLastNotificationTime] = useState(0);
   const [notificationType, setNotificationType] = useState("voice");
+  const [notificationSound, setNotificationSound] = useState("voice");
   const [isContinuouslyNotifying, setIsContinuouslyNotifying] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  const SOUND_OPTIONS = [
+    { id: 1, value: "voice", label: "音声" },
+    { id: 2, value: "Syakiin01.mp3", label: "シャキッ！！" },
+    { id: 3, value: "knock01.mp3", label: "コンコン" },
+    { id: 4, value: "monster-snore01.mp3", label: "いびき" },
+    { id: 5, value: "page06.mp3", label: "ペラっ" },
+    { id: 6, value: "shutter01.mp3", label: "シャッター音" },
+  ];
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // --- 通知ロジック ---
   const triggerNotification = useCallback((message: string) => {
     if (notificationType === 'voice') {
-      const utterance = new SpeechSynthesisUtterance(message);
-      utterance.lang = "ja-JP";
-      speechSynthesis.speak(utterance);
+      if (notificationSound === 'voice') {
+        const utterance = new SpeechSynthesisUtterance(message);
+        utterance.lang = "ja-JP";
+        speechSynthesis.speak(utterance);
+      } else if (notificationSound.endsWith('.mp3')) {
+        if (!audioRef.current) {
+          audioRef.current = new Audio();
+        }
+        audioRef.current.src = `/sounds/${notificationSound}`;
+        audioRef.current.play();
+      }
     } else if (notificationType === 'desktop' && Notification.permission === 'granted') {
       new Notification("syakitto", {
         body: message,
         silent: true,
       });
     }
-  }, [notificationType]);
+  }, [notificationType, notificationSound]);
 
   useEffect(() => {
     if (notificationType === 'desktop') {
@@ -65,31 +85,31 @@ export default function Home() {
     const now = Date.now();
 
     if (slouchScore > threshold) {
-      if (reNotificationMode === 'cooldown' && !notificationTimer && now - lastNotificationTime > cooldownTime * 1000) {
-        const timer = setTimeout(() => {
+      if (reNotificationMode === 'cooldown' && !timerId && now - lastNotificationTime > cooldownTime * 1000) {
+        const newTimerId = setTimeout(() => {
           triggerNotification("猫背になっています。姿勢を直してください。");
           setLastNotificationTime(Date.now());
-          setNotificationTimer(null);
+          setTimerId(null);
         }, delay * 1000);
-        setNotificationTimer(timer);
+        setTimerId(newTimerId);
       } else if (reNotificationMode === 'continuous' && !isContinuouslyNotifying) {
-        const timer = setTimeout(() => {
-          if (!isContinuouslyNotifying) {
+        const newTimerId = setTimeout(() => {
+          if (!isContinuouslyNotifying) { // タイマー発火時にもう一度チェック
             setIsContinuouslyNotifying(true);
           }
         }, delay * 1000);
-        setNotificationTimer(timer);
+        setTimerId(newTimerId);
       }
     } else {
-      if (notificationTimer) {
-        clearTimeout(notificationTimer);
-        setNotificationTimer(null);
+      if (timerId) {
+        clearTimeout(timerId);
+        setTimerId(null);
       }
       if (isContinuouslyNotifying) {
         setIsContinuouslyNotifying(false);
       }
     }
-  }, [slouchScore, lastNotificationTime, settings, isContinuouslyNotifying, triggerNotification, isPaused, notificationTimer]);
+  }, [slouchScore, lastNotificationTime, settings, isContinuouslyNotifying, triggerNotification, isPaused, timerId]);
 
   // 連続通知
   useEffect(() => {
@@ -274,6 +294,24 @@ export default function Home() {
                   </label>
                 </div>
               </div>
+
+              {/* 通知音選択 */}
+              {notificationType === 'voice' && (
+                <div className="border-t border-gray-700 pt-4">
+                  <label htmlFor="notificationSound" className="block text-sm font-medium text-gray-300">通知音</label>
+                  <select
+                    id="notificationSound"
+                    name="notificationSound"
+                    value={notificationSound}
+                    onChange={(e) => setNotificationSound(e.target.value)}
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-600 bg-gray-700 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                  >
+                    {SOUND_OPTIONS.map(option => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               {/* 再通知時間 */}
               <div>
