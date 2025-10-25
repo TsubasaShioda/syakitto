@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { usePoseDetection } from "@/app/usePoseDetection";
 import { useDrowsinessDetection } from "@/app/useDrowsinessDetection";
+import { useSession, signIn, signOut } from 'next-auth/react';
 
 const DEFAULT_SETTINGS = {
   threshold: 40, // %
@@ -15,6 +16,10 @@ const DEFAULT_SETTINGS = {
 };
 
 export default function Home() {
+  const { data: session } = useSession();
+  console.log('[Home Component] Session:', session);
+  console.log('[Home Component] Session User ID:', session?.user?.id);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [isDrowsinessDetectionEnabled, setIsDrowsinessDetectionEnabled] = useState(false);
@@ -38,6 +43,7 @@ export default function Home() {
 
   // --- 通知ロジック ---
   const triggerNotification = useCallback((message: string) => {
+    console.log('[triggerNotification] Checking session.user.id:', session?.user?.id);
     if (notificationType === 'voice') {
       const utterance = new SpeechSynthesisUtterance(message);
       utterance.lang = "ja-JP";
@@ -47,8 +53,20 @@ export default function Home() {
         body: message,
         silent: true,
       });
+    } else if (notificationType === 'line' && session?.user?.id) {
+      // LINE通知のAPIを呼び出す
+      fetch('/api/send-line-message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: session.user.id,
+          message: message,
+        }),
+      });
     }
-  }, [notificationType]);
+  }, [notificationType, session]);
 
   useEffect(() => {
     if (notificationType === 'desktop') {
@@ -67,7 +85,7 @@ export default function Home() {
     if (slouchScore > threshold) {
       if (reNotificationMode === 'cooldown' && !notificationTimer && now - lastNotificationTime > cooldownTime * 1000) {
         const timer = setTimeout(() => {
-          triggerNotification("猫背になっています。姿勢を直してください。");
+          triggerNotification("ピシッとして！");
           setLastNotificationTime(Date.now());
           setNotificationTimer(null);
         }, delay * 1000);
@@ -111,7 +129,7 @@ export default function Home() {
   // --- 眠気通知トリガー ---
   useEffect(() => {
     if (isDrowsy) {
-      triggerNotification("眠気を検知しました。休憩してください。");
+      triggerNotification("シャキッとして！");
     }
   }, [isDrowsy, triggerNotification]);
 
@@ -121,6 +139,23 @@ export default function Home() {
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center bg-gray-900 text-white p-6">
       <h1 className="text-3xl font-bold mb-4">syakitto</h1>
+      <div className="absolute top-4 right-4">
+        {session ? (
+          <button
+            onClick={() => signOut()}
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-500 transition-colors"
+          >
+            ログアウト
+          </button>
+        ) : (
+          <button
+            onClick={() => signIn('line')}
+            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-500 transition-colors"
+          >
+            LINEでログイン
+          </button>
+        )}
+      </div>
       <div className="flex space-x-8">
         <div>
           <p className="text-xl mb-2 text-center">猫背スコア</p>
@@ -196,6 +231,19 @@ export default function Home() {
             />
             <span className="text-gray-400">デスクトップ</span>
           </label>
+          {session && (
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="radio"
+                name="notificationType"
+                value="line"
+                checked={notificationType === 'line'}
+                onChange={(e) => setNotificationType(e.target.value)}
+                className="form-radio h-4 w-4 bg-gray-900 border-gray-600 text-blue-500 focus:ring-blue-500"
+              />
+              <span className="text-gray-400">LINE</span>
+            </label>
+          )}
         </div>
       </div>
 
