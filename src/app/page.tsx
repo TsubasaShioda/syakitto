@@ -26,7 +26,7 @@ export default function Home() {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
 
   // --- カスタムフック ---
-  const { slouchScore, isCameraReady } = usePoseDetection({ videoRef, isPaused });
+  const { slouchScore } = usePoseDetection({ videoRef, isPaused });
   const { isDrowsy, ear } = useDrowsinessDetection({ 
     videoRef, 
     isEnabled: isDrowsinessDetectionEnabled, 

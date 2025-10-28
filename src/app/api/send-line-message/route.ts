@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { ClientConfig, Client, MessageAPIResponseBase } from '@line/bot-sdk'
+import { ClientConfig, Client, MessageAPIResponseBase, TextMessage } from '@line/bot-sdk'
 import { supabase } from '@/lib/supabase'
 
 const clientConfig: ClientConfig = {
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'LINE User ID not found for the given user' }, { status: 404 })
     }
 
-    const messagePayload = {
+    const messagePayload: TextMessage = {
       type: 'text',
       text: message,
     }
