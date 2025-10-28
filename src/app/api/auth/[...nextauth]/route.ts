@@ -51,7 +51,7 @@ const handler = NextAuth({
         }
         if (data && data.length > 0) {
           user.id = data[0].id // Store Supabase user ID in NextAuth user object
-          return user; // Explicitly return the modified user object
+          return true;
         }
       }
       return true // If not a line provider, or no data, still allow sign in
