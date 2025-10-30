@@ -7,9 +7,7 @@ import { useDrowsinessDetection } from "@/app/useDrowsinessDetection";
 const DEFAULT_SETTINGS = {
   threshold: 40, // %
   delay: 5, // seconds
-  reNotificationMode: 'cooldown', // 'cooldown' or 'continuous'
   cooldownTime: 60, // seconds
-  continuousInterval: 10, // seconds
   drowsinessEarThreshold: 0.2,
   drowsinessTimeThreshold: 2, // seconds
 };
@@ -19,9 +17,10 @@ export default function Home() {
   const [isPaused, setIsPaused] = useState(false);
   const [isDrowsinessDetectionEnabled, setIsDrowsinessDetectionEnabled] = useState(false);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // --- カスタムフック ---
-  const { slouchScore, isCameraReady } = usePoseDetection({ videoRef, isPaused });
+  const { slouchScore } = usePoseDetection({ videoRef, isPaused });
   const { isDrowsy, ear } = useDrowsinessDetection({ 
     videoRef, 
     isEnabled: isDrowsinessDetectionEnabled, 
@@ -33,8 +32,6 @@ export default function Home() {
   const [notificationTimer, setNotificationTimer] = useState<NodeJS.Timeout | null>(null);
   const [lastNotificationTime, setLastNotificationTime] = useState(0);
   const [notificationType, setNotificationType] = useState("voice");
-  const [isContinuouslyNotifying, setIsContinuouslyNotifying] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // --- 通知ロジック ---
   const triggerNotification = useCallback((message: string) => {
@@ -56,27 +53,21 @@ export default function Home() {
         Notification.requestPermission();
       }
     }
+    setLastNotificationTime(0); // クールダウンタイムをリセット
   }, [notificationType]);
 
   // 猫背通知トリガー
   useEffect(() => {
     if (isPaused) return;
-    const { threshold, delay, reNotificationMode, cooldownTime } = settings;
+    const { threshold, delay, cooldownTime } = settings;
     const now = Date.now();
 
     if (slouchScore > threshold) {
-      if (reNotificationMode === 'cooldown' && !notificationTimer && now - lastNotificationTime > cooldownTime * 1000) {
+      if (!notificationTimer && now - lastNotificationTime > cooldownTime * 1000) {
         const timer = setTimeout(() => {
           triggerNotification("猫背になっています。姿勢を直してください。");
           setLastNotificationTime(Date.now());
           setNotificationTimer(null);
-        }, delay * 1000);
-        setNotificationTimer(timer);
-      } else if (reNotificationMode === 'continuous' && !isContinuouslyNotifying) {
-        const timer = setTimeout(() => {
-          if (!isContinuouslyNotifying) {
-            setIsContinuouslyNotifying(true);
-          }
         }, delay * 1000);
         setNotificationTimer(timer);
       }
@@ -85,28 +76,8 @@ export default function Home() {
         clearTimeout(notificationTimer);
         setNotificationTimer(null);
       }
-      if (isContinuouslyNotifying) {
-        setIsContinuouslyNotifying(false);
-      }
     }
-  }, [slouchScore, lastNotificationTime, settings, isContinuouslyNotifying, triggerNotification, isPaused, notificationTimer]);
-
-  // 連続通知
-  useEffect(() => {
-    if (!isContinuouslyNotifying || isPaused) return;
-
-    triggerNotification("猫背になっています。姿勢を直してください。");
-    setLastNotificationTime(Date.now());
-
-    const interval = setInterval(() => {
-      triggerNotification("猫背になっています。姿勢を直してください。");
-      setLastNotificationTime(Date.now());
-    }, settings.continuousInterval * 1000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [isContinuouslyNotifying, settings.continuousInterval, triggerNotification, isPaused]);
+  }, [slouchScore, lastNotificationTime, settings, triggerNotification, isPaused, notificationTimer]);
 
   // --- 眠気通知トリガー ---
   useEffect(() => {
@@ -246,65 +217,19 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* 再通知ルール */}
-              <div className="border-t border-gray-700 pt-4">
-                <label className="block text-sm font-medium text-gray-300 mb-2">通知の繰り返し</label>
-                <div className="flex items-center space-x-4">
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="reNotificationMode"
-                      value="cooldown"
-                      checked={settings.reNotificationMode === 'cooldown'}
-                      onChange={(e) => setSettings(s => ({ ...s, reNotificationMode: e.target.value }))}
-                      className="form-radio h-4 w-4 bg-gray-900 border-gray-600 text-blue-500 focus:ring-blue-500"
-                    />
-                    <span className="text-gray-400">クールダウン</span>
-                  </label>
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="reNotificationMode"
-                      value="continuous"
-                      checked={settings.reNotificationMode === 'continuous'}
-                      onChange={(e) => setSettings(s => ({ ...s, reNotificationMode: e.target.value }))}
-                      className="form-radio h-4 w-4 bg-gray-900 border-gray-600 text-blue-500 focus:ring-blue-500"
-                    />
-                    <span className="text-gray-400">連続通知</span>
-                  </label>
-                </div>
-              </div>
-
               {/* 再通知時間 */}
               <div>
-                {settings.reNotificationMode === 'cooldown' ? (
-                  <div>
-                    <label htmlFor="cooldownTime" className="block text-sm font-medium text-gray-300">通知の間隔: <span className="font-bold text-blue-400">{settings.cooldownTime}秒</span></label>
-                    <input
-                      type="range"
-                      id="cooldownTime"
-                      min="10"
-                      max="180"
-                      step="5"
-                      value={settings.cooldownTime}
-                      onChange={(e) => setSettings(s => ({ ...s, cooldownTime: Number(e.target.value) }))}
-                      className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer mt-2"
-                    />
-                  </div>
-                ) : (
-                  <div>
-                    <label htmlFor="continuousInterval" className="block text-sm font-medium text-gray-300">連続通知の間隔: <span className="font-bold text-blue-400">{settings.continuousInterval}秒</span></label>
-                    <input
-                      type="range"
-                      id="continuousInterval"
-                      min="5"
-                      max="60"
-                      value={settings.continuousInterval}
-                      onChange={(e) => setSettings(s => ({ ...s, continuousInterval: Number(e.target.value) }))}
-                      className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer mt-2"
-                    />
-                  </div>
-                )}
+                <label htmlFor="cooldownTime" className="block text-sm font-medium text-gray-300">通知の間隔: <span className="font-bold text-blue-400">{settings.cooldownTime}秒</span></label>
+                <input
+                  type="range"
+                  id="cooldownTime"
+                  min="5"
+                  max="180"
+                  step="5"
+                  value={settings.cooldownTime}
+                  onChange={(e) => setSettings(s => ({ ...s, cooldownTime: Number(e.target.value) }))}
+                  className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer mt-2"
+                />
               </div>
 
               {/* 眠気検知 */}
