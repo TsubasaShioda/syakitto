@@ -26,6 +26,7 @@ Webカメラを使い、リアルタイムで猫背を検知してスコアを�
 - [TensorFlow.js](https://www.tensorflow.org/js)
   - [@tensorflow-models/pose-detection](https://github.com/tensorflow/tfjs-models/tree/master/pose-detection) (MoveNet)
 - [Tailwind CSS](https://tailwindcss.com/)
+- [Electron](https://www.electronjs.org/) (デスクトップアプリ版)
 
 ## 開発者向けセットアップ
 
@@ -46,6 +47,34 @@ Webカメラを使い、リアルタイムで猫背を検知してスコアを�
     ```
 4.  **ブラウザで確認:**
     [http://localhost:3000](http://localhost:3000) をブラウザで開く。
+
+### Electron デスクトップアプリ開発
+
+デスクトップアプリとして開発する場合は、以下のコマンドを使用する。
+
+1.  **Electron開発モードの起動:**
+    ```bash
+    npm run electron:dev
+    ```
+    このコマンドは、Next.jsの開発サーバーとElectronアプリを同時に起動する。
+
+2.  **Electronアプリの単体起動:**
+    ```bash
+    npm run electron:start
+    ```
+
+3.  **デスクトップアプリのパッケージング:**
+    ```bash
+    # macOS向け
+    npm run electron:package:mac
+
+    # Windows向け
+    npm run electron:package:win
+
+    # Linux向け
+    npm run electron:package:linux
+    ```
+    パッケージ化されたアプリは `release/` ディレクトリに出力される。
 
 ### ビルド確認
 

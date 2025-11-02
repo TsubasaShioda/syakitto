@@ -2,11 +2,41 @@
   "name": "posture-checker",
   "version": "0.1.0",
   "private": true,
+  "main": "dist/electron/main.js",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "electron:build": "tsc -p tsconfig.electron.json",
+    "electron:start": "npm run electron:build && cross-env NODE_ENV=development electron .",
+    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:3000 && npm run electron:start\"",
+    "electron:package": "npm run build && next export && npm run electron:build && electron-builder",
+    "electron:package:mac": "npm run electron:package -- --mac",
+    "electron:package:win": "npm run electron:package -- --win",
+    "electron:package:linux": "npm run electron:package -- --linux"
+  },
+  "build": {
+    "appId": "com.postureChecker.app",
+    "productName": "Posture Checker",
+    "files": [
+      "dist/electron/**/*",
+      "out/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "mac": {
+      "category": "public.app-category.healthcare-fitness",
+      "target": ["dmg", "zip"]
+    },
+    "win": {
+      "target": ["nsis", "portable"]
+    },
+    "linux": {
+      "target": ["AppImage", "deb"]
+    }
   },
   "dependencies": {
     "@tensorflow-models/face-landmarks-detection": "^1.0.6",
@@ -24,9 +54,14 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^39.0.0",
+    "electron-builder": "^26.0.12",
     "eslint": "^9",
     "eslint-config-next": "15.5.5",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wait-on": "^9.0.1"
   }
 }
