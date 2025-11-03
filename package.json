@@ -11,10 +11,11 @@
     "electron:build": "tsc -p tsconfig.electron.json",
     "electron:start": "npm run electron:build && cross-env NODE_ENV=development electron .",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:3000 && npm run electron:start\"",
-    "electron:package": "npm run build && next export && npm run electron:build && electron-builder",
+    "electron:package": "npm run build && npm run electron:build && electron-builder",
     "electron:package:mac": "npm run electron:package -- --mac",
     "electron:package:win": "npm run electron:package -- --win",
-    "electron:package:linux": "npm run electron:package -- --linux"
+    "electron:package:linux": "npm run electron:package -- --linux",
+    "postinstall": "electron-builder install-app-deps"
   },
   "build": {
     "appId": "com.postureChecker.app",
@@ -27,15 +28,32 @@
     "directories": {
       "output": "release"
     },
+    "asarUnpack": [
+      "**/node_modules/sharp/**",
+      "**/node_modules/@img/**"
+    ],
     "mac": {
       "category": "public.app-category.healthcare-fitness",
-      "target": ["dmg", "zip"]
+      "target": [
+        {
+          "target": "default",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ]
     },
     "win": {
-      "target": ["nsis", "portable"]
+      "target": [
+        "nsis",
+        "portable"
+      ]
     },
     "linux": {
-      "target": ["AppImage", "deb"]
+      "target": [
+        "AppImage",
+        "deb"
+      ]
     }
   },
   "dependencies": {
@@ -45,6 +63,7 @@
     "@tensorflow/tfjs-converter": "^4.22.0",
     "@tensorflow/tfjs-core": "^4.22.0",
     "next": "15.5.5",
+    "node-addon-api": "^8.5.0",
     "react": "19.1.0",
     "react-dom": "19.1.0"
   },
@@ -57,9 +76,10 @@
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
     "electron": "^39.0.0",
-    "electron-builder": "^26.0.12",
+    "electron-builder": "25.1.8",
     "eslint": "^9",
     "eslint-config-next": "15.5.5",
+    "sharp": "0.34.4",
     "tailwindcss": "^4",
     "typescript": "^5",
     "wait-on": "^9.0.1"
