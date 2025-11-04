@@ -1,16 +1,49 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePoseDetection } from "@/app/usePoseDetection";
 import { useDrowsinessDetection } from "@/app/useDrowsinessDetection";
+import { useNotification } from "@/app/useNotification"; // インポート
 
-const DEFAULT_SETTINGS = {
+const DEFAULT_SETTINGS: {
+  threshold: number;
+  delay: number;
+  reNotificationMode: 'cooldown' | 'continuous';
+  cooldownTime: number;
+  continuousInterval: number;
+  drowsinessEarThreshold: number;
+  drowsinessTimeThreshold: number;
+} = {
   threshold: 40, // %
   delay: 5, // seconds
+  reNotificationMode: 'cooldown',
   cooldownTime: 60, // seconds
+  continuousInterval: 10, // これを追加
   drowsinessEarThreshold: 0.2,
   drowsinessTimeThreshold: 2, // seconds
 };
+
+// HSL to RGB 変換関数 (canvas で使うため)
+function hslToRgb(h: number, s: number, l: number): [number, number, number] {
+  s /= 100;
+  l /= 100;
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+  const m = l - c / 2;
+  let r = 0,
+    g = 0,
+    b = 0;
+  if (0 <= h && h < 60) { r = c; g = x; b = 0; }
+  else if (60 <= h && h < 120) { r = x; g = c; b = 0; }
+  else if (120 <= h && h < 180) { r = 0; g = c; b = x; }
+  else if (180 <= h && h < 240) { r = 0; g = x; b = c; }
+  else if (240 <= h && h < 300) { r = x; g = 0; b = c; }
+  else if (300 <= h && h < 360) { r = c; g = 0; b = x; }
+  r = Math.round((r + m) * 255);
+  g = Math.round((g + m) * 255);
+  b = Math.round((b + m) * 255);
+  return [r, g, b];
+}
 
 export default function Home() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -18,94 +51,62 @@ export default function Home() {
   const [isDrowsinessDetectionEnabled, setIsDrowsinessDetectionEnabled] = useState(false);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isElectron, setIsElectron] = useState(false);
+
+  useEffect(() => {
+    if (window.electron?.isElectron) {
+      setIsElectron(true);
+    }
+  }, []);
 
   // --- カスタムフック ---
   const { slouchScore } = usePoseDetection({ videoRef, isPaused });
-  const { isDrowsy, ear } = useDrowsinessDetection({ 
-    videoRef, 
-    isEnabled: isDrowsinessDetectionEnabled, 
-    isPaused, 
-    settings 
+  const { isDrowsy, ear } = useDrowsinessDetection({
+    videoRef,
+    isEnabled: isDrowsinessDetectionEnabled,
+    isPaused,
+    settings
   });
 
-  // --- 状態管理 ---
-  const [timerId, setTimerId] = useState<NodeJS.Timeout | null>(null);
-  const [lastNotificationTime, setLastNotificationTime] = useState(0);
-  const [notificationType, setNotificationType] = useState("voice");
-  const [notificationSound, setNotificationSound] = useState("voice");
+  // useNotification フックを呼び出す
+  const {
+    notificationType,
+    setNotificationType,
+    notificationSound,
+    setNotificationSound,
+    SOUND_OPTIONS,
+  } = useNotification({
+    slouchScore,
+    isDrowsy,
+    isPaused,
+    settings,
+  });
 
-  const SOUND_OPTIONS = [
-    { id: 1, value: "voice", label: "音声" },
-    { id: 2, value: "Syakiin01.mp3", label: "シャキッ！！" },
-    { id: 3, value: "knock01.mp3", label: "コンコン" },
-    { id: 4, value: "monster-snore01.mp3", label: "いびき" },
-    { id: 5, value: "page06.mp3", label: "ペラっ" },
-    { id: 6, value: "shutter01.mp3", label: "シャッター音" },
-  ];
-
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  // --- 通知ロジック ---
-  const triggerNotification = useCallback((message: string) => {
-    if (notificationType === 'voice') {
-      if (notificationSound === 'voice') {
-        const utterance = new SpeechSynthesisUtterance(message);
-        utterance.lang = "ja-JP";
-        speechSynthesis.speak(utterance);
-      } else if (notificationSound.endsWith('.mp3')) {
-        if (!audioRef.current) {
-          audioRef.current = new Audio();
-        }
-        audioRef.current.src = `/sounds/${notificationSound}`;
-        audioRef.current.play();
-      }
-    } else if (notificationType === 'desktop' && Notification.permission === 'granted') {
-      new Notification("syakitto", {
-        body: message,
-        silent: true,
-      });
-    }
-  }, [notificationType, notificationSound]);
-
+  // アイコンを生成してメインプロセスに送信
   useEffect(() => {
-    if (notificationType === 'desktop') {
-      if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-        Notification.requestPermission();
+    if (window.electron?.updateTrayIcon) {
+      const canvas = document.createElement('canvas');
+      // Retina対応と、macOSメニューバーの標準的な最大サイズを考慮
+      const size = 32; 
+      canvas.width = size;
+      canvas.height = size;
+      const context = canvas.getContext('2d');
+
+      if (context) {
+        const hue = 120 * (1 - Math.min(slouchScore, 100) / 100);
+        const [r, g, b] = hslToRgb(hue, 100, 50);
+        
+        // 円を描画
+        context.fillStyle = `rgb(${r}, ${g}, ${b})`;
+        context.beginPath();
+        context.arc(size / 2, size / 2, size / 2 - 2, 0, 2 * Math.PI); // 少し余白を持たせる
+        context.fill();
+
+        const dataUrl = canvas.toDataURL('image/png');
+        window.electron.updateTrayIcon(dataUrl);
       }
     }
-    setLastNotificationTime(0); // クールダウンタイムをリセット
-  }, [notificationType]);
-
-  // 猫背通知トリガー
-  useEffect(() => {
-    if (isPaused) return;
-    const { threshold, delay, cooldownTime } = settings;
-    const now = Date.now();
-
-    if (slouchScore > threshold) {
-      if (!timerId && now - lastNotificationTime > cooldownTime * 1000) {
-        const newTimerId = setTimeout(() => {
-          triggerNotification("猫背になっています。姿勢を直してください。");
-          setLastNotificationTime(Date.now());
-          setTimerId(null);
-        }, delay * 1000);
-        setTimerId(newTimerId);
-      }
-    } else {
-      if (timerId) {
-        clearTimeout(timerId);
-        setTimerId(null);
-      }
-    }
-  }, [slouchScore, lastNotificationTime, settings, triggerNotification, isPaused, timerId]);
-
-  // --- 眠気通知トリガー ---
-  useEffect(() => {
-    if (isDrowsy) {
-      triggerNotification("眠気を検知しました。休憩してください。");
-    }
-  }, [isDrowsy, triggerNotification]);
-
+  }, [slouchScore]);
 
   const borderColor = `hsl(${120 * (1 - slouchScore / 100)}, 100%, 50%)`;
 
@@ -187,6 +188,19 @@ export default function Home() {
             />
             <span className="text-gray-400">デスクトップ</span>
           </label>
+          {isElectron && (
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="radio"
+                name="notificationType"
+                value="menubar"
+                checked={notificationType === 'menubar'}
+                onChange={(e) => setNotificationType(e.target.value)}
+                className="form-radio h-4 w-4 bg-gray-900 border-gray-600 text-blue-500 focus:ring-blue-500"
+              />
+              <span className="text-gray-400">メニューバー</span>
+            </label>
+          )}
         </div>
       </div>
 
