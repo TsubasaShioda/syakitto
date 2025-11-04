@@ -61,7 +61,7 @@ export default function Home() {
   }, []);
 
   // --- カスタムフック ---
-  const { slouchScore } = usePoseDetection({ videoRef, isPaused });
+  const { slouchScore, isCalibrated, calibrate } = usePoseDetection({ videoRef, isPaused });
   const { isDrowsy, ear } = useDrowsinessDetection({
     videoRef,
     isEnabled: isDrowsinessDetectionEnabled,
@@ -146,12 +146,23 @@ export default function Home() {
         )}
       </div>
 
-      <button
-        onClick={() => setIsPaused(!isPaused)}
-        className="w-40 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 transition-colors"
-      >
-        {isPaused ? '▶ 再開' : '❚❚ 一時停止'}
-      </button>
+      <div className="flex space-x-4 mb-4">
+        <button
+          onClick={() => setIsPaused(!isPaused)}
+          className="w-40 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 transition-colors"
+        >
+          {isPaused ? '▶ 再開' : '❚❚ 一時停止'}
+        </button>
+        <button
+          onClick={calibrate}
+          className="w-40 px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-500 transition-colors"
+        >
+          キャリブレーション
+        </button>
+      </div>
+      <p className="text-sm text-gray-400 mb-4">
+        {isCalibrated ? "キャリブレーション済み" : "キャリブレーションされていません"}
+      </p>
 
       {/* 通知タイプ */}
       <div className="mt-6 text-center">
