@@ -13,13 +13,18 @@ interface UsePoseDetectionProps {
 interface UsePoseDetectionReturn {
   slouchScore: number;
   isCameraReady: boolean;
+  isCalibrated: boolean;
+  calibrate: () => void;
 }
 
 export const usePoseDetection = ({ videoRef, isPaused }: UsePoseDetectionProps): UsePoseDetectionReturn => {
   const [detector, setDetector] = useState<poseDetection.PoseDetector | null>(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [slouchScore, setSlouchScore] = useState(0);
+  const [calibratedPose, setCalibratedPose] = useState<poseDetection.Keypoint[] | null>(null);
   const scoreHistory = useRef<number[]>([]);
+
+  const isCalibrated = calibratedPose !== null;
 
   // --- 初期化 ---
   useEffect(() => {
@@ -56,9 +61,25 @@ export const usePoseDetection = ({ videoRef, isPaused }: UsePoseDetectionProps):
     setupCamera();
   }, [detector, videoRef]);
 
+  // --- キャリブレーション ---
+  const calibrate = async () => {
+    if (!detector || !videoRef.current) return;
+    try {
+      const poses = await detector.estimatePoses(videoRef.current);
+      if (poses.length > 0) {
+        setCalibratedPose(poses[0].keypoints);
+        console.log("Calibrated pose:", poses[0].keypoints);
+      }
+    } catch (e) {
+      console.warn("Calibration failed:", e);
+    }
+  };
+
   // --- 猫背スコア計算 ---
   const calculateSlouchScore = (keypoints: poseDetection.Keypoint[]): number | null => {
     const get = (name: string) => keypoints.find((k) => k.name === name);
+    const getCalibrated = (name: string) => calibratedPose?.find((k) => k.name === name);
+
     const leftEar = get("left_ear");
     const rightEar = get("right_ear");
     const leftEye = get("left_eye");
@@ -72,15 +93,42 @@ export const usePoseDetection = ({ videoRef, isPaused }: UsePoseDetectionProps):
     const eyeY = (leftEye!.y + rightEye!.y) / 2;
     const shoulderY = (leftShoulder && rightShoulder)
       ? (leftShoulder.y + rightShoulder.y) / 2
-      : eyeY + (eyeY - earY) * 2.2;
+      : eyeY + (eyeY - earY) * 2.2; // 肩が見えない場合の代替
 
     const bodyHeight = Math.abs(shoulderY - eyeY);
-    if (bodyHeight < 40) return null;
+    if (bodyHeight < 40) return null; // 体の高さが小さすぎる場合は無視
 
-    const postureRatio = (shoulderY - earY) / bodyHeight;
-    const normalized = Math.min(1, Math.max(0, (postureRatio - 0.8) / 0.3));
-    return normalized * 100;
+    // デフォルトのロジックでスコアを計算
+    const defaultPostureRatio = (shoulderY - earY) / bodyHeight;
+    const uncalibratedScore = Math.min(1, Math.max(0, (defaultPostureRatio - 0.8) / 0.3)) * 100;
+
+    // キャリブレーション済みの場合、キャリブレーションスコアを計算し、デフォルトスコアと混ぜる
+    if (calibratedPose) {
+      const calibLeftEar = getCalibrated("left_ear");
+      const calibRightEar = getCalibrated("right_ear");
+      const calibLeftShoulder = getCalibrated("left_shoulder");
+      const calibRightShoulder = getCalibrated("right_shoulder");
+
+      if (!calibLeftEar || !calibRightEar || !calibLeftShoulder || !calibRightShoulder) return null;
+
+      const calibEarY = (calibLeftEar.y + calibRightEar.y) / 2;
+      const calibShoulderY = (calibLeftShoulder.y + calibRightShoulder.y) / 2;
+      const calibBodyHeight = Math.abs(calibShoulderY - eyeY); // 現在の目の高さを使う
+      const calibPostureRatio = (calibShoulderY - calibEarY) / calibBodyHeight;
+
+      const currentPostureRatio = (shoulderY - earY) / bodyHeight;
+
+      const deviation = calibPostureRatio - currentPostureRatio;
+      const calibratedScore = Math.min(1, Math.max(0, deviation / 0.35)) * 100; // 0.35は感度調整
+
+      // 50/50で混ぜる
+      return (uncalibratedScore * 0.5) + (calibratedScore * 0.5);
+    }
+
+    // キャリブレーションされていない場合は、デフォルトスコアを返す
+    return uncalibratedScore;
   };
+
 
   // --- スムージング ---
   const smoothAndSetScore = (score: number) => {
@@ -109,7 +157,7 @@ export const usePoseDetection = ({ videoRef, isPaused }: UsePoseDetectionProps):
 
     const intervalId = setInterval(analyze, 500);
     return () => clearInterval(intervalId);
-  }, [isPaused, detector, isCameraReady, videoRef]);
+  }, [isPaused, detector, isCameraReady, videoRef, calibratedPose]); // calibratedPoseを依存配列に追加
 
-  return { slouchScore, isCameraReady };
+  return { slouchScore, isCameraReady, isCalibrated, calibrate };
 };
