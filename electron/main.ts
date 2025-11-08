@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Notification, Tray, Menu, nativeImage } from 'electron';
+import { app, BrowserWindow, ipcMain, Notification, Tray, Menu, nativeImage, screen } from 'electron';
 import * as path from 'path';
 import { createMainWindow } from './windows/mainWindow';
 
@@ -49,6 +49,42 @@ app.whenReady().then(() => {
       const newImage = nativeImage.createFromDataURL(dataUrl);
       tray.setImage(newImage);
     }
+  });
+
+  // フラッシュ通知用のIPCイベントハンドラ
+  ipcMain.on('flash-screen', () => {
+    const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+    const flashWindow = new BrowserWindow({
+      width,
+      height,
+      x: 0,
+      y: 0,
+      transparent: true,
+      frame: false,
+      alwaysOnTop: true,
+      webPreferences: {
+        preload: path.join(__dirname, 'preload.ts'),
+      },
+    });
+
+    // `flash.html` をロード
+    const flashPath = path.join(__dirname, 'windows', 'flash', 'flash.html');
+    flashWindow.loadFile(flashPath);
+    flashWindow.setVisibleOnAllWorkspaces(true);
+    flashWindow.focus();
+
+
+    // アニメーション終了後にウィンドウを閉じる
+    setTimeout(() => {
+      if (!flashWindow.isDestroyed()) {
+        flashWindow.close();
+      }
+    }, 500); // CSSアニメーションより少し長く待つ
+  });
+
+  ipcMain.on('close-window', () => {
+    const win = BrowserWindow.getFocusedWindow();
+    win?.close();
   });
 });
 

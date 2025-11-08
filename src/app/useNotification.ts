@@ -1,3 +1,4 @@
+// useNotification.ts
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface UseNotificationProps {
@@ -40,6 +41,11 @@ export const useNotification = ({ slouchScore, isDrowsy, isPaused, settings }: U
 
   const triggerNotification = useCallback((message: string) => {
     console.log('triggerNotification called with message:', message);
+
+    // Electron環境でのフラッシュ通知
+    if (notificationType === 'flash' && typeof window !== 'undefined' && window.electron && window.electron.flashScreen) {
+      window.electron.flashScreen();
+    }
 
     // デスクトップ通知 (desktop の場合)
     if (notificationType === 'desktop') {

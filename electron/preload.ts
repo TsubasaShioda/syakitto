@@ -15,21 +15,6 @@ contextBridge.exposeInMainWorld('electron', {
   // 通知関連API
   showNotification: (options: Electron.NotificationConstructorOptions) => ipcRenderer.send('show-notification', options),
   updateTrayIcon: (dataUrl: string) => ipcRenderer.send('update-tray-icon', dataUrl),
+  flashScreen: () => ipcRenderer.send('flash-screen'),
+  closeWindow: () => ipcRenderer.send('close-window'),
 });
-
-// TypeScript用の型定義
-export interface ElectronAPI {
-  platform: NodeJS.Platform;
-  isElectron: boolean;
-  showNotification: (options: Electron.NotificationConstructorOptions) => void;
-  updateTrayIcon: (dataUrl: string) => void;
-  minimizeWindow?: () => void;
-  maximizeWindow?: () => void;
-  closeWindow?: () => void;
-}
-
-declare global {
-  interface Window {
-    electron: ElectronAPI;
-  }
-}

@@ -205,12 +205,12 @@ export default function Home() {
               <input
                 type="radio"
                 name="notificationType"
-                value="menubar"
-                checked={notificationType === 'menubar'}
+                value="flash"
+                checked={notificationType === 'flash'}
                 onChange={(e) => setNotificationType(e.target.value)}
                 className="form-radio h-4 w-4 bg-gray-900 border-gray-600 text-blue-500 focus:ring-blue-500"
               />
-              <span className="text-gray-400">メニューバー</span>
+              <span className="text-gray-400">フラッシュ</span>
             </label>
           )}
         </div>
