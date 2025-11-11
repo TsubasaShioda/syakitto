@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { usePoseDetection } from "@/app/usePoseDetection";
+import { useEffect, useRef, useState, useMemo } from "react";
+import { usePoseDetection, ScoreHistory } from "@/app/usePoseDetection";
 import { useDrowsinessDetection } from "@/app/useDrowsinessDetection";
-import { useNotification } from "@/app/useNotification"; // インポート
+import { useNotification } from "@/app/useNotification";
 
 const DEFAULT_SETTINGS: {
   threshold: number;
@@ -18,21 +18,18 @@ const DEFAULT_SETTINGS: {
   delay: 5, // seconds
   reNotificationMode: 'cooldown',
   cooldownTime: 60, // seconds
-  continuousInterval: 10, // これを追加
+  continuousInterval: 10,
   drowsinessEarThreshold: 0.2,
   drowsinessTimeThreshold: 2, // seconds
 };
 
-// HSL to RGB 変換関数 (canvas で使うため)
 function hslToRgb(h: number, s: number, l: number): [number, number, number] {
   s /= 100;
   l /= 100;
   const c = (1 - Math.abs(2 * l - 1)) * s;
   const x = c * (1 - Math.abs((h / 60) % 2 - 1));
   const m = l - c / 2;
-  let r = 0,
-    g = 0,
-    b = 0;
+  let r = 0, g = 0, b = 0;
   if (0 <= h && h < 60) { r = c; g = x; b = 0; }
   else if (60 <= h && h < 120) { r = x; g = c; b = 0; }
   else if (120 <= h && h < 180) { r = 0; g = c; b = x; }
@@ -44,6 +41,132 @@ function hslToRgb(h: number, s: number, l: number): [number, number, number] {
   b = Math.round((b + m) * 255);
   return [r, g, b];
 }
+
+const PostureReport = ({ scoreHistory, settings }: { scoreHistory: ScoreHistory[], settings: { threshold: number } }) => {
+  const stats = useMemo(() => {
+    if (scoreHistory.length === 0) {
+      return {
+        averageScore: 0,
+        maxScore: 0,
+        totalTime: 0,
+      };
+    }
+
+    const totalScore = scoreHistory.reduce((sum, item) => sum + item.score, 0);
+    const averageScore = totalScore / scoreHistory.length;
+    const maxScore = Math.max(...scoreHistory.map(item => item.score));
+    const totalTime = scoreHistory.length > 1 ? scoreHistory[scoreHistory.length - 1].time - scoreHistory[0].time : 0;
+
+    return { averageScore, maxScore, totalTime };
+  }, [scoreHistory]);
+
+  const formatDuration = (ms: number) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}分 ${seconds}秒`;
+  };
+
+  const LineChart = () => {
+    const width = 500;
+    const height = 150;
+    const margin = { top: 10, right: 10, bottom: 20, left: 30 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+
+    if (scoreHistory.length < 2) {
+      return <div className="flex items-center justify-center h-[150px] text-gray-500">データが不足しています</div>;
+    }
+
+    const startTime = scoreHistory[0].time;
+    const endTime = scoreHistory[scoreHistory.length - 1].time;
+    const totalDuration = endTime - startTime;
+
+    const points = scoreHistory.map(d => {
+      const x = totalDuration > 0 ? ((d.time - startTime) / totalDuration) * innerWidth : 0;
+      const y = innerHeight - (d.score / 100) * innerHeight;
+      return `${x},${y}`;
+    }).join(' ');
+
+    return (
+      <svg width={width} height={height} className="w-full">
+        <g transform={`translate(${margin.left},${margin.top})`}>
+          {/* Y軸 */}
+          <line x1="0" y1="0" x2="0" y2={innerHeight} stroke="#4A5568" />
+          {[0, 50, 100].map(y => (
+            <g key={y}>
+              <text x="-25" y={(innerHeight - (y / 100) * innerHeight) + 4} fontSize="10" fill="#A0AEC0">{y}%</text>
+              <line x1="0" y1={innerHeight - (y / 100) * innerHeight} x2={innerWidth} y2={innerHeight - (y / 100) * innerHeight} stroke="#4A5568" strokeDasharray="2,2" />
+            </g>
+          ))}
+          {/* X軸 */}
+          <line x1="0" y1={innerHeight} x2={innerWidth} y2={innerHeight} stroke="#4A5568" />
+          <text x={innerWidth / 2} y={innerHeight + 15} textAnchor="middle" fontSize="10" fill="#A0AEC0">時間</text>
+
+          {/* 折れ線 */}
+          <polyline
+            fill="none"
+            stroke="#63B3ED"
+            strokeWidth="2"
+            points={points}
+          />
+        </g>
+      </svg>
+    );
+  };
+
+  return (
+    <div className="w-full max-w-2xl mx-auto mt-8 p-6 bg-gray-800 rounded-lg">
+      <h2 className="text-2xl font-bold mb-4">猫背スコアレポート</h2>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-center">
+        <div className="p-4 bg-gray-700 rounded-lg">
+          <p className="text-sm text-gray-400">平均スコア</p>
+          <p className="text-3xl font-bold text-blue-400">{stats.averageScore.toFixed(1)}%</p>
+        </div>
+        <div className="p-4 bg-gray-700 rounded-lg">
+          <p className="text-sm text-gray-400">最大スコア</p>
+          <p className="text-3xl font-bold text-red-400">{stats.maxScore.toFixed(1)}%</p>
+        </div>
+        <div className="p-4 bg-gray-700 rounded-lg">
+          <p className="text-sm text-gray-400">総計測時間</p>
+          <p className="text-xl font-bold">{formatDuration(stats.totalTime)}</p>
+        </div>
+      </div>
+
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold mb-2">スコア推移</h3>
+        <div className="w-full bg-gray-900 rounded-md p-2">
+          <LineChart />
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-lg font-semibold mb-2">スコア履歴</h3>
+        <div className="max-h-60 overflow-y-auto rounded-md">
+          <table className="w-full text-sm text-left text-gray-400">
+            <thead className="text-xs text-gray-300 uppercase bg-gray-700 sticky top-0">
+              <tr>
+                <th scope="col" className="px-4 py-2">時刻</th>
+                <th scope="col" className="px-4 py-2">猫背スコア</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...scoreHistory].reverse().map((item, index) => (
+                <tr key={index} className="bg-gray-800 border-b border-gray-700 hover:bg-gray-600">
+                  <td className="px-4 py-2">{new Date(item.time).toLocaleTimeString()}</td>
+                  <td className={`px-4 py-2 ${item.score >= settings.threshold ? 'text-red-400' : ''}`}>
+                    {item.score.toFixed(1)}%
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function Home() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -60,8 +183,7 @@ export default function Home() {
     }
   }, []);
 
-  // --- カスタムフック ---
-  const { slouchScore, isCalibrated, calibrate } = usePoseDetection({ videoRef, isPaused });
+  const { slouchScore, isCalibrated, calibrate, scoreHistory } = usePoseDetection({ videoRef, isPaused });
   const { isDrowsy, ear } = useDrowsinessDetection({
     videoRef,
     isEnabled: isDrowsinessDetectionEnabled,
@@ -69,7 +191,6 @@ export default function Home() {
     settings
   });
 
-  // useNotification フックを呼び出す
   const {
     notificationType,
     setNotificationType,
@@ -83,12 +204,10 @@ export default function Home() {
     settings,
   });
 
-  // アイコンを生成してメインプロセスに送信
   useEffect(() => {
     if (window.electron?.updateTrayIcon) {
       const canvas = document.createElement('canvas');
-      // Retina対応と、macOSメニューバーの標準的な最大サイズを考慮
-      const size = 32; 
+      const size = 32;
       canvas.width = size;
       canvas.height = size;
       const context = canvas.getContext('2d');
@@ -96,13 +215,10 @@ export default function Home() {
       if (context) {
         const hue = 120 * (1 - Math.min(slouchScore, 100) / 100);
         const [r, g, b] = hslToRgb(hue, 100, 50);
-        
-        // 円を描画
         context.fillStyle = `rgb(${r}, ${g}, ${b})`;
         context.beginPath();
-        context.arc(size / 2, size / 2, size / 2 - 2, 0, 2 * Math.PI); // 少し余白を持たせる
+        context.arc(size / 2, size / 2, size / 2 - 2, 0, 2 * Math.PI);
         context.fill();
-
         const dataUrl = canvas.toDataURL('image/png');
         window.electron.updateTrayIcon(dataUrl);
       }
@@ -164,7 +280,8 @@ export default function Home() {
         {isCalibrated ? "キャリブレーション済み" : "キャリブレーションされていません"}
       </p>
 
-      {/* 通知タイプ */}
+      <PostureReport scoreHistory={scoreHistory} settings={settings} />
+
       <div className="mt-6 text-center">
         <div className="flex justify-center items-center space-x-6">
           <label className="flex items-center space-x-2 cursor-pointer">
@@ -220,7 +337,6 @@ export default function Home() {
         ※ カメラ映像はローカル処理のみ。肩が見えなくてもOK。
       </p>
 
-      {/* Settings Modal */}
       {isSettingsOpen && (
         <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4">
           <div className="w-full max-w-lg bg-gray-800 rounded-2xl shadow-xl p-6 relative">
@@ -233,7 +349,6 @@ export default function Home() {
             </button>
             <h2 className="text-2xl font-bold text-white mb-6">設定</h2>
             <div className="space-y-6">
-              {/* トリガー条件 */}
               <div className="border-t border-gray-700 pt-4 space-y-4">
                 <div>
                   <label htmlFor="threshold" className="block text-sm font-medium text-gray-300">
@@ -263,7 +378,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* 通知音選択 */}
               {notificationType === 'voice' && (
                 <div className="border-t border-gray-700 pt-4">
                   <label htmlFor="notificationSound" className="block text-sm font-medium text-gray-300">通知音</label>
@@ -281,7 +395,6 @@ export default function Home() {
                 </div>
               )}
 
-              {/* 再通知時間 */}
               <div>
                 <label htmlFor="cooldownTime" className="block text-sm font-medium text-gray-300">通知の間隔: <span className="font-bold text-blue-400">{settings.cooldownTime}秒</span></label>
                 <input
@@ -296,7 +409,6 @@ export default function Home() {
                 />
               </div>
 
-              {/* 眠気検知 */}
               <div className="border-t border-gray-700 pt-4">
                 <label htmlFor="drowsinessDetection" className="flex items-center justify-between cursor-pointer text-gray-300">
                   <span>眠気検知を有効にする</span>
@@ -345,7 +457,6 @@ export default function Home() {
                 )}
               </div>
 
-              {/* アクションボタン */}
               <div className="border-t border-gray-700 pt-6 flex items-center justify-end">
                 <button
                   onClick={() => setSettings(DEFAULT_SETTINGS)}
@@ -359,7 +470,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Info Modal */}
       {isInfoOpen && (
         <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4">
           <div className="w-full max-w-lg bg-gray-800 rounded-2xl shadow-xl p-6 relative">
@@ -401,7 +511,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Settings Button */}
       <div className="absolute bottom-6 right-6 flex space-x-2">
         <button
           onClick={() => setIsInfoOpen(true)}

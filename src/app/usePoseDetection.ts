@@ -1,7 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import * as poseDetection from '@tensorflow-models/pose-detection';
 import * as tf from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
+
+// スコア履歴の型定義
+export interface ScoreHistory {
+  time: number;
+  score: number;
+}
 
 // このフックが受け取る引数の型定義
 interface UsePoseDetectionProps {
@@ -15,6 +21,7 @@ interface UsePoseDetectionReturn {
   isCameraReady: boolean;
   isCalibrated: boolean;
   calibrate: () => void;
+  scoreHistory: ScoreHistory[];
 }
 
 export const usePoseDetection = ({ videoRef, isPaused }: UsePoseDetectionProps): UsePoseDetectionReturn => {
@@ -22,7 +29,8 @@ export const usePoseDetection = ({ videoRef, isPaused }: UsePoseDetectionProps):
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [slouchScore, setSlouchScore] = useState(0);
   const [calibratedPose, setCalibratedPose] = useState<poseDetection.Keypoint[] | null>(null);
-  const scoreHistory = useRef<number[]>([]);
+  const smoothingHistory = useRef<number[]>([]);
+  const [scoreHistory, setScoreHistory] = useState<ScoreHistory[]>([]);
 
   const isCalibrated = calibratedPose !== null;
 
@@ -76,7 +84,7 @@ export const usePoseDetection = ({ videoRef, isPaused }: UsePoseDetectionProps):
   };
 
   // --- 猫背スコア計算 ---
-  const calculateSlouchScore = (keypoints: poseDetection.Keypoint[]): number | null => {
+  const calculateSlouchScore = useCallback((keypoints: poseDetection.Keypoint[]): number | null => {
     const get = (name: string) => keypoints.find((k) => k.name === name);
     const getCalibrated = (name: string) => calibratedPose?.find((k) => k.name === name);
 
@@ -127,37 +135,39 @@ export const usePoseDetection = ({ videoRef, isPaused }: UsePoseDetectionProps):
 
     // キャリブレーションされていない場合は、デフォルトスコアを返す
     return uncalibratedScore;
-  };
-
-
-  // --- スムージング ---
-  const smoothAndSetScore = (score: number) => {
-    const history = scoreHistory.current;
-    history.push(score);
-    if (history.length > 3) history.shift();
-    const avg = history.reduce((a, b) => a + b, 0) / history.length;
-    setSlouchScore(avg);
-  };
+  }, [calibratedPose]);
 
   // --- 軽量ループ（2FPS） ---
   useEffect(() => {
-    if (isPaused || !detector || !isCameraReady || !videoRef.current) return;
+    if (isPaused || !detector || !isCameraReady || !videoRef.current) {
+      return;
+    }
 
     const analyze = async () => {
       try {
         const poses = await detector.estimatePoses(videoRef.current!);
         if (poses.length > 0) {
           const score = calculateSlouchScore(poses[0].keypoints);
-          if (score !== null) smoothAndSetScore(score);
+          if (score !== null) {
+            // スムージング
+            const history = smoothingHistory.current;
+            history.push(score);
+            if (history.length > 3) history.shift();
+            const avgScore = history.reduce((a, b) => a + b, 0) / history.length;
+            setSlouchScore(avgScore);
+
+            // スコアを履歴に追加
+            setScoreHistory(prevHistory => [...prevHistory, { time: Date.now(), score: avgScore }]);
+          }
         }
       } catch (e) {
         console.warn(e);
       }
     };
 
-    const intervalId = setInterval(analyze, 500);
+    const intervalId = setInterval(analyze, 2000); // 2秒ごとに記録
     return () => clearInterval(intervalId);
-  }, [isPaused, detector, isCameraReady, videoRef, calibratedPose]); // calibratedPoseを依存配列に追加
+  }, [isPaused, detector, isCameraReady, videoRef, calculateSlouchScore]);
 
-  return { slouchScore, isCameraReady, isCalibrated, calibrate };
+  return { slouchScore, isCameraReady, isCalibrated, calibrate, scoreHistory };
 };
