@@ -67,6 +67,35 @@ const PostureReport = ({ scoreHistory, settings }: { scoreHistory: ScoreHistory[
     return `${minutes}分 ${seconds}秒`;
   };
 
+  const handleExportCsv = () => {
+    if (scoreHistory.length === 0) {
+      alert("エクスポートするデータがありません。");
+      return;
+    }
+
+    const headers = ["time", "score"];
+    const data = scoreHistory.map(item => 
+      [new Date(item.time).toISOString(), item.score.toFixed(2)].join(',')
+    );
+
+    const csvContent = [
+      headers.join(','),
+      ...data
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const date = new Date().toISOString().split('T')[0];
+    link.setAttribute("href", url);
+    link.setAttribute("download", `posture-report-${date}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const LineChart = () => {
     const width = 500;
     const height = 150;
@@ -117,7 +146,16 @@ const PostureReport = ({ scoreHistory, settings }: { scoreHistory: ScoreHistory[
 
   return (
     <div className="w-full max-w-2xl mx-auto mt-8 p-6 bg-gray-800 rounded-lg">
-      <h2 className="text-2xl font-bold mb-4">猫背スコアレポート</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold">猫背スコアレポート</h2>
+        <button
+          onClick={handleExportCsv}
+          className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-500 transition-colors disabled:bg-gray-500"
+          disabled={scoreHistory.length === 0}
+        >
+          CSVでエクスポート
+        </button>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-center">
         <div className="p-4 bg-gray-700 rounded-lg">
