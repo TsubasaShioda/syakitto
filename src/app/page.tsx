@@ -1,9 +1,39 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useSession, signIn, signOut } from "next-auth/react";
 import { usePoseDetection } from "@/app/usePoseDetection";
 import { useDrowsinessDetection } from "@/app/useDrowsinessDetection";
 import { useNotification } from "@/app/useNotification"; // インポート
+
+const AuthButton = () => {
+  const { data: session } = useSession();
+
+  if (session) {
+    return (
+      <div className="flex items-center space-x-4">
+        <p className="text-white">
+          {session.user?.name || session.user?.email}
+        </p>
+        <button
+          onClick={() => signOut()}
+          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-500 transition-colors"
+        >
+          Logout
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => signIn("line")}
+      className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-400 transition-colors"
+    >
+      Login with LINE
+    </button>
+  );
+};
 
 const DEFAULT_SETTINGS: {
   threshold: number;
@@ -113,6 +143,9 @@ export default function Home() {
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center bg-gray-900 text-white p-6">
+      <div className="absolute top-6 right-6 z-10">
+        <AuthButton />
+      </div>
       <h1 className="text-3xl font-bold mb-4">syakitto</h1>
       <div className="flex space-x-8">
         <div>

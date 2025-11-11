@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import * as poseDetection from '@tensorflow-models/pose-detection';
 import * as tf from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
@@ -76,7 +76,7 @@ export const usePoseDetection = ({ videoRef, isPaused }: UsePoseDetectionProps):
   };
 
   // --- 猫背スコア計算 ---
-  const calculateSlouchScore = (keypoints: poseDetection.Keypoint[]): number | null => {
+  const calculateSlouchScore = useCallback((keypoints: poseDetection.Keypoint[]): number | null => {
     const get = (name: string) => keypoints.find((k) => k.name === name);
     const getCalibrated = (name: string) => calibratedPose?.find((k) => k.name === name);
 
@@ -127,7 +127,7 @@ export const usePoseDetection = ({ videoRef, isPaused }: UsePoseDetectionProps):
 
     // キャリブレーションされていない場合は、デフォルトスコアを返す
     return uncalibratedScore;
-  };
+  }, [calibratedPose]);
 
 
   // --- スムージング ---
@@ -157,7 +157,7 @@ export const usePoseDetection = ({ videoRef, isPaused }: UsePoseDetectionProps):
 
     const intervalId = setInterval(analyze, 500);
     return () => clearInterval(intervalId);
-  }, [isPaused, detector, isCameraReady, videoRef, calibratedPose]); // calibratedPoseを依存配列に追加
+  }, [isPaused, detector, isCameraReady, videoRef, calculateSlouchScore]);
 
   return { slouchScore, isCameraReady, isCalibrated, calibrate };
 };
