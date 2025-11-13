@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import * as poseDetection from '@tensorflow-models/pose-detection';
+import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
 import * as tf from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
 
@@ -24,11 +25,18 @@ interface UsePoseDetectionReturn {
   scoreHistory: ScoreHistory[];
 }
 
+// 距離を計算するヘルパー関数
+const euclideanDist = (p1: { x: number; y: number }, p2: { x: number; y: number }) => {
+  return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
+};
+
 export const usePoseDetection = ({ videoRef, isPaused }: UsePoseDetectionProps): UsePoseDetectionReturn => {
-  const [detector, setDetector] = useState<poseDetection.PoseDetector | null>(null);
+  const [poseDetector, setPoseDetector] = useState<poseDetection.PoseDetector | null>(null);
+  const [faceDetector, setFaceDetector] = useState<faceLandmarksDetection.FaceLandmarksDetector | null>(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [slouchScore, setSlouchScore] = useState(0);
   const [calibratedPose, setCalibratedPose] = useState<poseDetection.Keypoint[] | null>(null);
+  const [calibratedFaceSize, setCalibratedFaceSize] = useState<number | null>(null);
   const smoothingHistory = useRef<number[]>([]);
   const [scoreHistory, setScoreHistory] = useState<ScoreHistory[]>([]);
 
@@ -39,12 +47,23 @@ export const usePoseDetection = ({ videoRef, isPaused }: UsePoseDetectionProps):
     const init = async () => {
       await tf.ready();
       await tf.setBackend("webgl");
-      const model = poseDetection.SupportedModels.MoveNet;
-      const detectorConfig = {
+      
+      // Pose Detector
+      const poseModel = poseDetection.SupportedModels.MoveNet;
+      const poseDetectorConfig = {
         modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
       };
-      const poseDetector = await poseDetection.createDetector(model, detectorConfig);
-      setDetector(poseDetector);
+      const _poseDetector = await poseDetection.createDetector(poseModel, poseDetectorConfig);
+      setPoseDetector(_poseDetector);
+
+      // Face Detector
+      const faceModel = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
+      const faceDetectorConfig: faceLandmarksDetection.MediaPipeFaceMeshTfjsModelConfig = {
+        runtime: 'tfjs',
+        refineLandmarks: true,
+      };
+      const _faceDetector = await faceLandmarksDetection.createDetector(faceModel, faceDetectorConfig);
+      setFaceDetector(_faceDetector);
     };
     init();
   }, []);
@@ -52,7 +71,7 @@ export const usePoseDetection = ({ videoRef, isPaused }: UsePoseDetectionProps):
   // --- カメラセットアップ ---
   useEffect(() => {
     const setupCamera = async () => {
-      if (!detector || !videoRef.current) return;
+      if (!poseDetector || !faceDetector || !videoRef.current) return;
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { width: 480, height: 360 },
@@ -67,16 +86,29 @@ export const usePoseDetection = ({ videoRef, isPaused }: UsePoseDetectionProps):
       }
     };
     setupCamera();
-  }, [detector, videoRef]);
+  }, [poseDetector, faceDetector, videoRef]);
 
   // --- キャリブレーション ---
   const calibrate = async () => {
-    if (!detector || !videoRef.current) return;
+    if (!poseDetector || !faceDetector || !videoRef.current) return;
     try {
-      const poses = await detector.estimatePoses(videoRef.current);
+      const [poses, faces] = await Promise.all([
+        poseDetector.estimatePoses(videoRef.current),
+        faceDetector.estimateFaces(videoRef.current, { flipHorizontal: false }),
+      ]);
+
       if (poses.length > 0) {
         setCalibratedPose(poses[0].keypoints);
         console.log("Calibrated pose:", poses[0].keypoints);
+      }
+      if (faces.length > 0) {
+        const leftEye = faces[0].keypoints.find(k => k.name === 'leftEye');
+        const rightEye = faces[0].keypoints.find(k => k.name === 'rightEye');
+        if (leftEye && rightEye) {
+          const faceSize = euclideanDist(leftEye, rightEye);
+          setCalibratedFaceSize(faceSize);
+          console.log("Calibrated face size:", faceSize);
+        }
       }
     } catch (e) {
       console.warn("Calibration failed:", e);
@@ -84,8 +116,8 @@ export const usePoseDetection = ({ videoRef, isPaused }: UsePoseDetectionProps):
   };
 
   // --- 猫背スコア計算 ---
-  const calculateSlouchScore = useCallback((keypoints: poseDetection.Keypoint[]): number | null => {
-    const get = (name: string) => keypoints.find((k) => k.name === name);
+  const calculateSlouchScore = useCallback((poseKeypoints: poseDetection.Keypoint[], faceKeypoints: faceLandmarksDetection.Keypoint[]): number | null => {
+    const get = (name: string) => poseKeypoints.find((k) => k.name === name);
     const getCalibrated = (name: string) => calibratedPose?.find((k) => k.name === name);
 
     const leftEar = get("left_ear");
@@ -111,13 +143,20 @@ export const usePoseDetection = ({ videoRef, isPaused }: UsePoseDetectionProps):
     const uncalibratedScore = Math.min(1, Math.max(0, (defaultPostureRatio - 0.8) / 0.3)) * 100;
 
     // キャリブレーション済みの場合、キャリブレーションスコアを計算し、デフォルトスコアと混ぜる
-    if (calibratedPose) {
+    if (calibratedPose && calibratedFaceSize) {
       const calibLeftEar = getCalibrated("left_ear");
       const calibRightEar = getCalibrated("right_ear");
       const calibLeftShoulder = getCalibrated("left_shoulder");
       const calibRightShoulder = getCalibrated("right_shoulder");
 
       if (!calibLeftEar || !calibRightEar || !calibLeftShoulder || !calibRightShoulder) return null;
+
+      // 現在の顔サイズを計算
+      const currentLeftEye = faceKeypoints.find(k => k.name === 'leftEye');
+      const currentRightEye = faceKeypoints.find(k => k.name === 'rightEye');
+      if (!currentLeftEye || !currentRightEye) return null;
+      const currentFaceSize = euclideanDist(currentLeftEye, currentRightEye);
+      const faceSizeRatio = currentFaceSize / calibratedFaceSize;
 
       const calibEarY = (calibLeftEar.y + calibRightEar.y) / 2;
       const calibShoulderY = (calibLeftShoulder.y + calibRightShoulder.y) / 2;
@@ -126,8 +165,9 @@ export const usePoseDetection = ({ videoRef, isPaused }: UsePoseDetectionProps):
 
       const currentPostureRatio = (shoulderY - earY) / bodyHeight;
 
-      const deviation = calibPostureRatio - currentPostureRatio;
-      const calibratedScore = Math.min(1, Math.max(0, deviation / 0.35)) * 100; // 0.35は感度調整
+      // 顔の大きさで正規化した差分を計算
+      const deviation = calibPostureRatio - (currentPostureRatio / faceSizeRatio);
+      const calibratedScore = Math.min(1, Math.max(0, deviation / 0.35)) * 100;
 
       // 50/50で混ぜる
       return (uncalibratedScore * 0.5) + (calibratedScore * 0.5);
@@ -135,19 +175,23 @@ export const usePoseDetection = ({ videoRef, isPaused }: UsePoseDetectionProps):
 
     // キャリブレーションされていない場合は、デフォルトスコアを返す
     return uncalibratedScore;
-  }, [calibratedPose]);
+  }, [calibratedPose, calibratedFaceSize]);
 
   // --- 軽量ループ（2FPS） ---
   useEffect(() => {
-    if (isPaused || !detector || !isCameraReady || !videoRef.current) {
+    if (isPaused || !poseDetector || !faceDetector || !isCameraReady || !videoRef.current) {
       return;
     }
 
     const analyze = async () => {
       try {
-        const poses = await detector.estimatePoses(videoRef.current!);
-        if (poses.length > 0) {
-          const score = calculateSlouchScore(poses[0].keypoints);
+        const [poses, faces] = await Promise.all([
+          poseDetector.estimatePoses(videoRef.current!),
+          faceDetector.estimateFaces(videoRef.current!, { flipHorizontal: false }),
+        ]);
+        
+        if (poses.length > 0 && faces.length > 0) {
+          const score = calculateSlouchScore(poses[0].keypoints, faces[0].keypoints);
           if (score !== null) {
             // スムージング
             const history = smoothingHistory.current;
@@ -167,7 +211,7 @@ export const usePoseDetection = ({ videoRef, isPaused }: UsePoseDetectionProps):
 
     const intervalId = setInterval(analyze, 2000); // 2秒ごとに記録
     return () => clearInterval(intervalId);
-  }, [isPaused, detector, isCameraReady, videoRef, calculateSlouchScore]);
+  }, [isPaused, poseDetector, faceDetector, isCameraReady, videoRef, calculateSlouchScore]);
 
   return { slouchScore, isCameraReady, isCalibrated, calibrate, scoreHistory };
 };
