@@ -1,3 +1,18 @@
+# posture-checker
+
+This is the state of the context at this point in the conversation. The view of the workspace structure may be truncated. You can use tools to collect more context if needed.
+
+## Prisma バイナリに関する注意
+
+Vercel のようなプラットフォームで `node-gyp` 関連や Prisma のクエリエンジンバイナリに関するデプロイエラーが発生する場合は、プラットフォーム固有のネイティブバイナリ（例: `libquery_engine-darwin-arm64.dylib.node`）をリポジトリにコミットしないでください。ターゲット環境で `npm install` を実行した際に、その環境に合ったバイナリが自動的にダウンロードされるようにするのが安全です。
+
+リポジトリに誤って macOS 用バイナリが残っている場合は、付属のヘルパースクリプトを使ってローカルで削除し、コミットしてプッシュしてください。
+
+```
+./scripts/remove_prisma_binary.sh
+```
+
+上記を実行すると、macOS 用の Prisma クエリエンジンバイナリが git 管理から除外され、その後のデプロイで正しいプラットフォーム用バイナリが取得されます。
 # syakitto
 
 Webカメラを使い、リアルタイムで猫背を検知してスコアを表示するアプリケーションである。
