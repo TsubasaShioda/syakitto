@@ -83,6 +83,8 @@ export default function Home() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isElectron, setIsElectron] = useState(false);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
+  const [isCalibrating, setIsCalibrating] = useState(false);
+  const [calibrationTimestamp, setCalibrationTimestamp] = useState<Date | null>(null);
 
   useEffect(() => {
     if (window.electron?.isElectron) {
@@ -182,19 +184,25 @@ export default function Home() {
       <div className="flex space-x-4 mb-4">
         <button
           onClick={() => setIsPaused(!isPaused)}
-          className="w-40 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 transition-colors"
+          className="w-48 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 transition-colors"
         >
           {isPaused ? '▶ 再開' : '❚❚ 一時停止'}
         </button>
         <button
-          onClick={calibrate}
-          className="w-40 px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-500 transition-colors"
+          onClick={async () => {
+            setIsCalibrating(true);
+            await calibrate();
+            setCalibrationTimestamp(new Date());
+            setIsCalibrating(false);
+          }}
+          className="w-48 px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isCalibrating}
         >
-          キャリブレーション
+          {isCalibrating ? '記録中...' : (isCalibrated ? '良い姿勢を再記録' : '良い姿勢を記録')}
         </button>
       </div>
       <p className="text-sm text-gray-400 mb-4">
-        {isCalibrated ? "キャリブレーション済み" : "キャリブレーションされていません"}
+        {isCalibrated && calibrationTimestamp ? `良い姿勢を記録済み (${calibrationTimestamp.toLocaleTimeString()})` : "良い姿勢が記録されていません"}
       </p>
 
       {/* 通知タイプ */}
