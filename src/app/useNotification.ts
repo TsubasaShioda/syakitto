@@ -26,7 +26,7 @@ interface UseNotificationReturn {
 export const useNotification = ({ slouchScore, isDrowsy, isPaused, settings }: UseNotificationProps): UseNotificationReturn => {
   const notificationTimer = useRef<NodeJS.Timeout | null>(null);
   const [lastNotificationTime, setLastNotificationTime] = useState(0);
-  const [notificationType, setNotificationType] = useState("voice");
+  const [notificationType, setNotificationType] = useState("desktop");
   const [notificationSound, setNotificationSound] = useState("voice");
   const [isContinuouslyNotifying, setIsContinuouslyNotifying] = useState(false);
 

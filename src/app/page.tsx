@@ -4,16 +4,9 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import { usePoseDetection, ScoreHistory } from "@/app/usePoseDetection";
 import { useDrowsinessDetection } from "@/app/useDrowsinessDetection";
 import { useNotification } from "@/app/useNotification";
+import SettingsModal, { Settings } from "@/app/SettingsModal"; // SettingsModalとSettingsをインポート
 
-const DEFAULT_SETTINGS: {
-  threshold: number;
-  delay: number;
-  reNotificationMode: 'cooldown' | 'continuous';
-  cooldownTime: number;
-  continuousInterval: number;
-  drowsinessEarThreshold: number;
-  drowsinessTimeThreshold: number;
-} = {
+const DEFAULT_SETTINGS: Settings = {
   threshold: 40, // %
   delay: 5, // seconds
   reNotificationMode: 'cooldown',
@@ -42,7 +35,7 @@ function hslToRgb(h: number, s: number, l: number): [number, number, number] {
   return [r, g, b];
 }
 
-const PostureReport = ({ scoreHistory, settings }: { scoreHistory: ScoreHistory[], settings: { threshold: number } }) => {
+const PostureReport = ({ scoreHistory, settings, isRecordingEnabled, setIsRecordingEnabled }: { scoreHistory: ScoreHistory[], settings: { threshold: number }, isRecordingEnabled: boolean, setIsRecordingEnabled: (enabled: boolean) => void }) => {
   const stats = useMemo(() => {
     if (scoreHistory.length === 0) {
       return {
@@ -89,7 +82,6 @@ const PostureReport = ({ scoreHistory, settings }: { scoreHistory: ScoreHistory[
     const date = new Date().toISOString().split('T')[0];
     link.setAttribute("href", url);
     link.setAttribute("download", `posture-report-${date}.csv`);
-    link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -148,13 +140,25 @@ const PostureReport = ({ scoreHistory, settings }: { scoreHistory: ScoreHistory[
     <div className="w-full max-w-2xl mx-auto mt-8 p-6 bg-gray-800 rounded-lg">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">猫背スコアレポート</h2>
-        <button
-          onClick={handleExportCsv}
-          className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-500 transition-colors disabled:bg-gray-500"
-          disabled={scoreHistory.length === 0}
-        >
-          CSVでエクスポート
-        </button>
+        <div className="flex items-center space-x-4">
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isRecordingEnabled}
+              onChange={() => setIsRecordingEnabled(!isRecordingEnabled)}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-600 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            <span className="ml-3 text-sm font-medium text-gray-300">記録</span>
+          </label>
+          <button
+            onClick={handleExportCsv}
+            className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-500 transition-colors disabled:bg-gray-500"
+            disabled={scoreHistory.length === 0}
+          >
+            CSVでエクスポート
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-center">
@@ -193,7 +197,7 @@ const PostureReport = ({ scoreHistory, settings }: { scoreHistory: ScoreHistory[
               {[...scoreHistory].reverse().map((item, index) => (
                 <tr key={index} className="bg-gray-800 border-b border-gray-700 hover:bg-gray-600">
                   <td className="px-4 py-2">{new Date(item.time).toLocaleTimeString()}</td>
-                  <td className={`px-4 py-2 ${item.score >= settings.threshold ? 'text-red-400' : ''}`}>
+                  <td className="px-4 py-2">
                     {item.score.toFixed(1)}%
                   </td>
                 </tr>
@@ -214,8 +218,10 @@ export default function Home() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isElectron, setIsElectron] = useState(false);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [calibrationTimestamp, setCalibrationTimestamp] = useState<Date | null>(null);
+  const [isRecordingEnabled, setIsRecordingEnabled] = useState(false); // 初期値をfalseに変更
 
   useEffect(() => {
     if (window.electron?.isElectron) {
@@ -223,7 +229,7 @@ export default function Home() {
     }
   }, []);
 
-  const { slouchScore, isCalibrated, calibrate, scoreHistory } = usePoseDetection({ videoRef, isPaused });
+  const { slouchScore, isCalibrated, calibrate, scoreHistory } = usePoseDetection({ videoRef, isPaused, isRecordingEnabled });
   const { isDrowsy, ear } = useDrowsinessDetection({
     videoRef,
     isEnabled: isDrowsinessDetectionEnabled,
@@ -326,7 +332,20 @@ export default function Home() {
         {isCalibrated && calibrationTimestamp ? `良い姿勢を記録済み (${calibrationTimestamp.toLocaleTimeString()})` : "良い姿勢が記録されていません"}
       </p>
 
-      <PostureReport scoreHistory={scoreHistory} settings={settings} />
+      {isReportOpen && (
+        <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4">
+          <div className="w-full max-w-3xl bg-gray-800 rounded-2xl shadow-xl p-6 relative">
+            <button
+              onClick={() => setIsReportOpen(false)}
+              className="absolute top-4 right-4 w-8 h-8 bg-gray-700 text-white rounded-full flex items-center justify-center hover:bg-gray-600"
+              aria-label="レポートを閉じる"
+            >
+              ×
+            </button>
+            <PostureReport scoreHistory={scoreHistory} settings={settings} isRecordingEnabled={isRecordingEnabled} setIsRecordingEnabled={setIsRecordingEnabled} />
+          </div>
+        </div>
+      )}
 
       <div className="mt-6 text-center">
         <div className="flex justify-center items-center space-x-6">
@@ -383,138 +402,19 @@ export default function Home() {
         ※ カメラ映像はローカル処理のみ。肩が見えなくてもOK。
       </p>
 
-      {isSettingsOpen && (
-        <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-gray-800 rounded-2xl shadow-xl p-6 relative">
-            <button
-              onClick={() => setIsSettingsOpen(false)}
-              className="absolute top-4 right-4 w-8 h-8 bg-gray-700 text-white rounded-full flex items-center justify-center hover:bg-gray-600"
-              aria-label="設定を閉じる"
-            >
-              ×
-            </button>
-            <h2 className="text-2xl font-bold text-white mb-6">設定</h2>
-            <div className="space-y-6">
-              <div className="border-t border-gray-700 pt-4 space-y-4">
-                <div>
-                  <label htmlFor="threshold" className="block text-sm font-medium text-gray-300">
-                    猫背と判断するスコア: <span className="font-bold text-blue-400">{settings.threshold}%</span>
-                  </label>
-                  <input
-                    type="range"
-                    id="threshold"
-                    min="0"
-                    max="100"
-                    value={settings.threshold}
-                    onChange={(e) => setSettings(s => ({ ...s, threshold: Number(e.target.value) }))}
-                    className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer mt-2"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="delay" className="block text-sm font-medium text-gray-300">この秒数続いたら通知: <span className="font-bold text-blue-400">{settings.delay}秒</span></label>
-                  <input
-                    type="range"
-                    id="delay"
-                    min="5"
-                    max="60"
-                    value={settings.delay}
-                    onChange={(e) => setSettings(s => ({ ...s, delay: Number(e.target.value) }))}
-                    className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer mt-2"
-                  />
-                </div>
-              </div>
-
-              {notificationType === 'voice' && (
-                <div className="border-t border-gray-700 pt-4">
-                  <label htmlFor="notificationSound" className="block text-sm font-medium text-gray-300">通知音</label>
-                  <select
-                    id="notificationSound"
-                    name="notificationSound"
-                    value={notificationSound}
-                    onChange={(e) => setNotificationSound(e.target.value)}
-                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-600 bg-gray-700 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-                  >
-                    {SOUND_OPTIONS.map(option => (
-                      <option key={option.value} value={option.value}>{option.label}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              <div>
-                <label htmlFor="cooldownTime" className="block text-sm font-medium text-gray-300">通知の間隔: <span className="font-bold text-blue-400">{settings.cooldownTime}秒</span></label>
-                <input
-                  type="range"
-                  id="cooldownTime"
-                  min="5"
-                  max="180"
-                  step="5"
-                  value={settings.cooldownTime}
-                  onChange={(e) => setSettings(s => ({ ...s, cooldownTime: Number(e.target.value) }))}
-                  className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer mt-2"
-                />
-              </div>
-
-              <div className="border-t border-gray-700 pt-4">
-                <label htmlFor="drowsinessDetection" className="flex items-center justify-between cursor-pointer text-gray-300">
-                  <span>眠気検知を有効にする</span>
-                  <input
-                    type="checkbox"
-                    id="drowsinessDetection"
-                    checked={isDrowsinessDetectionEnabled}
-                    onChange={(e) => setIsDrowsinessDetectionEnabled(e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="relative w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                </label>
-                {isDrowsinessDetectionEnabled && (
-                  <div className="pl-4 mt-4 space-y-4 border-l border-gray-600">
-                    <div>
-                      <label htmlFor="drowsinessEarThreshold" className="block text-sm font-medium text-gray-300">
-                        目の開き具合のしきい値: <span className="font-bold text-blue-400">{settings.drowsinessEarThreshold.toFixed(2)}</span>
-                      </label>
-                      <input
-                        type="range"
-                        id="drowsinessEarThreshold"
-                        min="0.05"
-                        max="0.4"
-                        step="0.01"
-                        value={settings.drowsinessEarThreshold}
-                        onChange={(e) => setSettings(s => ({ ...s, drowsinessEarThreshold: Number(e.target.value) }))}
-                        className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer mt-2"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="drowsinessTimeThreshold" className="block text-sm font-medium text-gray-300">
-                        眠気と判断するまでの時間: <span className="font-bold text-blue-400">{settings.drowsinessTimeThreshold}秒</span>
-                      </label>
-                      <input
-                        type="range"
-                        id="drowsinessTimeThreshold"
-                        min="1"
-                        max="180"
-                        step="1"
-                        value={settings.drowsinessTimeThreshold}
-                        onChange={(e) => setSettings(s => ({ ...s, drowsinessTimeThreshold: Number(e.target.value) }))}
-                        className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer mt-2"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="border-t border-gray-700 pt-6 flex items-center justify-end">
-                <button
-                  onClick={() => setSettings(DEFAULT_SETTINGS)}
-                  className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-500"
-                >
-                  設定をリセット
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        settings={settings}
+        setSettings={setSettings}
+        isDrowsinessDetectionEnabled={isDrowsinessDetectionEnabled}
+        setIsDrowsinessDetectionEnabled={setIsDrowsinessDetectionEnabled}
+        notificationType={notificationType}
+        notificationSound={notificationSound}
+        setNotificationSound={setNotificationSound}
+        SOUND_OPTIONS={SOUND_OPTIONS}
+        DEFAULT_SETTINGS={DEFAULT_SETTINGS}
+      />
 
       {isInfoOpen && (
         <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4">
@@ -564,6 +464,13 @@ export default function Home() {
           aria-label="情報ページを開く"
         >
           ℹ️
+        </button>
+        <button
+          onClick={() => setIsReportOpen(true)}
+          className="w-14 h-14 bg-gray-700 text-white rounded-full flex items-center justify-center text-2xl hover:bg-gray-600 transition-colors"
+          aria-label="スコア履歴を開く"
+        >
+          📈
         </button>
         <button
           onClick={() => setIsSettingsOpen(true)}
