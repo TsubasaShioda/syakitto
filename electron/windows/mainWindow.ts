@@ -32,5 +32,11 @@ export function createMainWindow(): BrowserWindow {
     return { action: 'allow' };
   });
 
+  // ウィンドウを閉じる時は非表示にする（終了しない）
+  mainWindow.on('close', (event) => {
+    event.preventDefault();
+    mainWindow.hide();
+  });
+
   return mainWindow;
 }

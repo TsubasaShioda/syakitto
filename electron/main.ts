@@ -8,7 +8,14 @@ let tray: Tray | null = null;
 
 // アプリケーション準備完了時の処理
 app.whenReady().then(() => {
+  // メインウィンドウを作成するが、最初は非表示
   mainWindow = createMainWindow();
+  mainWindow.hide();
+
+  // macOSでDockアイコンを非表示にする
+  if (process.platform === 'darwin' && app.dock) {
+    app.dock.hide();
+  }
 
   // Tray アイコンの作成 (初期アイコンは透明)
   try {
@@ -16,7 +23,7 @@ app.whenReady().then(() => {
     tray = new Tray(image);
 
     const contextMenu = Menu.buildFromTemplate([
-      { label: '開く', click: () => mainWindow?.show() },
+      { label: '表示', click: () => mainWindow?.show() },
       { label: '終了', click: () => app.quit() },
     ]);
     tray.setToolTip('Posture Checker');
@@ -30,9 +37,11 @@ app.whenReady().then(() => {
     console.error('Failed to create Tray icon:', error);
   }
 
-  // macOSでの動作: Dockアイコンクリック時にウィンドウを再作成
+  // macOSでの動作: Dockアイコンクリック時にウィンドウを表示
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
+    if (mainWindow) {
+      mainWindow.show();
+    } else {
       mainWindow = createMainWindow();
     }
   });
@@ -80,6 +89,58 @@ app.whenReady().then(() => {
         flashWindow.close();
       }
     }, 500); // CSSアニメーションより少し長く待つ
+  });
+
+  // アニメーション通知用のIPCイベントハンドラ
+  ipcMain.on('show-animation-notification', () => {
+    const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+    const animationWindow = new BrowserWindow({
+      width: 400,
+      height: 280,
+      x: width - 420,
+      y: 20,
+      transparent: true,
+      frame: false,
+      alwaysOnTop: true,
+      skipTaskbar: true,
+      focusable: false, // フォーカスを受け取らない
+      hasShadow: false, // 影を表示しない
+      acceptFirstMouse: false, // 最初のマウスクリックを受け付けない
+      minimizable: false,
+      maximizable: false,
+      closable: false,
+      resizable: false,
+      webPreferences: {
+        preload: path.join(__dirname, 'preload.ts'),
+        devTools: false, // DevToolsを無効化
+      },
+    });
+
+    // `animation.html` をロード
+    const animationPath = path.join(__dirname, 'windows', 'animation', 'animation.html');
+    animationWindow.loadFile(animationPath);
+
+    // macOS特有の設定
+    if (process.platform === 'darwin') {
+      animationWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+      animationWindow.setAlwaysOnTop(true, 'pop-up-menu'); // pop-up-menuレベルに変更
+    } else {
+      animationWindow.setAlwaysOnTop(true);
+    }
+
+    // ウィンドウが完全にロードされてから表示（フォーカス問題を回避）
+    animationWindow.once('ready-to-show', () => {
+      animationWindow.showInactive();
+      // 念のため、フォーカスを明示的に無効化
+      animationWindow.setIgnoreMouseEvents(true, { forward: true });
+    });
+
+    // アニメーション終了後にウィンドウを閉じる（5秒後）
+    setTimeout(() => {
+      if (!animationWindow.isDestroyed()) {
+        animationWindow.close();
+      }
+    }, 5000); // CSS アニメーション（フェードイン + 表示 + フェードアウト = 5秒）
   });
 
   ipcMain.on('close-window', () => {

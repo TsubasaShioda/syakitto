@@ -47,6 +47,11 @@ export const useNotification = ({ slouchScore, isDrowsy, isPaused, settings }: U
       window.electron.flashScreen();
     }
 
+    // Electron環境でのアニメーション通知
+    if (notificationType === 'animation' && typeof window !== 'undefined' && window.electron && window.electron.showAnimationNotification) {
+      window.electron.showAnimationNotification();
+    }
+
     // デスクトップ通知 (desktop の場合)
     if (notificationType === 'desktop') {
       console.log('Checking for window.electron:', window.electron);
@@ -65,7 +70,7 @@ export const useNotification = ({ slouchScore, isDrowsy, isPaused, settings }: U
         });
       }
     }
-    
+
     // 音声通知 (voice の場合)
     if (notificationType === 'voice') {
       if (notificationSound === 'voice') {

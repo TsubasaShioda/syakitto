@@ -1,0 +1,184 @@
+body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  overflow: hidden;
+  font-family: 'Arial', sans-serif;
+}
+
+.notification-container {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 320px;
+  background: transparent;
+  border-radius: 20px;
+  padding: 25px;
+  animation: fadeInOut 5s ease-in-out;
+  opacity: 0;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.character-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.character {
+  position: relative;
+  width: 80px;
+  height: 120px;
+  animation: bounce 1s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-15px) scale(1.05);
+  }
+}
+
+/* Wiiスポーツ風のシンプルなキャラクター */
+.head {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 50px;
+  background: #ffffff;
+  border-radius: 50%;
+  border: 3px solid #333;
+  animation: nod 1.5s ease-in-out infinite;
+}
+
+@keyframes nod {
+  0%, 100% {
+    transform: translateX(-50%) rotate(0deg);
+  }
+  25% {
+    transform: translateX(-50%) rotate(-5deg);
+  }
+  75% {
+    transform: translateX(-50%) rotate(5deg);
+  }
+}
+
+/* 目 */
+.head::before,
+.head::after {
+  content: '';
+  position: absolute;
+  top: 18px;
+  width: 8px;
+  height: 8px;
+  background: #333;
+  border-radius: 50%;
+}
+
+.head::before {
+  left: 12px;
+}
+
+.head::after {
+  right: 12px;
+}
+
+/* 体 */
+.body {
+  position: absolute;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 60px;
+  background: #4CAF50;
+  border-radius: 20px 20px 10px 10px;
+  border: 3px solid #333;
+}
+
+/* 腕 */
+.arm {
+  position: absolute;
+  top: 55px;
+  width: 12px;
+  height: 45px;
+  background: #ffffff;
+  border-radius: 6px;
+  border: 2px solid #333;
+}
+
+.arm.left {
+  left: 8px;
+  animation: waveLeft 1s ease-in-out infinite;
+}
+
+.arm.right {
+  right: 8px;
+  animation: waveRight 1s ease-in-out infinite;
+}
+
+@keyframes waveLeft {
+  0%, 100% {
+    transform: rotate(-20deg);
+  }
+  50% {
+    transform: rotate(-40deg);
+  }
+}
+
+@keyframes waveRight {
+  0%, 100% {
+    transform: rotate(20deg);
+  }
+  50% {
+    transform: rotate(40deg);
+  }
+}
+
+/* メッセージ */
+.message {
+  text-align: center;
+  color: white;
+}
+
+.message h2 {
+  margin: 0 0 10px 0;
+  font-size: 22px;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.message p {
+  margin: 0;
+  font-size: 16px;
+  opacity: 0.95;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}

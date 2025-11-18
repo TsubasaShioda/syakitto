@@ -16,5 +16,6 @@ contextBridge.exposeInMainWorld('electron', {
   showNotification: (options: Electron.NotificationConstructorOptions) => ipcRenderer.send('show-notification', options),
   updateTrayIcon: (dataUrl: string) => ipcRenderer.send('update-tray-icon', dataUrl),
   flashScreen: () => ipcRenderer.send('flash-screen'),
+  showAnimationNotification: () => ipcRenderer.send('show-animation-notification'),
   closeWindow: () => ipcRenderer.send('close-window'),
 });
