@@ -15,7 +15,8 @@
     "electron:package:mac": "npm run electron:package -- --mac",
     "electron:package:win": "npm run electron:package -- --win",
     "electron:package:linux": "npm run electron:package -- --linux",
-  "postinstall": "if [ \"$VERCEL\" = \"1\" ]; then echo \"Skipping electron postinstall on Vercel\"; else electron-builder install-app-deps; fi",
+  "postinstall": "npm run postinstall:prisma && if [ \"$VERCEL\" = \"1\" ]; then echo \"Skipping electron postinstall on Vercel\"; else electron-builder install-app-deps; fi",
+    "postinstall:prisma": "npx prisma generate",
     "prisma:migrate": "dotenv -e .env.local -- npx prisma migrate dev"
   },
   "build": {

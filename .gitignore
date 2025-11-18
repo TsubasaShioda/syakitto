@@ -49,8 +49,3 @@ error.txt
 progress.md
 
 /public/icons
-# Prisma: exclude only native binaries, keep generated TypeScript files
-/src/generated/prisma/*.node
-/src/generated/prisma/*.dylib
-/src/generated/prisma/*.so
-/src/generated/prisma/*.dll
