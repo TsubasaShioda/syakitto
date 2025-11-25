@@ -8,6 +8,7 @@ import CameraView from "@/app/components/CameraView";
 import ControlButtons from "@/app/components/ControlButtons";
 import ActionButtons from "@/app/components/ActionButtons";
 import { usePostureApp } from "@/app/usePostureApp";
+import CalculationView from "./components/CalculationView";
 
 export default function Home() {
   const {
@@ -29,10 +30,14 @@ export default function Home() {
     calibrationTimestamp,
     isRecordingEnabled,
     setIsRecordingEnabled,
+    isVisualizationEnabled,
+    setIsVisualizationEnabled,
     slouchScore,
     isCalibrated,
     calibrate,
     scoreHistory,
+    poses,
+    debugValues,
     isDrowsy,
     ear,
     notificationType,
@@ -56,7 +61,19 @@ export default function Home() {
         isDrowsy={isDrowsy}
       />
 
-      <CameraView videoRef={videoRef} isPaused={isPaused} />
+      <CameraView
+        videoRef={videoRef}
+        isPaused={isPaused}
+        isVisualizationEnabled={isVisualizationEnabled}
+        poses={poses}
+        debugValues={debugValues}
+      />
+      
+      {isVisualizationEnabled && (
+        <div className="absolute top-48 left-[calc(50%+250px)] w-80 z-10">
+          <CalculationView debugValues={debugValues} isCalibrated={isCalibrated} />
+        </div>
+      )}
 
       <ControlButtons
         isPaused={isPaused}
@@ -174,7 +191,12 @@ export default function Home() {
         SOUND_OPTIONS={SOUND_OPTIONS}
       />
 
-      <InfoModal isOpen={isInfoOpen} onClose={() => setIsInfoOpen(false)} />
+      <InfoModal
+        isOpen={isInfoOpen}
+        onClose={() => setIsInfoOpen(false)}
+        isVisualizationEnabled={isVisualizationEnabled}
+        onToggleVisualization={() => setIsVisualizationEnabled(!isVisualizationEnabled)}
+      />
 
       <ActionButtons
         onDownload={handleDownload}

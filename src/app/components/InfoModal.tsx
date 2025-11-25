@@ -3,9 +3,11 @@
 interface InfoModalProps {
   isOpen: boolean;
   onClose: () => void;
+  isVisualizationEnabled: boolean;
+  onToggleVisualization: () => void;
 }
 
-const InfoModal = ({ isOpen, onClose }: InfoModalProps) => {
+const InfoModal = ({ isOpen, onClose, isVisualizationEnabled, onToggleVisualization }: InfoModalProps) => {
   if (!isOpen) {
     return null;
   }
@@ -48,6 +50,24 @@ const InfoModal = ({ isOpen, onClose }: InfoModalProps) => {
             </p>
           </div>
         </div>
+
+        {/* --- 開発者向けオプション --- */}
+        <div className="mt-6 border-t border-gray-700 pt-4">
+          <h3 className="text-lg font-semibold text-gray-400">開発者向けオプション</h3>
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-gray-300">計算式を可視化する</span>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isVisualizationEnabled}
+                onChange={onToggleVisualization}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-600 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+        </div>
+        
       </div>
     </div>
   );

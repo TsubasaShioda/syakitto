@@ -24,6 +24,8 @@ interface UsePoseDetectionReturn {
   isCalibrated: boolean;
   calibrate: () => void;
   scoreHistory: ScoreHistory[];
+  poses: poseDetection.Pose[] | null;
+  debugValues: Record<string, number | string>;
 }
 
 // 距離を計算するヘルパー関数
@@ -40,6 +42,8 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled }: Use
   const [calibratedFaceSize, setCalibratedFaceSize] = useState<number | null>(null);
   const smoothingHistory = useRef<number[]>([]);
   const [scoreHistory, setScoreHistory] = useState<ScoreHistory[]>([]);
+  const [poses, setPoses] = useState<poseDetection.Pose[] | null>(null);
+  const [debugValues, setDebugValues] = useState<Record<string, number | string>>({});
 
   const isCalibrated = calibratedPose !== null;
 
@@ -142,6 +146,15 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled }: Use
     // デフォルトのロジックでスコアを計算
     const defaultPostureRatio = (shoulderY - earY) / bodyHeight;
     const uncalibratedScore = Math.min(1, Math.max(0, (defaultPostureRatio - 0.8) / 0.3)) * 100;
+    
+    let newDebugValues: Record<string, number | string> = {
+      earY: earY,
+      eyeY: eyeY,
+      shoulderY: shoulderY,
+      bodyHeight: bodyHeight,
+      defaultPostureRatio: defaultPostureRatio,
+      mode: 'Uncalibrated',
+    };
 
     // キャリブレーション済みの場合、キャリブレーションスコアを計算し、デフォルトスコアと混ぜる
     if (calibratedPose && calibratedFaceSize) {
@@ -170,10 +183,22 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled }: Use
       const deviation = calibPostureRatio - (currentPostureRatio / faceSizeRatio);
       const calibratedScore = Math.min(1, Math.max(0, deviation / 0.35)) * 100;
 
+      newDebugValues = {
+        ...newDebugValues,
+        mode: 'Calibrated',
+        currentFaceSize: currentFaceSize,
+        faceSizeRatio: faceSizeRatio,
+        calibPostureRatio: calibPostureRatio,
+        currentPostureRatio: currentPostureRatio,
+        deviation: deviation,
+      };
+      setDebugValues(newDebugValues);
+
       // 50/50で混ぜる
       return (uncalibratedScore * 0.5) + (calibratedScore * 0.5);
     }
-
+    
+    setDebugValues(newDebugValues);
     // キャリブレーションされていない場合は、デフォルトスコアを返す
     return uncalibratedScore;
   }, [calibratedPose, calibratedFaceSize]);
@@ -186,13 +211,15 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled }: Use
 
     const analyze = async () => {
       try {
-        const [poses, faces] = await Promise.all([
+        const [estimatedPoses, faces] = await Promise.all([
           poseDetector.estimatePoses(videoRef.current!),
           faceDetector.estimateFaces(videoRef.current!, { flipHorizontal: false }),
         ]);
         
-        if (poses.length > 0 && faces.length > 0) {
-          const score = calculateSlouchScore(poses[0].keypoints, faces[0].keypoints);
+        setPoses(estimatedPoses); // 検出したポーズ情報を保存
+
+        if (estimatedPoses.length > 0 && faces.length > 0) {
+          const score = calculateSlouchScore(estimatedPoses[0].keypoints, faces[0].keypoints);
           if (score !== null) {
             // スムージング
             const history = smoothingHistory.current;
@@ -216,5 +243,5 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled }: Use
     return () => clearInterval(intervalId);
   }, [isPaused, poseDetector, faceDetector, isCameraReady, videoRef, calculateSlouchScore, isRecordingEnabled]);
 
-  return { slouchScore, isCameraReady, isCalibrated, calibrate, scoreHistory };
+  return { slouchScore, isCameraReady, isCalibrated, calibrate, scoreHistory, poses, debugValues };
 };

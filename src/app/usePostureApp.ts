@@ -16,6 +16,7 @@ export const usePostureApp = () => {
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [calibrationTimestamp, setCalibrationTimestamp] = useState<Date | null>(null);
   const [isRecordingEnabled, setIsRecordingEnabled] = useState(false);
+  const [isVisualizationEnabled, setIsVisualizationEnabled] = useState(false);
 
   useEffect(() => {
     if (window.electron?.isElectron) {
@@ -23,7 +24,7 @@ export const usePostureApp = () => {
     }
   }, []);
 
-  const { slouchScore, isCalibrated, calibrate, scoreHistory } = usePoseDetection({ videoRef, isPaused, isRecordingEnabled });
+  const { slouchScore, isCalibrated, calibrate, scoreHistory, poses, debugValues } = usePoseDetection({ videoRef, isPaused, isRecordingEnabled });
   const { isDrowsy, ear } = useDrowsinessDetection({
     videoRef,
     isEnabled: isDrowsinessDetectionEnabled,
@@ -99,10 +100,14 @@ export const usePostureApp = () => {
     calibrationTimestamp,
     isRecordingEnabled,
     setIsRecordingEnabled,
+    isVisualizationEnabled,
+    setIsVisualizationEnabled,
     slouchScore,
     isCalibrated,
-    calibrate: handleCalibrate, // Rename to avoid conflict with `calibrate` from usePoseDetection
+    calibrate: handleCalibrate,
     scoreHistory,
+    poses,
+    debugValues,
     isDrowsy,
     ear,
     notificationType,
