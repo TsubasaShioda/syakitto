@@ -1,0 +1,31 @@
+body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  overflow: hidden;
+}
+
+#cat-hand {
+  position: absolute;
+  bottom: -400px;
+  right: -300px;
+  height: 380px; /* ウィンドウの高さより少し小さく */
+  width: auto;
+  animation: peek-a-boo 6s ease-out forwards;
+  transform-origin: bottom right;
+}
+
+@keyframes peek-a-boo {
+  0% {
+    transform: translate(0, 0) rotate(-15deg);
+  }
+  50% {
+    transform: translate(-280px, -380px) rotate(-15deg); /* 新しいウィンドウサイズに合わせた移動量 */
+  }
+  80% {
+    transform: translate(-280px, -380px) rotate(-15deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(-15deg);
+  }
+}

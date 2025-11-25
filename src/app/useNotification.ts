@@ -51,6 +51,11 @@ export const useNotification = ({ slouchScore, isDrowsy, isPaused, settings }: U
     if (notificationType === 'animation' && typeof window !== 'undefined' && window.electron && window.electron.showAnimationNotification) {
       window.electron.showAnimationNotification();
     }
+    
+    // Electron環境での猫の手アニメーション通知
+    if (notificationType === 'cat_hand' && typeof window !== 'undefined' && window.electron && window.electron.showCatHandNotification) {
+      window.electron.showCatHandNotification();
+    }
 
     // デスクトップ通知 (desktop の場合)
     if (notificationType === 'desktop') {

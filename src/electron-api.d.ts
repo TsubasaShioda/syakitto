@@ -5,6 +5,7 @@ export interface ElectronAPI {
   updateTrayIcon: (dataUrl: string) => void;
   flashScreen: () => void;
   showAnimationNotification: () => void;
+  showCatHandNotification: () => void;
   minimizeWindow?: () => void;
   maximizeWindow?: () => void;
   closeWindow?: () => void;

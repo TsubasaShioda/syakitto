@@ -17,5 +17,6 @@ contextBridge.exposeInMainWorld('electron', {
   updateTrayIcon: (dataUrl: string) => ipcRenderer.send('update-tray-icon', dataUrl),
   flashScreen: () => ipcRenderer.send('flash-screen'),
   showAnimationNotification: () => ipcRenderer.send('show-animation-notification'),
+  showCatHandNotification: () => ipcRenderer.send('show-cat-hand-notification'),
   closeWindow: () => ipcRenderer.send('close-window'),
 });

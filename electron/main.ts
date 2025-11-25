@@ -143,6 +143,55 @@ app.whenReady().then(() => {
     }, 5000); // CSS アニメーション（フェードイン + 表示 + フェードアウト = 5秒）
   });
 
+  // 猫の手アニメーション通知用のIPCイベントハンドラ
+  ipcMain.on('show-cat-hand-notification', () => {
+    const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+    const catHandWindow = new BrowserWindow({
+      width: 300,
+      height: 400,
+      x: width - 300,
+      y: height - 400,
+      transparent: true,
+      frame: false,
+      alwaysOnTop: true,
+      skipTaskbar: true,
+      focusable: false,
+      hasShadow: false,
+      acceptFirstMouse: false,
+      minimizable: false,
+      maximizable: false,
+      closable: false,
+      resizable: false,
+      webPreferences: {
+        preload: path.join(__dirname, 'preload.ts'),
+        devTools: true,
+      },
+    });
+
+    // `cat_hand.html` をロード
+    const catHandPath = path.join(__dirname, 'windows', 'cat_hand', 'cat_hand.html');
+    catHandWindow.loadFile(catHandPath);
+
+    if (process.platform === 'darwin') {
+      catHandWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+      catHandWindow.setAlwaysOnTop(true, 'pop-up-menu');
+    } else {
+      catHandWindow.setAlwaysOnTop(true);
+    }
+
+    catHandWindow.once('ready-to-show', () => {
+      catHandWindow.showInactive();
+      catHandWindow.setIgnoreMouseEvents(true, { forward: true });
+    });
+
+    // アニメーション終了後にウィンドウを閉じる（6秒後）
+    setTimeout(() => {
+      if (!catHandWindow.isDestroyed()) {
+        catHandWindow.close();
+      }
+    }, 6000); // CSSアニメーションの時間に合わせる
+  });
+
   ipcMain.on('close-window', () => {
     const win = BrowserWindow.getFocusedWindow();
     win?.close();
