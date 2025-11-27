@@ -9,6 +9,7 @@ import ControlButtons from "@/app/components/ControlButtons";
 import ActionButtons from "@/app/components/ActionButtons";
 import NotificationSelector from "@/app/components/NotificationSelector";
 import { usePostureApp } from "@/app/usePostureApp";
+import PomodoroTimer from "@/app/components/PomodoroTimer";
 
 export default function Home() {
   const {
@@ -30,6 +31,8 @@ export default function Home() {
     calibrationTimestamp,
     isRecordingEnabled,
     setIsRecordingEnabled,
+    isTimerVisible,
+    setIsTimerVisible,
     slouchScore,
     isCalibrated,
     calibrate,
@@ -62,6 +65,12 @@ export default function Home() {
         </h1>
         <p className="text-gray-600 text-sm">リアルタイム姿勢チェッカー - あなたの健康をサポート</p>
       </header>
+      
+      {isTimerVisible && (
+        <div className="absolute left-8 top-1/2 -translate-y-1/2 z-20">
+          <PomodoroTimer />
+        </div>
+      )}
 
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-hidden">
         {/* 左カラム: 通知設定 */}
@@ -153,6 +162,9 @@ export default function Home() {
         onInfoOpen={() => setIsInfoOpen(true)}
         onReportOpen={() => setIsReportOpen(true)}
         onSettingsOpen={() => setIsSettingsOpen(true)}
+        isTimerVisible={isTimerVisible}
+        onToggleTimer={() => setIsTimerVisible(!isTimerVisible)}
+        isElectron={isElectron}
       />
     </main>
   );
