@@ -9,6 +9,7 @@ import ControlButtons from "@/app/components/ControlButtons";
 import ActionButtons from "@/app/components/ActionButtons";
 import { usePostureApp } from "@/app/usePostureApp";
 import CalculationView from "./components/CalculationView";
+import PomodoroTimer from "@/app/components/PomodoroTimer";
 
 export default function Home() {
   const {
@@ -32,6 +33,8 @@ export default function Home() {
     setIsRecordingEnabled,
     isVisualizationEnabled,
     setIsVisualizationEnabled,
+    isTimerVisible,
+    setIsTimerVisible,
     slouchScore,
     isCalibrated,
     calibrate,
@@ -53,6 +56,12 @@ export default function Home() {
     <main className="relative flex min-h-screen flex-col items-center justify-center bg-gray-900 text-white p-6">
       <h1 className="text-3xl font-bold mb-4">syakitto</h1>
       
+      {isTimerVisible && (
+        <div className="absolute left-8 top-1/2 -translate-y-1/2">
+          <PomodoroTimer />
+        </div>
+      )}
+
       <ScoreDisplay
         slouchScore={slouchScore}
         borderColor={borderColor}
@@ -203,6 +212,8 @@ export default function Home() {
         onInfoOpen={() => setIsInfoOpen(true)}
         onReportOpen={() => setIsReportOpen(true)}
         onSettingsOpen={() => setIsSettingsOpen(true)}
+        isTimerVisible={isTimerVisible}
+        onToggleTimer={() => setIsTimerVisible(!isTimerVisible)}
       />
     </main>
   );

@@ -17,6 +17,7 @@ export const usePostureApp = () => {
   const [calibrationTimestamp, setCalibrationTimestamp] = useState<Date | null>(null);
   const [isRecordingEnabled, setIsRecordingEnabled] = useState(false);
   const [isVisualizationEnabled, setIsVisualizationEnabled] = useState(false);
+  const [isTimerVisible, setIsTimerVisible] = useState(false);
 
   useEffect(() => {
     if (window.electron?.isElectron) {
@@ -102,6 +103,8 @@ export const usePostureApp = () => {
     setIsRecordingEnabled,
     isVisualizationEnabled,
     setIsVisualizationEnabled,
+    isTimerVisible,
+    setIsTimerVisible,
     slouchScore,
     isCalibrated,
     calibrate: handleCalibrate,
