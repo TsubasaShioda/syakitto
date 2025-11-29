@@ -1,5 +1,6 @@
-import { app, BrowserWindow, ipcMain, Notification, Tray, Menu, nativeImage, screen } from 'electron';
+import { app, BrowserWindow, ipcMain, Notification, Tray, Menu, nativeImage, screen, session } from 'electron';
 import * as path from 'path';
+import * as fs from 'fs';
 import { createMainWindow } from './windows/mainWindow';
 
 // グローバルウィンドウ参照（ガベージコレクション防止）
@@ -8,6 +9,12 @@ let tray: Tray | null = null;
 
 // アプリケーション準備完了時の処理
 app.whenReady().then(() => {
+  // ダウンロードをすべてキャンセルする
+  session.defaultSession.on('will-download', (event, item, webContents) => {
+    item.cancel();
+    console.log(`Download blocked for: ${item.getURL()}`);
+  });
+
   // メインウィンドウを作成するが、最初は非表示
   mainWindow = createMainWindow();
   mainWindow.hide();
@@ -43,6 +50,29 @@ app.whenReady().then(() => {
       mainWindow.show();
     } else {
       mainWindow = createMainWindow();
+    }
+  });
+
+  // 音楽ファイルリストを取得するIPCハンドラ
+  ipcMain.handle('get-music-files', async () => {
+    let musicsDir: string;
+
+    if (app.isPackaged) {
+      // プロダクション環境: パッケージのルートからの相対パス
+      musicsDir = path.join(process.resourcesPath, 'out', 'musics');
+    } else {
+      // 開発環境: プロジェクトルートからの相対パス
+      musicsDir = path.join(process.cwd(), 'public', 'musics');
+    }
+
+    console.log('[main.ts] Trying to read music files from:', musicsDir);
+    try {
+      const files = await fs.promises.readdir(musicsDir);
+      console.log('[main.ts] Found music files:', files);
+      return files.filter(file => file.endsWith('.mp3'));
+    } catch (error) {
+      console.error('[main.ts] Failed to read music files:', error);
+      return [];
     }
   });
 

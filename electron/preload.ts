@@ -19,4 +19,5 @@ contextBridge.exposeInMainWorld('electron', {
   showAnimationNotification: () => ipcRenderer.send('show-animation-notification'),
   showCatHandNotification: () => ipcRenderer.send('show-cat-hand-notification'),
   closeWindow: () => ipcRenderer.send('close-window'),
+  getMusicFiles: () => ipcRenderer.invoke('get-music-files'),
 });

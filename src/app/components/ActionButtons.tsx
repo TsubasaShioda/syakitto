@@ -7,21 +7,24 @@ interface ActionButtonsProps {
   onSettingsOpen: () => void;
   onToggleTimer: () => void;
   isTimerVisible: boolean;
+  isElectron: boolean;
 }
 
-const ActionButtons = ({ onDownload, onInfoOpen, onReportOpen, onSettingsOpen, onToggleTimer, isTimerVisible }: ActionButtonsProps) => {
+const ActionButtons = ({ onDownload, onInfoOpen, onReportOpen, onSettingsOpen, onToggleTimer, isTimerVisible, isElectron }: ActionButtonsProps) => {
   return (
     <div className="absolute bottom-6 right-6 flex space-x-2">
-      <button
-        onClick={onDownload}
-        className="w-14 h-14 bg-gray-700 text-white rounded-full flex items-center justify-center text-2xl hover:bg-gray-600 transition-colors"
-        aria-label="macOS版をダウンロード"
-        title="macOS版をダウンロード"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-        </svg>
-      </button>
+      {!isElectron && (
+        <button
+          onClick={onDownload}
+          className="w-14 h-14 bg-gray-700 text-white rounded-full flex items-center justify-center text-2xl hover:bg-gray-600 transition-colors"
+          aria-label="macOS版をダウンロード"
+          title="macOS版をダウンロード"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          </svg>
+        </button>
+      )}
       <button
         onClick={onInfoOpen}
         className="w-14 h-14 bg-gray-700 text-white rounded-full flex items-center justify-center text-2xl hover:bg-gray-600 transition-colors"

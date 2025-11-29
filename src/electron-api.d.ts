@@ -9,6 +9,7 @@ export interface ElectronAPI {
   minimizeWindow?: () => void;
   maximizeWindow?: () => void;
   closeWindow?: () => void;
+  getMusicFiles: () => Promise<string[]>;
 }
 
 declare global {

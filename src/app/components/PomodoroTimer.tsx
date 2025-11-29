@@ -17,6 +17,17 @@ const DEFAULT_TIMER_SETTINGS: TimerSettings = {
   pomodoroCycles: 4,
 };
 
+const MUSIC_TITLE_MAP: { [key: string]: string } = {
+  "cafe1.mp3": "カフェの雑音1",
+  "cafe2.mp3": "カフェの雑音2",
+  "cafe3.mp3": "カフェの雑音3",
+  "rain.mp3": "雨音",
+  "sky.mp3": "空",
+  "space.mp3": "宇宙",
+  "forest.mp3": "森",
+  "深海.mp3": "深海",
+};
+
 type SessionType = '作業' | '短い休憩' | '長い休憩';
 type NotificationType = 'desktop' | 'voice' | 'none';
 
@@ -32,6 +43,59 @@ const PomodoroTimer = () => {
   const [pomodoroCount, setPomodoroCount] = useState(0);
   const [notificationType, setNotificationType] = useState<NotificationType>('desktop');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isMusicOpen, setIsMusicOpen] = useState(false);
+  const [selectedMusic, setSelectedMusic] = useState<string | null>(null);
+  const [musicFiles, setMusicFiles] = useState<string[]>([]);
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // --- Get Music Files ---
+  useEffect(() => {
+    if (window.electron?.getMusicFiles) {
+      console.log('[PomodoroTimer] Calling getMusicFiles...');
+      window.electron.getMusicFiles().then(files => {
+        console.log('[PomodoroTimer] Received music files:', files);
+        setMusicFiles(files);
+      }).catch(error => {
+        console.error("[PomodoroTimer] Failed to get music files:", error);
+      });
+    } else {
+      console.log('[PomodoroTimer] getMusicFiles is not available.');
+    }
+  }, []);
+
+  // --- Set default selected music ---
+  useEffect(() => {
+    if (musicFiles.length > 0 && selectedMusic === null) {
+      setSelectedMusic(musicFiles[0]);
+    }
+  }, [musicFiles, selectedMusic]);
+
+  // --- Music Playback Logic ---
+  useEffect(() => {
+    if (sessionType === '作業' && isActive && selectedMusic) {
+      if (!audioRef.current || !audioRef.current.src.includes(selectedMusic)) {
+        if (audioRef.current) {
+          audioRef.current.pause();
+        }
+        audioRef.current = new Audio(`/musics/${selectedMusic}`);
+        audioRef.current.loop = true;
+      }
+      audioRef.current.play().catch(e => console.error("Error playing audio:", e));
+    } else {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    }
+    
+    // Cleanup on component unmount
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    };
+  }, [sessionType, isActive, selectedMusic]);
+
 
   // Update timer only when settings are saved or session type changes
   useEffect(() => {
@@ -121,11 +185,13 @@ const PomodoroTimer = () => {
     setTempTimerSettings(timerSettings);
     setIsSettingsOpen(true);
   };
-
   const closeSettings = () => {
     setTimerSettings(tempTimerSettings);
     setIsSettingsOpen(false);
   };
+
+  const openMusicSettings = () => setIsMusicOpen(true);
+  const closeMusicSettings = () => setIsMusicOpen(false);
 
   const SettingsView = () => {
     const workRef = useRef<HTMLInputElement>(null);
@@ -164,18 +230,42 @@ const PomodoroTimer = () => {
       </div>
     );
   };
+  
+  const MusicSettingsView = () => {
+    return (
+      <div className="absolute inset-0 bg-gray-800 bg-opacity-95 p-4 rounded-lg flex flex-col justify-center space-y-2">
+        <h3 className="text-lg font-bold text-center mb-2">作業用BGM</h3>
+        <div className="space-y-2">
+          <button onClick={() => { setSelectedMusic(null); closeMusicSettings(); }} className={`w-full text-left px-3 py-2 rounded ${!selectedMusic ? 'bg-blue-600' : 'bg-gray-700'}`}>
+            なし
+          </button>
+          {musicFiles.map(music => (
+            <button key={music} onClick={() => { setSelectedMusic(music); closeMusicSettings(); }} className={`w-full text-left px-3 py-2 rounded ${selectedMusic === music ? 'bg-blue-600' : 'bg-gray-700'}`}>
+              {MUSIC_TITLE_MAP[music] || music.replace('.mp3', '')}
+            </button>
+          ))}
+        </div>
+        <button onClick={closeMusicSettings} className="absolute top-2 right-2 w-6 h-6 bg-gray-700 rounded-full flex items-center justify-center hover:bg-gray-600">×</button>
+      </div>
+    );
+  };
 
   return (
     <div className="relative bg-gray-800 p-4 rounded-lg shadow-lg text-white text-center w-64">
-      <button onClick={openSettings} className="absolute top-2 left-2 w-6 h-6 bg-gray-700 rounded-full flex items-center justify-center hover:bg-gray-600">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
-      </button>
+      <div className="absolute top-2 left-2 flex space-x-2">
+        <button onClick={openSettings} className="w-6 h-6 bg-gray-700 rounded-full flex items-center justify-center hover:bg-gray-600">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+        </button>
+        <button onClick={openMusicSettings} className="w-6 h-6 bg-gray-700 rounded-full flex items-center justify-center hover:bg-gray-600">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        </button>
+      </div>
 
       <h2 className="text-xl font-bold mb-2">ポモドーロタイマー</h2>
       <div className="mb-2">
         <p>{`セッション: ${sessionType}`}</p>
         <p>{`${pomodoroCount} サイクル完了`}</p>
-        {!isSettingsOpen && (
+        {!isSettingsOpen && !isMusicOpen && (
           <p className="text-xs text-gray-400 mt-1">
             {`${pomodoroCycles}回の作業セッション後に長い休憩に入ります。`}
           </p>
@@ -200,6 +290,7 @@ const PomodoroTimer = () => {
         </div>
       </div>
       {isSettingsOpen && <SettingsView />}
+      {isMusicOpen && <MusicSettingsView />}
     </div>
   );
 };
