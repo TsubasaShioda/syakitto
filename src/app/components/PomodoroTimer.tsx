@@ -47,7 +47,7 @@ const PomodoroTimer = () => {
         setTimeLeft(pomodoroLongBreak * 60);
         break;
     }
-  }, [pomodoroWork, pomodoroShortBreak, pomodoroLongBreak, sessionType, isActive]);
+  }, [pomodoroWork, pomodoroShortBreak, pomodoroLongBreak, sessionType]);
 
   useEffect(() => {
     if (notificationType === 'desktop' && !(typeof window !== 'undefined' && window.electron?.showNotification)) {
