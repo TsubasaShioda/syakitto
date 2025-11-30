@@ -4,11 +4,14 @@ export interface ElectronAPI {
   showNotification: (options: Electron.NotificationConstructorOptions) => void;
   updateTrayIcon: (dataUrl: string) => void;
   flashScreen: () => void;
-  showAnimationNotification: () => void;
+  showAnimationNotification: () => void; // 画像トグルアニメーション
+  // showToggleNotification: () => void; // 削除（animationに統合）
   showCatHandNotification: () => void;
   minimizeWindow?: () => void;
   maximizeWindow?: () => void;
   closeWindow?: () => void;
+  onBeforeQuit: (callback: () => void) => void;
+  cleanupComplete: () => void;
 }
 
 declare global {

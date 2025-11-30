@@ -24,6 +24,7 @@ interface UsePoseDetectionReturn {
   isCalibrated: boolean;
   calibrate: () => void;
   scoreHistory: ScoreHistory[];
+  stopCamera: () => void; // カメラを手動で停止する関数
 }
 
 // 距離を計算するヘルパー関数
@@ -40,6 +41,7 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled }: Use
   const [calibratedFaceSize, setCalibratedFaceSize] = useState<number | null>(null);
   const smoothingHistory = useRef<number[]>([]);
   const [scoreHistory, setScoreHistory] = useState<ScoreHistory[]>([]);
+  const streamRef = useRef<MediaStream | null>(null); // ビデオストリームの参照を保持
 
   const isCalibrated = calibratedPose !== null;
 
@@ -69,6 +71,22 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled }: Use
     init();
   }, []);
 
+  // カメラ停止関数
+  const stopCamera = useCallback(() => {
+    console.log('Stopping camera...');
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => {
+        track.stop();
+        console.log('Track stopped:', track.label);
+      });
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setIsCameraReady(false);
+  }, [videoRef]);
+
   // --- カメラセットアップ ---
   useEffect(() => {
     const setupCamera = async () => {
@@ -78,6 +96,7 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled }: Use
           video: { width: 480, height: 360 },
           audio: false,
         });
+        streamRef.current = stream; // ストリームの参照を保存
         const video = videoRef.current;
         video.srcObject = stream;
         video.onloadedmetadata = () => video.play();
@@ -87,7 +106,12 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled }: Use
       }
     };
     setupCamera();
-  }, [poseDetector, faceDetector, videoRef]);
+
+    // クリーンアップ: コンポーネントがアンマウントされたらカメラを停止
+    return () => {
+      stopCamera();
+    };
+  }, [poseDetector, faceDetector, videoRef, stopCamera]);
 
   // --- キャリブレーション ---
   const calibrate = async () => {
@@ -216,5 +240,5 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled }: Use
     return () => clearInterval(intervalId);
   }, [isPaused, poseDetector, faceDetector, isCameraReady, videoRef, calculateSlouchScore, isRecordingEnabled]);
 
-  return { slouchScore, isCameraReady, isCalibrated, calibrate, scoreHistory };
+  return { slouchScore, isCameraReady, isCalibrated, calibrate, scoreHistory, stopCamera };
 };
