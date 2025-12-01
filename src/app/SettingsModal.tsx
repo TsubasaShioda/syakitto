@@ -16,7 +16,7 @@ export const DEFAULT_SETTINGS: Settings = {
   delay: 5, // seconds
   reNotificationMode: 'cooldown',
   cooldownTime: 60, // seconds
-  continuousInterval: 10,
+  continuousInterval: 5,
   drowsinessEarThreshold: 0.2,
   drowsinessTimeThreshold: 2, // seconds
 };

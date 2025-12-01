@@ -214,6 +214,7 @@ export default function Home() {
         onSettingsOpen={() => setIsSettingsOpen(true)}
         isTimerVisible={isTimerVisible}
         onToggleTimer={() => setIsTimerVisible(!isTimerVisible)}
+        isElectron={isElectron}
       />
     </main>
   );
