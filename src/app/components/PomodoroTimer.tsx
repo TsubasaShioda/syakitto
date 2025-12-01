@@ -60,7 +60,19 @@ const PomodoroTimer = () => {
         console.error("[PomodoroTimer] Failed to get music files:", error);
       });
     } else {
-      console.log('[PomodoroTimer] getMusicFiles is not available.');
+      // Fallback for web environment
+      console.log('[PomodoroTimer] getMusicFiles is not available, using hardcoded list for web.');
+      const webMusicFiles = [
+        "cafe1.mp3",
+        "cafe2.mp3",
+        "cafe3.mp3",
+        "forest.mp3",
+        "rain.mp3",
+        "sky.mp3",
+        "space.mp3",
+        "深海.mp3",
+      ];
+      setMusicFiles(webMusicFiles);
     }
   }, []);
 
