@@ -47,7 +47,7 @@ export const useNotification = ({ slouchScore, isDrowsy, isPaused, settings }: U
       window.electron.flashScreen();
     }
 
-    // Electron環境でのアニメーション通知
+    // Electron環境でのアニメーション通知（画像トグル）
     if (notificationType === 'animation' && typeof window !== 'undefined' && window.electron && window.electron.showAnimationNotification) {
       window.electron.showAnimationNotification();
     }

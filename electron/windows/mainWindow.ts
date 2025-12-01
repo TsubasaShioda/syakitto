@@ -17,8 +17,8 @@ export function createMainWindow(): BrowserWindow {
   // 開発環境と本番環境でURLを切り替え
   if (process.env.NODE_ENV === 'development') {
     mainWindow.loadURL('http://localhost:3000');
-    // 開発者ツールを開く
-    mainWindow.webContents.openDevTools();
+    // 開発者ツールを開く（コメントアウト）
+    // mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(path.join(__dirname, '../../out/index.html'));
   }
