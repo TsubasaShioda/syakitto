@@ -16,15 +16,10 @@ contextBridge.exposeInMainWorld('electron', {
   showNotification: (options: Electron.NotificationConstructorOptions) => ipcRenderer.send('show-notification', options),
   updateTrayIcon: (dataUrl: string) => ipcRenderer.send('update-tray-icon', dataUrl),
   flashScreen: () => ipcRenderer.send('flash-screen'),
-  showAnimationNotification: () => ipcRenderer.send('show-animation-notification'), // 画像トグルアニメーション
+  showAnimationNotification: () => ipcRenderer.send('show-animation-notification'),
   showCatHandNotification: () => ipcRenderer.send('show-cat-hand-notification'),
-  // showToggleNotification: () => ipcRenderer.send('show-toggle-notification'), // 削除（animationに統合）
   closeWindow: () => ipcRenderer.send('close-window'),
-
-  // アプリ終了前のクリーンアップ通知を受け取る
-  onBeforeQuit: (callback: () => void) => {
-    ipcRenderer.on('before-quit-cleanup', callback);
-  },
-  // クリーンアップ完了を通知
+  getMusicFiles: () => ipcRenderer.invoke('get-music-files'),
+  onBeforeQuit: (callback: () => void) => ipcRenderer.on('before-quit', callback),
   cleanupComplete: () => ipcRenderer.send('cleanup-complete'),
 });

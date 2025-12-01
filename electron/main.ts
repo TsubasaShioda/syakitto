@@ -1,22 +1,29 @@
-import { app, BrowserWindow, ipcMain, Notification, Tray, Menu, nativeImage, screen } from 'electron';
+import { app, BrowserWindow, ipcMain, Notification, Tray, Menu, nativeImage, screen, session } from 'electron';
 import * as path from 'path';
+import * as fs from 'fs';
 import { createMainWindow } from './windows/mainWindow';
 
 // グローバルウィンドウ参照（ガベージコレクション防止）
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
-let isQuitting = false; // アプリ終了中フラグ
+let isQuitting = false; // 強制終了フラグ
 
 // アプリケーション準備完了時の処理
 app.whenReady().then(() => {
-  // メインウィンドウを作成して表示
-  mainWindow = createMainWindow();
-  mainWindow.show();
+  // ダウンロードをすべてキャンセルする
+  session.defaultSession.on('will-download', (event, item, webContents) => {
+    item.cancel();
+    console.log(`Download blocked for: ${item.getURL()}`);
+  });
 
-  // macOSでDockアイコンを表示する（デフォルトの動作）
-  // if (process.platform === 'darwin' && app.dock) {
-  //   app.dock.hide();
-  // }
+  // メインウィンドウを作成するが、最初は非表示
+  mainWindow = createMainWindow();
+  mainWindow.hide();
+
+  // macOSでDockアイコンを非表示にする
+  if (process.platform === 'darwin' && app.dock) {
+    app.dock.hide();
+  }
 
   // Tray アイコンの作成 (初期アイコンは透明)
   try {
@@ -25,7 +32,7 @@ app.whenReady().then(() => {
 
     const contextMenu = Menu.buildFromTemplate([
       { label: '表示', click: () => mainWindow?.show() },
-      { label: '終了', click: () => quitApp() },
+      { label: '終了', click: () => app.quit() },
     ]);
     tray.setToolTip('Posture Checker');
     tray.setContextMenu(contextMenu);
@@ -44,6 +51,29 @@ app.whenReady().then(() => {
       mainWindow.show();
     } else {
       mainWindow = createMainWindow();
+    }
+  });
+
+  // 音楽ファイルリストを取得するIPCハンドラ
+  ipcMain.handle('get-music-files', async () => {
+    let musicsDir: string;
+
+    if (app.isPackaged) {
+      // プロダクション環境: パッケージのルートからの相対パス
+      musicsDir = path.join(process.resourcesPath, 'dist', 'electron', 'musics');
+    } else {
+      // 開発環境: プロジェクトルートからの相対パス
+      musicsDir = path.join(process.cwd(), 'public', 'musics');
+    }
+
+    console.log('[main.ts] Trying to read music files from:', musicsDir);
+    try {
+      const files = await fs.promises.readdir(musicsDir);
+      console.log('[main.ts] Found music files:', files);
+      return files.filter(file => file.endsWith('.mp3'));
+    } catch (error) {
+      console.error('[main.ts] Failed to read music files:', error);
+      return [];
     }
   });
 
@@ -92,8 +122,7 @@ app.whenReady().then(() => {
     }, 500); // CSSアニメーションより少し長く待つ
   });
 
-  // 旧アニメーション通知用のIPCイベントハンドラ（コメントアウト）
-  /*
+  // アニメーション通知用のIPCイベントハンドラ
   ipcMain.on('show-animation-notification', () => {
     const { width, height } = screen.getPrimaryDisplay().workAreaSize;
     const animationWindow = new BrowserWindow({
@@ -105,91 +134,44 @@ app.whenReady().then(() => {
       frame: false,
       alwaysOnTop: true,
       skipTaskbar: true,
-      focusable: false,
-      hasShadow: false,
-      acceptFirstMouse: false,
+      focusable: false, // フォーカスを受け取らない
+      hasShadow: false, // 影を表示しない
+      acceptFirstMouse: false, // 最初のマウスクリックを受け付けない
       minimizable: false,
       maximizable: false,
       closable: false,
       resizable: false,
       webPreferences: {
         preload: path.join(__dirname, 'preload.ts'),
-        devTools: false,
+        devTools: false, // DevToolsを無効化
       },
     });
 
-    const animationPath = path.join(__dirname, 'windows', 'animation', 'animation.html');
-    animationWindow.loadFile(animationPath);
-
-    if (process.platform === 'darwin') {
-      animationWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-      animationWindow.setAlwaysOnTop(true, 'pop-up-menu');
-    } else {
-      animationWindow.setAlwaysOnTop(true);
-    }
-
-    animationWindow.once('ready-to-show', () => {
-      animationWindow.showInactive();
-      animationWindow.setIgnoreMouseEvents(true, { forward: true });
-    });
-
-    setTimeout(() => {
-      if (!animationWindow.isDestroyed()) {
-        animationWindow.destroy();
-      }
-    }, 5000);
-  });
-  */
-
-  // アニメーション通知用のIPCイベントハンドラ（旧toggleから変更）
-  ipcMain.on('show-animation-notification', () => {
-    const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-    const animationWindow = new BrowserWindow({
-      width: 280,
-      height: 280,
-      x: width - 280,
-      y: 10,
-      transparent: true,
-      frame: false,
-      alwaysOnTop: true,
-      skipTaskbar: true,
-      focusable: false,
-      hasShadow: false,
-      acceptFirstMouse: false,
-      minimizable: false,
-      maximizable: false,
-      closable: false,
-      resizable: false,
-      ...(process.platform === 'darwin' && {
-        type: 'panel', // macOS専用: パネルタイプでフォーカスを奪わない
-      }),
-      webPreferences: {
-        preload: path.join(__dirname, 'preload.ts'),
-        devTools: false,
-      },
-    });
-
-    // `toggle.html` をロード（画像が交互に表示されるアニメーション）
+    // `toggle.html` をロード
     const animationPath = path.join(__dirname, 'windows', 'toggle', 'toggle.html');
     animationWindow.loadFile(animationPath);
 
+    // macOS特有の設定
     if (process.platform === 'darwin') {
       animationWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+      animationWindow.setAlwaysOnTop(true, 'pop-up-menu'); // pop-up-menuレベルに変更
     } else {
       animationWindow.setAlwaysOnTop(true);
     }
 
+    // ウィンドウが完全にロードされてから表示（フォーカス問題を回避）
     animationWindow.once('ready-to-show', () => {
       animationWindow.showInactive();
+      // 念のため、フォーカスを明示的に無効化
       animationWindow.setIgnoreMouseEvents(true, { forward: true });
     });
 
-    // アニメーション終了後にウィンドウを破棄（4.5秒後）
+    // アニメーション終了後にウィンドウを閉じる（5秒後）
     setTimeout(() => {
       if (!animationWindow.isDestroyed()) {
-        animationWindow.destroy();
+        animationWindow.close();
       }
-    }, 4500);
+    }, 5000); // CSS アニメーション（フェードイン + 表示 + フェードアウト = 5秒）
   });
 
   // 猫の手アニメーション通知用のIPCイベントハンドラ
@@ -233,10 +215,10 @@ app.whenReady().then(() => {
       catHandWindow.setIgnoreMouseEvents(true, { forward: true });
     });
 
-    // アニメーション終了後にウィンドウを破棄（6秒後）
+    // アニメーション終了後にウィンドウを閉じる（6秒後）
     setTimeout(() => {
       if (!catHandWindow.isDestroyed()) {
-        catHandWindow.destroy(); // close()の代わりにdestroy()を使用
+        catHandWindow.close();
       }
     }, 6000); // CSSアニメーションの時間に合わせる
   });
@@ -245,47 +227,48 @@ app.whenReady().then(() => {
     const win = BrowserWindow.getFocusedWindow();
     win?.close();
   });
-
-  // クリーンアップ完了通知を受け取る
-  ipcMain.on('cleanup-complete', () => {
-    console.log('Cleanup complete, quitting app...');
-    isQuitting = true;
-    app.quit();
-  });
 });
-
-// アプリ終了処理
-function quitApp() {
-  if (!mainWindow || mainWindow.isDestroyed()) {
-    app.quit();
-    return;
-  }
-
-  // Rendererプロセスにクリーンアップを要求
-  mainWindow.webContents.send('before-quit-cleanup');
-
-  // タイムアウト: 3秒以内にクリーンアップが完了しなければ強制終了
-  setTimeout(() => {
-    if (!isQuitting) {
-      console.log('Cleanup timeout, force quitting...');
-      isQuitting = true;
-      app.quit();
-    }
-  }, 3000);
-}
 
 // すべてのウィンドウが閉じられた時の処理
 app.on('window-all-closed', () => {
   // macOS以外ではアプリケーションを終了
   if (process.platform !== 'darwin') {
-    quitApp();
+    app.quit();
   }
 });
 
-// ウィンドウが閉じられた時の処理
-app.on('before-quit', () => {
-  mainWindow = null;
+// アプリケーション終了前の最後の処理
+app.on('before-quit', (e) => {
+  if (!isQuitting) {
+    e.preventDefault(); // 終了を一旦キャンセル
+
+    // レンダラープロセスにクリーンアップを要求
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('before-quit');
+    }
+
+    // レンダラーからの完了通知を待つ
+    ipcMain.once('cleanup-complete', () => {
+      isQuitting = true; // 強制終了フラグを立てる
+      app.quit(); // 再度終了処理を実行
+    });
+
+    // タイムアウト処理（5秒以内に応答がない場合は強制終了）
+    setTimeout(() => {
+      if (!isQuitting) {
+        console.warn('Cleanup timed out. Forcing quit.');
+        isQuitting = true;
+        app.quit();
+      }
+    }, 5000);
+  }
+});
+
+// ウィンドウが閉じられた時の処理 (before-quitの前に呼ばれる)
+app.on('will-quit', () => {
+  // ここでトレイアイコンなどを破棄
   if (tray) {
-    tray.destroy(); // アプリ終了時にトレイアイコンを破棄
+    tray.destroy();
+    tray = null;
   }
 });
