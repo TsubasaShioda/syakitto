@@ -45,6 +45,31 @@ const ScoreDisplay = ({ slouchScore, isDrowsinessDetectionEnabled, ear }: ScoreD
             <span className="text-3xl ml-2">%</span>
           </p>
         </div>
+
+        {/* プログレスバー */}
+        <div className="mt-4 px-2">
+          <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden shadow-inner">
+            <div
+              className="h-4 rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-1"
+              style={{
+                width: `${Math.min(slouchScore, 100)}%`,
+                backgroundColor: getScoreColor(slouchScore)
+              }}
+            >
+              {slouchScore > 15 && (
+                <div className="w-1.5 h-1.5 bg-white/80 rounded-full animate-pulse" />
+              )}
+            </div>
+          </div>
+          <div className="flex justify-between text-xs text-gray-500 mt-1 px-1">
+            <span>0%</span>
+            <span className="text-gray-400">良好</span>
+            <span className="text-gray-400">注意</span>
+            <span className="text-gray-400">要改善</span>
+            <span>100%</span>
+          </div>
+        </div>
+
         <div className="mt-4 flex justify-center">
           <span
             className="px-6 py-2 rounded-full text-sm font-semibold shadow-md"
