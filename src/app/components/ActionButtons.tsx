@@ -7,6 +7,7 @@ interface ActionButtonsProps {
   onSettingsOpen: () => void;
   onToggleTimer: () => void;
   isTimerVisible: boolean;
+  isElectron: boolean;
 }
 
 const ActionButtons = ({ onDownload, onInfoOpen, onReportOpen, onSettingsOpen, onToggleTimer, isTimerVisible }: ActionButtonsProps) => {
@@ -44,13 +45,13 @@ const ActionButtons = ({ onDownload, onInfoOpen, onReportOpen, onSettingsOpen, o
       </button>
       <button
         onClick={onToggleTimer}
-        className={`w-14 h-14 rounded-full flex items-center justify-center text-2xl transition-colors ${
-          isTimerVisible ? 'bg-blue-600 text-white' : 'bg-gray-700 text-white hover:bg-gray-600'
+        className={`group w-14 h-14 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 border border-[#c9b8a8]/30 ${
+          isTimerVisible ? 'bg-[#d4a59a]/80 text-white hover:bg-[#d4a59a]' : 'bg-white/80 text-[#5a8f7b] hover:bg-[#c9b8a8]/40'
         }`}
         aria-label="タイマー表示切替"
         title="タイマー表示切替"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6 group-hover:scale-110 transition-transform">
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </button>

@@ -143,38 +143,38 @@ const PomodoroTimer = () => {
     };
     
     return (
-      <div className="absolute inset-0 bg-gray-800 bg-opacity-95 p-4 rounded-lg flex flex-col justify-center space-y-2">
+      <div className="absolute inset-0 bg-white/90 backdrop-blur-sm p-4 rounded-3xl flex flex-col justify-center space-y-2">
         <div className='text-sm'>
-          <label>作業時間: {tempTimerSettings.pomodoroWork}分</label>
-          <input ref={workRef} type="range" min="5" max="60" defaultValue={tempTimerSettings.pomodoroWork} onMouseUp={handleValueChange} onTouchEnd={handleValueChange} className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer mt-1" />
+          <label className="text-gray-600">作業時間: {tempTimerSettings.pomodoroWork}分</label>
+          <input ref={workRef} type="range" min="5" max="60" defaultValue={tempTimerSettings.pomodoroWork} onMouseUp={handleValueChange} onTouchEnd={handleValueChange} className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#a8d5ba] mt-1" />
         </div>
         <div className='text-sm'>
-          <label>短い休憩: {tempTimerSettings.pomodoroShortBreak}分</label>
-          <input ref={shortBreakRef} type="range" min="1" max="30" defaultValue={tempTimerSettings.pomodoroShortBreak} onMouseUp={handleValueChange} onTouchEnd={handleValueChange} className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer mt-1" />
+          <label className="text-gray-600">短い休憩: {tempTimerSettings.pomodoroShortBreak}分</label>
+          <input ref={shortBreakRef} type="range" min="1" max="30" defaultValue={tempTimerSettings.pomodoroShortBreak} onMouseUp={handleValueChange} onTouchEnd={handleValueChange} className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#a8d5ba] mt-1" />
         </div>
         <div className='text-sm'>
-          <label>長い休憩: {tempTimerSettings.pomodoroLongBreak}分</label>
-          <input ref={longBreakRef} type="range" min="5" max="60" defaultValue={tempTimerSettings.pomodoroLongBreak} onMouseUp={handleValueChange} onTouchEnd={handleValueChange} className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer mt-1" />
+          <label className="text-gray-600">長い休憩: {tempTimerSettings.pomodoroLongBreak}分</label>
+          <input ref={longBreakRef} type="range" min="5" max="60" defaultValue={tempTimerSettings.pomodoroLongBreak} onMouseUp={handleValueChange} onTouchEnd={handleValueChange} className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#a8d5ba] mt-1" />
         </div>
         <div className='text-sm'>
-          <label>サイクル数: {tempTimerSettings.pomodoroCycles}回</label>
-          <input ref={cyclesRef} type="range" min="2" max="10" defaultValue={tempTimerSettings.pomodoroCycles} onMouseUp={handleValueChange} onTouchEnd={handleValueChange} className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer mt-1" />
+          <label className="text-gray-600">サイクル数: {tempTimerSettings.pomodoroCycles}回</label>
+          <input ref={cyclesRef} type="range" min="2" max="10" defaultValue={tempTimerSettings.pomodoroCycles} onMouseUp={handleValueChange} onTouchEnd={handleValueChange} className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#a8d5ba] mt-1" />
         </div>
-        <button onClick={closeSettings} className="absolute top-2 right-2 w-6 h-6 bg-gray-700 rounded-full flex items-center justify-center hover:bg-gray-600">×</button>
+        <button onClick={closeSettings} className="absolute top-4 right-4 w-8 h-8 bg-[#c9b8a8]/30 hover:bg-[#c9b8a8]/50 text-gray-700 rounded-xl flex items-center justify-center transition-all duration-200 hover:scale-110">×</button>
       </div>
     );
   };
 
   return (
-    <div className="relative bg-gray-800 p-4 rounded-lg shadow-lg text-white text-center w-64">
-      <button onClick={openSettings} className="absolute top-2 left-2 w-6 h-6 bg-gray-700 rounded-full flex items-center justify-center hover:bg-gray-600">
+    <div className="relative bg-white/60 backdrop-blur-sm p-6 rounded-3xl shadow-sm border border-[#c9b8a8]/30 text-gray-700 text-center w-full">
+      <button onClick={openSettings} className="absolute top-4 left-4 w-8 h-8 bg-[#c9b8a8]/30 hover:bg-[#c9b8a8]/50 text-gray-700 rounded-xl flex items-center justify-center transition-all duration-200 hover:scale-110">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
       </button>
 
-      <h2 className="text-xl font-bold mb-2">ポモドーロタイマー</h2>
+      <h2 className="text-xl font-bold mb-2 text-[#5a8f7b]">ポモドーロタイマー</h2>
       <div className="mb-2">
-        <p>{`セッション: ${sessionType}`}</p>
-        <p>{`${pomodoroCount} サイクル完了`}</p>
+        <p className="text-sm">{`セッション: ${sessionType}`}</p>
+        <p className="text-xs text-gray-500">{`${pomodoroCount} サイクル完了`}</p>
         {!isSettingsOpen && (
           <p className="text-xs text-gray-400 mt-1">
             {`${pomodoroCycles}回の作業セッション後に長い休憩に入ります。`}
@@ -182,21 +182,36 @@ const PomodoroTimer = () => {
         )}
       </div>
       <div className="flex justify-center space-x-2 mb-4">
-        <button onClick={() => switchSession('作業', false)} className={`px-2 py-1 text-sm rounded ${sessionType === '作業' ? 'bg-blue-600' : 'bg-gray-700'}`}>作業</button>
-        <button onClick={() => switchSession('短い休憩', false)} className={`px-2 py-1 text-sm rounded ${sessionType === '短い休憩' ? 'bg-green-600' : 'bg-gray-700'}`}>短い休憩</button>
-        <button onClick={() => switchSession('長い休憩', false)} className={`px-2 py-1 text-sm rounded ${sessionType === '長い休憩' ? 'bg-purple-600' : 'bg-gray-700'}`}>長い休憩</button>
+        <button onClick={() => switchSession('作業', false)} className={`px-3 py-1 text-sm rounded-full transition-colors ${sessionType === '作業' ? 'bg-[#a8d5ba] text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>作業</button>
+        <button onClick={() => switchSession('短い休憩', false)} className={`px-3 py-1 text-sm rounded-full transition-colors ${sessionType === '短い休憩' ? 'bg-[#a8d5ba] text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>短い休憩</button>
+        <button onClick={() => switchSession('長い休憩', false)} className={`px-3 py-1 text-sm rounded-full transition-colors ${sessionType === '長い休憩' ? 'bg-[#a8d5ba] text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>長い休憩</button>
       </div>
-      <div className="text-6xl font-mono mb-4">{formatTime(timeLeft)}</div>
-      <div className="flex justify-center space-x-4 mb-4">
-        <button onClick={toggleTimer} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-24">{isActive ? '一時停止' : '開始'}</button>
-        <button onClick={resetTimer} className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded w-24">リセット</button>
+      <div className="text-6xl font-mono mb-4 text-[#5a8f7b]">{formatTime(timeLeft)}</div>
+      <div className="flex justify-center space-x-4 mb-4 w-full">
+        <button onClick={toggleTimer} className="px-6 py-2 bg-[#a8d5ba] text-white rounded-2xl hover:bg-[#93c9a8] transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 font-semibold flex items-center justify-center gap-2">
+          {isActive ? (
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6"><path fillRule="evenodd" d="M6.75 5.25a.75.75 0 0 1 .75-.75H9a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H7.5a.75.75 0 0 1-.75-.75V5.25Zm7.5 0A.75.75 0 0 1 15 4.5h1.5a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H15a.75.75 0 0 1-.75-.75V5.25Z" clipRule="evenodd" /></svg>
+              一時停止
+            </>
+          ) : (
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6"><path fillRule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clipRule="evenodd" /></svg>
+              開始
+            </>
+          )}
+        </button>
+        <button onClick={resetTimer} className="px-6 py-2 bg-gray-300 text-gray-700 rounded-2xl hover:bg-gray-400 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 font-semibold flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6"><path fillRule="evenodd" d="M9.53 2.47a.75.75 0 0 1 0 1.06L4.81 8.25H15a6.75 6.75 0 0 1 0 13.5h-3a.75.75 0 0 1 0-1.5h3a5.25 5.25 0 1 0 0-10.5H4.81l4.72 4.72a.75.75 0 1 1-1.06 1.06l-6-6a.75.75 0 0 1 0-1.06l6-6a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" /></svg>
+          リセット
+        </button>
       </div>
       <div className="text-sm">
-        <p className="mb-1">通知方法:</p>
-        <div className="flex justify-center space-x-4">
-          <label className="flex items-center space-x-1 cursor-pointer"><input type="radio" value="desktop" checked={notificationType === 'desktop'} onChange={() => setNotificationType('desktop')} className="form-radio h-3 w-3 bg-gray-900 border-gray-600 text-blue-500 focus:ring-blue-500"/><span>デスクトップ</span></label>
-          <label className="flex items-center space-x-1 cursor-pointer"><input type="radio" value="voice" checked={notificationType === 'voice'} onChange={() => setNotificationType('voice')} className="form-radio h-3 w-3 bg-gray-900 border-gray-600 text-blue-500 focus:ring-blue-500"/><span>音声</span></label>
-          <label className="flex items-center space-x-1 cursor-pointer"><input type="radio" value="none" checked={notificationType === 'none'} onChange={() => setNotificationType('none')} className="form-radio h-3 w-3 bg-gray-900 border-gray-600 text-blue-500 focus:ring-blue-500"/><span>なし</span></label>
+        <p className="mb-2 font-medium">通知方法:</p>
+        <div className="flex justify-center space-x-2">
+          <button onClick={() => setNotificationType('desktop')} className={`px-3 py-1 text-sm rounded-full transition-colors ${notificationType === 'desktop' ? 'bg-[#a8d5ba] text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>デスクトップ</button>
+          <button onClick={() => setNotificationType('voice')} className={`px-3 py-1 text-sm rounded-full transition-colors ${notificationType === 'voice' ? 'bg-[#a8d5ba] text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>音声</button>
+          <button onClick={() => setNotificationType('none')} className={`px-3 py-1 text-sm rounded-full transition-colors ${notificationType === 'none' ? 'bg-[#a8d5ba] text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>なし</button>
         </div>
       </div>
       {isSettingsOpen && <SettingsView />}
