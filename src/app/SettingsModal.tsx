@@ -68,21 +68,30 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4">
-      <div className="w-full max-w-lg bg-gray-800 rounded-2xl shadow-xl p-6 relative">
+    <div className="absolute inset-0 bg-[#2d3436]/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
+      <div className="w-full max-w-2xl bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-8 relative border border-[#c9b8a8]/40 max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 bg-gray-700 text-white rounded-full flex items-center justify-center hover:bg-gray-600"
+          className="absolute top-4 right-4 w-10 h-10 bg-[#c9b8a8]/30 hover:bg-[#c9b8a8]/50 text-gray-700 rounded-2xl flex items-center justify-center transition-all duration-200 hover:scale-110"
           aria-label="設定を閉じる"
         >
-          ×
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
         </button>
-        <h2 className="text-2xl font-bold text-white mb-6">設定</h2>
+        <h2 className="text-3xl font-bold text-[#5a8f7b] mb-8 flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-8 h-8">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+          </svg>
+          設定
+        </h2>
         <div className="space-y-6">
-          <div className="border-t border-gray-700 pt-4 space-y-4">
+          <div className="bg-[#a8d5ba]/10 rounded-3xl p-6 border border-[#a8d5ba]/30 space-y-6">
+            <h3 className="text-lg font-semibold text-[#5a8f7b] mb-4">猫背検知設定</h3>
             <div>
-              <label htmlFor="threshold" className="block text-sm font-medium text-gray-300">
-                猫背と判断するスコア: <span className="font-bold text-blue-400">{settings.threshold}%</span>
+              <label htmlFor="threshold" className="block text-sm font-medium text-gray-700 mb-2">
+                猫背と判断するスコア: <span className="font-bold text-[#5a8f7b]">{settings.threshold}%</span>
               </label>
               <input
                 type="range"
@@ -91,11 +100,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 max="100"
                 value={settings.threshold}
                 onChange={(e) => setSettings(s => ({ ...s, threshold: Number(e.target.value) }))}
-                className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer mt-2"
+                className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#a8d5ba]"
               />
             </div>
             <div>
-              <label htmlFor="delay" className="block text-sm font-medium text-gray-300">この秒数続いたら通知: <span className="font-bold text-blue-400">{settings.delay}秒</span></label>
+              <label htmlFor="delay" className="block text-sm font-medium text-gray-700 mb-2">
+                この秒数続いたら通知: <span className="font-bold text-[#5a8f7b]">{settings.delay}秒</span>
+              </label>
               <input
                 type="range"
                 id="delay"
@@ -103,20 +114,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 max="60"
                 value={settings.delay}
                 onChange={(e) => setSettings(s => ({ ...s, delay: Number(e.target.value) }))}
-                className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer mt-2"
+                className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#a8d5ba]"
               />
             </div>
           </div>
 
           {notificationType === 'voice' && (
-            <div className="border-t border-gray-700 pt-4">
-              <label htmlFor="notificationSound" className="block text-sm font-medium text-gray-300">通知音</label>
+            <div className="bg-[#b8c9b8]/10 rounded-3xl p-6 border border-[#b8c9b8]/30">
+              <label htmlFor="notificationSound" className="block text-sm font-medium text-gray-700 mb-2">通知音</label>
               <select
                 id="notificationSound"
                 name="notificationSound"
                 value={notificationSound}
                 onChange={(e) => setNotificationSound(e.target.value)}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-600 bg-gray-700 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                className="mt-1 block w-full px-4 py-3 text-base border-[#c9b8a8]/30 bg-white/60 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#a8d5ba] focus:border-[#a8d5ba] rounded-2xl"
               >
                 {SOUND_OPTIONS.map(option => (
                   <option key={option.value} value={option.value}>{option.label}</option>
@@ -125,8 +136,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
           )}
 
-          <div>
-            <label htmlFor="cooldownTime" className="block text-sm font-medium text-gray-300">通知の間隔: <span className="font-bold text-blue-400">{settings.cooldownTime}秒</span></label>
+          <div className="bg-[#f4d06f]/10 rounded-3xl p-6 border border-[#f4d06f]/30">
+            <label htmlFor="cooldownTime" className="block text-sm font-medium text-gray-700 mb-2">
+              通知の間隔: <span className="font-bold text-[#d4a04f]">{settings.cooldownTime}秒</span>
+            </label>
             <input
               type="range"
               id="cooldownTime"
@@ -135,13 +148,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               step="5"
               value={settings.cooldownTime}
               onChange={(e) => setSettings(s => ({ ...s, cooldownTime: Number(e.target.value) }))}
-              className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer mt-2"
+              className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#f4d06f]"
             />
           </div>
 
-          <div className="border-t border-gray-700 pt-4">
-            <label htmlFor="drowsinessDetection" className="flex items-center justify-between cursor-pointer text-gray-300">
-              <span>眠気検知を有効にする</span>
+          <div className="bg-[#d4a59a]/10 rounded-3xl p-6 border border-[#d4a59a]/30">
+            <label htmlFor="drowsinessDetection" className="flex items-center justify-between cursor-pointer text-gray-700 mb-4">
+              <span className="text-lg font-semibold">眠気検知を有効にする</span>
               <input
                 type="checkbox"
                 id="drowsinessDetection"
@@ -149,13 +162,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 onChange={(e) => setIsDrowsinessDetectionEnabled(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="relative w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+              <div className="relative w-11 h-6 bg-[#c9b8a8]/30 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#d4a59a]/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-[#c9b8a8] after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#d4a59a]"></div>
             </label>
             {isDrowsinessDetectionEnabled && (
-              <div className="pl-4 mt-4 space-y-4 border-l border-gray-600">
+              <div className="pl-4 mt-4 space-y-6 border-l-2 border-[#d4a59a]/30">
                 <div>
-                  <label htmlFor="drowsinessEarThreshold" className="block text-sm font-medium text-gray-300">
-                    目の開き具合のしきい値: <span className="font-bold text-blue-400">{settings.drowsinessEarThreshold.toFixed(2)}</span>
+                  <label htmlFor="drowsinessEarThreshold" className="block text-sm font-medium text-gray-700 mb-2">
+                    目の開き具合のしきい値: <span className="font-bold text-[#d4a59a]">{settings.drowsinessEarThreshold.toFixed(2)}</span>
                   </label>
                   <input
                     type="range"
@@ -165,12 +178,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     step="0.01"
                     value={settings.drowsinessEarThreshold}
                     onChange={(e) => setSettings(s => ({ ...s, drowsinessEarThreshold: Number(e.target.value) }))}
-                    className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer mt-2"
+                    className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#d4a59a]"
                   />
                 </div>
                 <div>
-                  <label htmlFor="drowsinessTimeThreshold" className="block text-sm font-medium text-gray-300">
-                    眠気と判断するまでの時間: <span className="font-bold text-blue-400">{settings.drowsinessTimeThreshold}秒</span>
+                  <label htmlFor="drowsinessTimeThreshold" className="block text-sm font-medium text-gray-700 mb-2">
+                    眠気と判断するまでの時間: <span className="font-bold text-[#d4a59a]">{settings.drowsinessTimeThreshold}秒</span>
                   </label>
                   <input
                     type="range"
@@ -180,17 +193,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     step="1"
                     value={settings.drowsinessTimeThreshold}
                     onChange={(e) => setSettings(s => ({ ...s, drowsinessTimeThreshold: Number(e.target.value) }))}
-                    className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer mt-2"
+                    className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#d4a59a]"
                   />
                 </div>
               </div>
             )}
           </div>
 
-          <div className="border-t border-gray-700 pt-6 flex items-center justify-end">
+          <div className="flex items-center justify-end pt-4">
             <button
               onClick={() => setSettings(DEFAULT_SETTINGS)}
-              className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-500"
+              className="px-6 py-3 bg-[#c9b8a8] text-white rounded-2xl hover:bg-[#b8a897] transition-all duration-300 shadow-md font-semibold"
             >
               設定をリセット
             </button>
