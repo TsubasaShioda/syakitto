@@ -9,6 +9,7 @@ import ControlButtons from "@/app/components/ControlButtons";
 import ActionButtons from "@/app/components/ActionButtons";
 import NotificationSelector from "@/app/components/NotificationSelector";
 import { usePostureApp } from "@/app/usePostureApp";
+import PomodoroTimer from "@/app/components/PomodoroTimer";
 
 export default function Home() {
   const {
@@ -30,6 +31,8 @@ export default function Home() {
     calibrationTimestamp,
     isRecordingEnabled,
     setIsRecordingEnabled,
+    isTimerVisible,
+    setIsTimerVisible,
     slouchScore,
     isCalibrated,
     calibrate,
@@ -43,6 +46,15 @@ export default function Home() {
     SOUND_OPTIONS,
     borderColor,
     handleDownload,
+    // BGM related states and functions
+    currentBGM,
+    isBGMPlaying,
+    bgmVolume,
+    playBGM,
+    pauseBGM,
+    selectBGM,
+    setBGMVolume,
+    BGM_OPTIONS,
   } = usePostureApp();
 
   return (
@@ -53,10 +65,11 @@ export default function Home() {
         </h1>
         <p className="text-gray-600 text-sm">リアルタイム姿勢チェッカー - あなたの健康をサポート</p>
       </header>
-
+      
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-hidden">
         {/* 左カラム: 通知設定 */}
         <div className="lg:col-span-3 space-y-6 overflow-y-auto">
+          {isTimerVisible && <PomodoroTimer />}
           <NotificationSelector
             notificationType={notificationType}
             setNotificationType={setNotificationType}
@@ -127,6 +140,14 @@ export default function Home() {
         notificationSound={notificationSound}
         setNotificationSound={setNotificationSound}
         SOUND_OPTIONS={SOUND_OPTIONS}
+        currentBGM={currentBGM}
+        isBGMPlaying={isBGMPlaying}
+        bgmVolume={bgmVolume}
+        playBGM={playBGM}
+        pauseBGM={pauseBGM}
+        selectBGM={selectBGM}
+        setBGMVolume={setBGMVolume}
+        BGM_OPTIONS={BGM_OPTIONS}
       />
 
       <InfoModal isOpen={isInfoOpen} onClose={() => setIsInfoOpen(false)} />
@@ -136,6 +157,9 @@ export default function Home() {
         onInfoOpen={() => setIsInfoOpen(true)}
         onReportOpen={() => setIsReportOpen(true)}
         onSettingsOpen={() => setIsSettingsOpen(true)}
+        isTimerVisible={isTimerVisible}
+        onToggleTimer={() => setIsTimerVisible(!isTimerVisible)}
+        isElectron={isElectron}
       />
     </main>
   );

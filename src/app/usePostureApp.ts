@@ -3,6 +3,7 @@ import { usePoseDetection } from "./usePoseDetection";
 import { useDrowsinessDetection } from "./useDrowsinessDetection";
 import { useNotification } from "./useNotification";
 import { Settings, DEFAULT_SETTINGS, hslToRgb } from "./SettingsModal";
+import { useBGM, BGM_OPTIONS } from "./useBGM";
 
 export const usePostureApp = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -16,6 +17,8 @@ export const usePostureApp = () => {
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [calibrationTimestamp, setCalibrationTimestamp] = useState<Date | null>(null);
   const [isRecordingEnabled, setIsRecordingEnabled] = useState(false);
+  const [isVisualizationEnabled, setIsVisualizationEnabled] = useState(false);
+  const [isTimerVisible, setIsTimerVisible] = useState(false);
 
   const { slouchScore, isCalibrated, calibrate, scoreHistory, stopCamera } = usePoseDetection({ videoRef, isPaused, isRecordingEnabled });
 
@@ -53,6 +56,16 @@ export const usePostureApp = () => {
     isPaused,
     settings,
   });
+
+  const {
+    currentBGM,
+    isPlaying: isBGMPlaying,
+    volume: bgmVolume,
+    playBGM,
+    pauseBGM,
+    selectBGM,
+    setBGMVolume,
+  } = useBGM();
 
   useEffect(() => {
     if (window.electron?.updateTrayIcon) {
@@ -109,9 +122,13 @@ export const usePostureApp = () => {
     calibrationTimestamp,
     isRecordingEnabled,
     setIsRecordingEnabled,
+    isVisualizationEnabled,
+    setIsVisualizationEnabled,
+    isTimerVisible,
+    setIsTimerVisible,
     slouchScore,
     isCalibrated,
-    calibrate: handleCalibrate, // Rename to avoid conflict with `calibrate` from usePoseDetection
+    calibrate: handleCalibrate,
     scoreHistory,
     isDrowsy,
     ear,
@@ -122,5 +139,14 @@ export const usePostureApp = () => {
     SOUND_OPTIONS,
     borderColor,
     handleDownload,
+    // BGM related states and functions
+    currentBGM,
+    isBGMPlaying,
+    bgmVolume,
+    playBGM,
+    pauseBGM,
+    selectBGM,
+    setBGMVolume,
+    BGM_OPTIONS,
   };
 };
