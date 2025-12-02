@@ -66,15 +66,10 @@ export default function Home() {
         <p className="text-gray-600 text-sm">リアルタイム姿勢チェッカー - あなたの健康をサポート</p>
       </header>
       
-      {isTimerVisible && (
-        <div className="absolute left-8 top-1/2 -translate-y-1/2 z-20">
-          <PomodoroTimer />
-        </div>
-      )}
-
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-hidden">
         {/* 左カラム: 通知設定 */}
         <div className="lg:col-span-3 space-y-6 overflow-y-auto">
+          {isTimerVisible && <PomodoroTimer />}
           <NotificationSelector
             notificationType={notificationType}
             setNotificationType={setNotificationType}

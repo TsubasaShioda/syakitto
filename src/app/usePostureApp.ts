@@ -20,21 +20,13 @@ export const usePostureApp = () => {
   const [isVisualizationEnabled, setIsVisualizationEnabled] = useState(false);
   const [isTimerVisible, setIsTimerVisible] = useState(false);
 
-  const { slouchScore, isCalibrated, calibrate, scoreHistory, stopCamera } = usePoseDetection({ videoRef, isPaused, isRecordingEnabled });
+  const { slouchScore, isCalibrated, calibrate, scoreHistory } = usePoseDetection({ videoRef, isPaused, isRecordingEnabled });
 
   useEffect(() => {
     if (window.electron?.isElectron) {
       setIsElectron(true);
-
-      window.electron.onBeforeQuit(() => {
-        console.log('Received before-quit event, stopping camera...');
-        stopCamera();
-        setTimeout(() => {
-          window.electron?.cleanupComplete();
-        }, 500);
-      });
     }
-  }, [stopCamera]);
+  }, []);
 
   const { isDrowsy, ear } = useDrowsinessDetection({
     videoRef,
