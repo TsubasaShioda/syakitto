@@ -51,6 +51,15 @@ interface SettingsModalProps {
   notificationSound: string;
   setNotificationSound: (sound: string) => void;
   SOUND_OPTIONS: { value: string; label: string }[];
+  // BGM related props
+  currentBGM: string | null;
+  isBGMPlaying: boolean;
+  bgmVolume: number;
+  playBGM: () => void;
+  pauseBGM: () => void;
+  selectBGM: (track: string) => void;
+  setBGMVolume: (volume: number) => void;
+  BGM_OPTIONS: { value: string; label: string }[];
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -64,6 +73,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   notificationSound,
   setNotificationSound,
   SOUND_OPTIONS,
+  // BGM related props
+  currentBGM,
+  isBGMPlaying,
+  bgmVolume,
+  playBGM,
+  pauseBGM,
+  selectBGM,
+  setBGMVolume,
+  BGM_OPTIONS,
 }) => {
   if (!isOpen) return null;
 
@@ -198,6 +216,48 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
               </div>
             )}
+          </div>
+
+          <div className="bg-[#a8b8d5]/10 rounded-3xl p-6 border border-[#a8b8d5]/30">
+            <h3 className="text-lg font-semibold text-[#5a7b8f] mb-4">BGM設定</h3>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="bgmTrack" className="block text-sm font-medium text-gray-700 mb-2">BGMを選択</label>
+                <select
+                  id="bgmTrack"
+                  name="bgmTrack"
+                  value={currentBGM || ''}
+                  onChange={(e) => selectBGM(e.target.value)}
+                  className="mt-1 block w-full px-4 py-3 text-base border-[#c9b8a8]/30 bg-white/60 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#a8b8d5] focus:border-[#a8b8d5] rounded-2xl"
+                >
+                  <option value="">BGMなし</option>
+                  {BGM_OPTIONS.map(option => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={isBGMPlaying ? pauseBGM : playBGM}
+                  className="px-6 py-3 bg-[#a8b8d5]/80 text-white rounded-2xl hover:bg-[#a8b8d5] transition-all duration-300 shadow-md font-semibold"
+                >
+                  {isBGMPlaying ? '一時停止' : '再生'}
+                </button>
+                <div className="flex-grow">
+                  <label htmlFor="bgmVolume" className="block text-sm font-medium text-gray-700 mb-2">音量: <span className="font-bold text-[#5a7b8f]">{(bgmVolume * 100).toFixed(0)}%</span></label>
+                  <input
+                    type="range"
+                    id="bgmVolume"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={bgmVolume}
+                    onChange={(e) => setBGMVolume(Number(e.target.value))}
+                    className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#a8b8d5]"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="flex items-center justify-end pt-4">

@@ -43,6 +43,15 @@ export default function Home() {
     SOUND_OPTIONS,
     borderColor,
     handleDownload,
+    // BGM related states and functions
+    currentBGM,
+    isBGMPlaying,
+    bgmVolume,
+    playBGM,
+    pauseBGM,
+    selectBGM,
+    setBGMVolume,
+    BGM_OPTIONS,
   } = usePostureApp();
 
   return (
@@ -127,6 +136,14 @@ export default function Home() {
         notificationSound={notificationSound}
         setNotificationSound={setNotificationSound}
         SOUND_OPTIONS={SOUND_OPTIONS}
+        currentBGM={currentBGM}
+        isBGMPlaying={isBGMPlaying}
+        bgmVolume={bgmVolume}
+        playBGM={playBGM}
+        pauseBGM={pauseBGM}
+        selectBGM={selectBGM}
+        setBGMVolume={setBGMVolume}
+        BGM_OPTIONS={BGM_OPTIONS}
       />
 
       <InfoModal isOpen={isInfoOpen} onClose={() => setIsInfoOpen(false)} />
