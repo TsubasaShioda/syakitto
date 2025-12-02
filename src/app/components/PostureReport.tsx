@@ -81,22 +81,22 @@ const PostureReport = ({ scoreHistory, isRecordingEnabled, setIsRecordingEnabled
       <svg width={width} height={height} className="w-full">
         <g transform={`translate(${margin.left},${margin.top})`}>
           {/* Y軸 */}
-          <line x1="0" y1="0" x2="0" y2={innerHeight} stroke="#4A5568" />
+          <line x1="0" y1="0" x2="0" y2={innerHeight} stroke="#c9b8a8" strokeWidth="1.5" />
           {[0, 50, 100].map(y => (
             <g key={y}>
-              <text x="-25" y={(innerHeight - (y / 100) * innerHeight) + 4} fontSize="10" fill="#A0AEC0">{y}%</text>
-              <line x1="0" y1={innerHeight - (y / 100) * innerHeight} x2={innerWidth} y2={innerHeight - (y / 100) * innerHeight} stroke="#4A5568" strokeDasharray="2,2" />
+              <text x="-25" y={(innerHeight - (y / 100) * innerHeight) + 4} fontSize="10" fill="#6b7280">{y}%</text>
+              <line x1="0" y1={innerHeight - (y / 100) * innerHeight} x2={innerWidth} y2={innerHeight - (y / 100) * innerHeight} stroke="#c9b8a8" strokeOpacity="0.3" strokeDasharray="2,2" />
             </g>
           ))}
           {/* X軸 */}
-          <line x1="0" y1={innerHeight} x2={innerWidth} y2={innerHeight} stroke="#4A5568" />
-          <text x={innerWidth / 2} y={innerHeight + 15} textAnchor="middle" fontSize="10" fill="#A0AEC0">時間</text>
+          <line x1="0" y1={innerHeight} x2={innerWidth} y2={innerHeight} stroke="#c9b8a8" strokeWidth="1.5" />
+          <text x={innerWidth / 2} y={innerHeight + 15} textAnchor="middle" fontSize="10" fill="#6b7280">時間</text>
 
           {/* 折れ線 */}
           <polyline
             fill="none"
-            stroke="#63B3ED"
-            strokeWidth="2"
+            stroke="#a8d5ba"
+            strokeWidth="3"
             points={points}
           />
         </g>
@@ -105,9 +105,14 @@ const PostureReport = ({ scoreHistory, isRecordingEnabled, setIsRecordingEnabled
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto mt-8 p-6 bg-gray-800 rounded-lg">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">猫背スコアレポート</h2>
+    <div className="w-full">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-3xl font-bold text-[#5a8f7b] flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-8 h-8">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+          </svg>
+          猫背スコアレポート
+        </h2>
         <div className="flex items-center space-x-4">
           <label className="relative inline-flex items-center cursor-pointer">
             <input
@@ -116,12 +121,12 @@ const PostureReport = ({ scoreHistory, isRecordingEnabled, setIsRecordingEnabled
               onChange={() => setIsRecordingEnabled(!isRecordingEnabled)}
               className="sr-only peer"
             />
-            <div className="w-11 h-6 bg-gray-600 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-            <span className="ml-3 text-sm font-medium text-gray-300">記録</span>
+            <div className="w-11 h-6 bg-[#c9b8a8]/30 rounded-full peer peer-focus:ring-4 peer-focus:ring-[#a8d5ba]/20 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-[#c9b8a8] after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#a8d5ba]"></div>
+            <span className="ml-3 text-sm font-medium text-gray-700">記録</span>
           </label>
           <button
             onClick={handleExportCsv}
-            className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-500 transition-colors disabled:bg-gray-500"
+            className="px-4 py-2 bg-[#a8d5ba] text-white text-sm rounded-2xl hover:bg-[#93c9a8] transition-all duration-300 disabled:bg-[#c9b8a8]/50 disabled:cursor-not-allowed shadow-md"
             disabled={scoreHistory.length === 0}
           >
             CSVでエクスポート
@@ -130,42 +135,42 @@ const PostureReport = ({ scoreHistory, isRecordingEnabled, setIsRecordingEnabled
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-center">
-        <div className="p-4 bg-gray-700 rounded-lg">
-          <p className="text-sm text-gray-400">平均スコア</p>
-          <p className="text-3xl font-bold text-blue-400">{stats.averageScore.toFixed(1)}%</p>
+        <div className="p-6 bg-[#a8d5ba]/10 border border-[#a8d5ba]/30 rounded-3xl">
+          <p className="text-sm text-gray-600 mb-2">平均スコア</p>
+          <p className="text-4xl font-bold text-[#5a8f7b]">{stats.averageScore.toFixed(1)}%</p>
         </div>
-        <div className="p-4 bg-gray-700 rounded-lg">
-          <p className="text-sm text-gray-400">最大スコア</p>
-          <p className="text-3xl font-bold text-red-400">{stats.maxScore.toFixed(1)}%</p>
+        <div className="p-6 bg-[#d4a59a]/10 border border-[#d4a59a]/30 rounded-3xl">
+          <p className="text-sm text-gray-600 mb-2">最大スコア</p>
+          <p className="text-4xl font-bold text-[#d4a59a]">{stats.maxScore.toFixed(1)}%</p>
         </div>
-        <div className="p-4 bg-gray-700 rounded-lg">
-          <p className="text-sm text-gray-400">総計測時間</p>
-          <p className="text-xl font-bold">{formatDuration(stats.totalTime)}</p>
+        <div className="p-6 bg-[#f4d06f]/10 border border-[#f4d06f]/30 rounded-3xl">
+          <p className="text-sm text-gray-600 mb-2">総計測時間</p>
+          <p className="text-2xl font-bold text-[#d4a04f]">{formatDuration(stats.totalTime)}</p>
         </div>
       </div>
 
       <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-2">スコア推移</h3>
-        <div className="w-full bg-gray-900 rounded-md p-2">
+        <h3 className="text-xl font-semibold text-gray-700 mb-4">スコア推移</h3>
+        <div className="w-full bg-white/60 backdrop-blur-sm border border-[#c9b8a8]/30 rounded-3xl p-4">
           <LineChart />
         </div>
       </div>
 
       <div>
-        <h3 className="text-lg font-semibold mb-2">スコア履歴</h3>
-        <div className="max-h-60 overflow-y-auto rounded-md">
-          <table className="w-full text-sm text-left text-gray-400">
-            <thead className="text-xs text-gray-300 uppercase bg-gray-700 sticky top-0">
+        <h3 className="text-xl font-semibold text-gray-700 mb-4">スコア履歴</h3>
+        <div className="max-h-60 overflow-y-auto rounded-3xl border border-[#c9b8a8]/30">
+          <table className="w-full text-sm text-left">
+            <thead className="text-xs text-gray-600 uppercase bg-[#c9b8a8]/20 sticky top-0">
               <tr>
-                <th scope="col" className="px-4 py-2">時刻</th>
-                <th scope="col" className="px-4 py-2">猫背スコア</th>
+                <th scope="col" className="px-6 py-3 rounded-tl-3xl">時刻</th>
+                <th scope="col" className="px-6 py-3 rounded-tr-3xl">猫背スコア</th>
               </tr>
             </thead>
             <tbody>
               {[...scoreHistory].reverse().map((item, index) => (
-                <tr key={index} className="bg-gray-800 border-b border-gray-700 hover:bg-gray-600">
-                  <td className="px-4 py-2">{new Date(item.time).toLocaleTimeString()}</td>
-                  <td className="px-4 py-2">
+                <tr key={index} className="bg-white/40 border-b border-[#c9b8a8]/20 hover:bg-[#a8d5ba]/10 transition-colors">
+                  <td className="px-6 py-3 text-gray-700">{new Date(item.time).toLocaleTimeString()}</td>
+                  <td className="px-6 py-3 font-semibold text-gray-700">
                     {item.score.toFixed(1)}%
                   </td>
                 </tr>

@@ -7,6 +7,7 @@ import ScoreDisplay from "@/app/components/ScoreDisplay";
 import CameraView from "@/app/components/CameraView";
 import ControlButtons from "@/app/components/ControlButtons";
 import ActionButtons from "@/app/components/ActionButtons";
+import NotificationSelector from "@/app/components/NotificationSelector";
 import { usePostureApp } from "@/app/usePostureApp";
 
 export default function Home() {
@@ -45,121 +46,75 @@ export default function Home() {
   } = usePostureApp();
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center bg-gray-900 text-white p-6">
-      <h1 className="text-3xl font-bold mb-4">syakitto</h1>
-      
-      <ScoreDisplay
-        slouchScore={slouchScore}
-        borderColor={borderColor}
-        isDrowsinessDetectionEnabled={isDrowsinessDetectionEnabled}
-        ear={ear}
-        isDrowsy={isDrowsy}
-      />
+    <main className="relative h-screen p-6 overflow-hidden flex flex-col">
+      <header className="mb-6 text-center">
+        <h1 className="text-4xl font-bold mb-2 text-[#5a8f7b]">
+          syakitto
+        </h1>
+        <p className="text-gray-600 text-sm">リアルタイム姿勢チェッカー - あなたの健康をサポート</p>
+      </header>
 
-      <CameraView videoRef={videoRef} isPaused={isPaused} />
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-hidden">
+        {/* 左カラム: 通知設定 */}
+        <div className="lg:col-span-3 space-y-6 overflow-y-auto">
+          <NotificationSelector
+            notificationType={notificationType}
+            setNotificationType={setNotificationType}
+            isElectron={isElectron}
+          />
 
-      <ControlButtons
-        isPaused={isPaused}
-        onTogglePause={() => setIsPaused(!isPaused)}
-        isCalibrating={isCalibrating}
-        isCalibrated={isCalibrated}
-        onCalibrate={calibrate}
-        calibrationTimestamp={calibrationTimestamp}
-      />
+          <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-4 shadow-sm border border-[#c9b8a8]/30">
+            <p className="text-sm text-gray-600 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4 text-[#a8d5ba]">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+              </svg>
+              カメラ映像はローカル処理のみ。肩が見えなくてもOK。
+            </p>
+          </div>
+        </div>
+
+        {/* 中央カラム: カメラとコントロール */}
+        <div className="lg:col-span-6 flex flex-col justify-center space-y-6">
+          <CameraView videoRef={videoRef} isPaused={isPaused} />
+
+          <ControlButtons
+            isPaused={isPaused}
+            onTogglePause={() => setIsPaused(!isPaused)}
+            isCalibrating={isCalibrating}
+            isCalibrated={isCalibrated}
+            onCalibrate={calibrate}
+            calibrationTimestamp={calibrationTimestamp}
+          />
+        </div>
+
+        {/* 右カラム: スコア表示 */}
+        <div className="lg:col-span-3 overflow-y-auto">
+          <ScoreDisplay
+            slouchScore={slouchScore}
+            borderColor={borderColor}
+            isDrowsinessDetectionEnabled={isDrowsinessDetectionEnabled}
+            ear={ear}
+            isDrowsy={isDrowsy}
+          />
+        </div>
+      </div>
 
       {isReportOpen && (
-        <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4">
-          <div className="w-full max-w-3xl bg-gray-800 rounded-2xl shadow-xl p-6 relative">
+        <div className="fixed inset-0 bg-[#2d3436]/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
+          <div className="w-full max-w-3xl bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-8 relative border border-[#c9b8a8]/40">
             <button
               onClick={() => setIsReportOpen(false)}
-              className="absolute top-4 right-4 w-8 h-8 bg-gray-700 text-white rounded-full flex items-center justify-center hover:bg-gray-600"
+              className="absolute top-4 right-4 w-10 h-10 bg-[#c9b8a8]/30 hover:bg-[#c9b8a8]/50 text-gray-700 rounded-2xl flex items-center justify-center transition-all duration-200 hover:scale-110"
               aria-label="レポートを閉じる"
             >
-              ×
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
             </button>
             <PostureReport scoreHistory={scoreHistory} isRecordingEnabled={isRecordingEnabled} setIsRecordingEnabled={setIsRecordingEnabled} />
           </div>
         </div>
       )}
-
-      <div className="mt-6 text-center">
-        <div className="flex justify-center items-center space-x-6">
-          <label className="flex items-center space-x-2 cursor-pointer">
-            <input
-              type="radio"
-              name="notificationType"
-              value="none"
-              checked={notificationType === 'none'}
-              onChange={(e) => setNotificationType(e.target.value)}
-              className="form-radio h-4 w-4 bg-gray-900 border-gray-600 text-blue-500 focus:ring-blue-500"
-            />
-            <span className="text-gray-400">なし</span>
-          </label>
-          <label className="flex items-center space-x-2 cursor-pointer">
-            <input
-              type="radio"
-              name="notificationType"
-              value="voice"
-              checked={notificationType === 'voice'}
-              onChange={(e) => setNotificationType(e.target.value)}
-              className="form-radio h-4 w-4 bg-gray-900 border-gray-600 text-blue-500 focus:ring-blue-500"
-            />
-            <span className="text-gray-400">音声</span>
-          </label>
-          <label className="flex items-center space-x-2 cursor-pointer">
-            <input
-              type="radio"
-              name="notificationType"
-              value="desktop"
-              checked={notificationType === 'desktop'}
-              onChange={(e) => setNotificationType(e.target.value)}
-              className="form-radio h-4 w-4 bg-gray-900 border-gray-600 text-blue-500 focus:ring-blue-500"
-            />
-            <span className="text-gray-400">デスクトップ</span>
-          </label>
-          {isElectron && (
-            <>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="notificationType"
-                  value="flash"
-                  checked={notificationType === 'flash'}
-                  onChange={(e) => setNotificationType(e.target.value)}
-                  className="form-radio h-4 w-4 bg-gray-900 border-gray-600 text-blue-500 focus:ring-blue-500"
-                />
-                <span className="text-gray-400">フラッシュ</span>
-              </label>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="notificationType"
-                  value="animation"
-                  checked={notificationType === 'animation'}
-                  onChange={(e) => setNotificationType(e.target.value)}
-                  className="form-radio h-4 w-4 bg-gray-900 border-gray-600 text-blue-500 focus:ring-blue-500"
-                />
-                <span className="text-gray-400">アニメーション</span>
-              </label>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="notificationType"
-                  value="cat_hand"
-                  checked={notificationType === 'cat_hand'}
-                  onChange={(e) => setNotificationType(e.target.value)}
-                  className="form-radio h-4 w-4 bg-gray-900 border-gray-600 text-blue-500 focus:ring-blue-500"
-                />
-                <span className="text-gray-400">猫の手</span>
-              </label>
-            </>
-          )}
-        </div>
-      </div>
-
-      <p className="mt-4 text-sm text-gray-400">
-        ※ カメラ映像はローカル処理のみ。肩が見えなくてもOK。
-      </p>
 
       <SettingsModal
         isOpen={isSettingsOpen}
