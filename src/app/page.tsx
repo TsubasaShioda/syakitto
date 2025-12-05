@@ -8,6 +8,7 @@ import CameraView from "@/app/components/CameraView";
 import ControlButtons from "@/app/components/ControlButtons";
 import ActionButtons from "@/app/components/ActionButtons";
 import NotificationSelector from "@/app/components/NotificationSelector";
+import WelcomePopup from "@/app/components/WelcomePopup";
 import { usePostureApp } from "@/app/usePostureApp";
 import PomodoroTimer from "@/app/components/PomodoroTimer";
 
@@ -27,6 +28,8 @@ export default function Home() {
     setIsInfoOpen,
     isReportOpen,
     setIsReportOpen,
+    isWelcomeOpen,
+    setIsWelcomeOpen,
     isCalibrating,
     calibrationTimestamp,
     isRecordingEnabled,
@@ -128,6 +131,8 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      <WelcomePopup isOpen={isWelcomeOpen} onClose={() => setIsWelcomeOpen(false)} />
 
       <SettingsModal
         isOpen={isSettingsOpen}
