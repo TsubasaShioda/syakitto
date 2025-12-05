@@ -14,6 +14,7 @@ export const usePostureApp = () => {
   const [isElectron, setIsElectron] = useState(false);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
+  const [isWelcomeOpen, setIsWelcomeOpen] = useState(true);
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [calibrationTimestamp, setCalibrationTimestamp] = useState<Date | null>(null);
   const [isRecordingEnabled, setIsRecordingEnabled] = useState(false);
@@ -118,6 +119,8 @@ export const usePostureApp = () => {
     setIsInfoOpen,
     isReportOpen,
     setIsReportOpen,
+    isWelcomeOpen,
+    setIsWelcomeOpen,
     isCalibrating,
     calibrationTimestamp,
     isRecordingEnabled,
