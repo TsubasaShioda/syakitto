@@ -11,6 +11,7 @@ export interface ElectronAPI {
   maximizeWindow?: () => void;
   closeWindow?: () => void;
   onBeforeQuit: (callback: () => void) => void;
+  removeOnBeforeQuit: (callback: () => void) => void;
   cleanupComplete: () => void;
 }
 

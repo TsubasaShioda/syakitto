@@ -24,20 +24,29 @@ export const usePostureApp = () => {
   const { slouchScore, isCalibrated, calibrate, scoreHistory, stopCamera } = usePoseDetection({ videoRef, isPaused, isRecordingEnabled });
 
   useEffect(() => {
-    if (window.electron?.isElectron) {
+    // Access window only after checking its existence
+    if (typeof window !== 'undefined' && window.electron?.isElectron) {
       setIsElectron(true);
 
-      // アプリ終了前のクリーンアップイベントを登録
-      window.electron.onBeforeQuit(() => {
+      const handleBeforeQuit = () => {
         console.log('Received before-quit event, stopping camera...');
         stopCamera();
         // クリーンアップ完了を通知
         setTimeout(() => {
           window.electron?.cleanupComplete();
         }, 500); // カメラ停止に少し時間を与える
-      });
+      };
+
+      // アプリ終了前のクリーンアップイベントを登録
+      window.electron.onBeforeQuit(handleBeforeQuit);
+
+      // クリーンアップ関数を返す
+      return () => {
+        // コンポーネントがアンマウントされるときにリスナーを解除
+        window.electron?.removeOnBeforeQuit(handleBeforeQuit);
+      };
     }
-  }, [stopCamera]);
+  }, [stopCamera]); // Removed window.electron from dependencies
   const { isDrowsy, ear } = useDrowsinessDetection({
     videoRef,
     isEnabled: isDrowsinessDetectionEnabled,
