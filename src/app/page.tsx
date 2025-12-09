@@ -61,7 +61,7 @@ export default function Home() {
   } = usePostureApp();
 
   return (
-    <main className="relative h-screen p-6 overflow-hidden flex flex-col">
+    <main className="relative min-h-screen p-6 flex flex-col">
       <header className="mb-6 text-center">
         <h1 className="text-4xl font-bold mb-2 text-[#5a8f7b]">
           syakitto
@@ -69,9 +69,20 @@ export default function Home() {
         <p className="text-gray-600 text-sm">リアルタイム姿勢チェッカー - あなたの健康をサポート</p>
       </header>
       
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-hidden">
-        {/* 左カラム: 通知設定 */}
-        <div className="lg:col-span-3 space-y-6 overflow-y-auto">
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6">
+        {/* スコア表示 */}
+        <div className="md:col-start-2 lg:col-span-3 lg:col-start-10 lg:row-start-1 overflow-y-auto">
+          <ScoreDisplay
+            slouchScore={slouchScore}
+            borderColor={borderColor}
+            isDrowsinessDetectionEnabled={isDrowsinessDetectionEnabled}
+            ear={ear}
+            isDrowsy={isDrowsy}
+          />
+        </div>
+
+        {/* 通知設定 */}
+        <div className="md:col-start-1 md:row-start-1 lg:col-span-3 lg:col-start-1 lg:row-start-1 space-y-6 overflow-y-auto">
           {isTimerVisible && <PomodoroTimer />}
           <NotificationSelector
             notificationType={notificationType}
@@ -89,8 +100,8 @@ export default function Home() {
           </div>
         </div>
 
-        {/* 中央カラム: カメラとコントロール */}
-        <div className="lg:col-span-6 flex flex-col justify-center space-y-6">
+        {/* カメラとコントロール */}
+        <div className="md:col-span-2 md:row-start-2 lg:col-span-6 lg:col-start-4 lg:row-start-1 flex flex-col justify-center space-y-6">
           <CameraView videoRef={videoRef} isPaused={isPaused} />
 
           <ControlButtons
@@ -100,17 +111,6 @@ export default function Home() {
             isCalibrated={isCalibrated}
             onCalibrate={calibrate}
             calibrationTimestamp={calibrationTimestamp}
-          />
-        </div>
-
-        {/* 右カラム: スコア表示 */}
-        <div className="lg:col-span-3 overflow-y-auto">
-          <ScoreDisplay
-            slouchScore={slouchScore}
-            borderColor={borderColor}
-            isDrowsinessDetectionEnabled={isDrowsinessDetectionEnabled}
-            ear={ear}
-            isDrowsy={isDrowsy}
           />
         </div>
       </div>
