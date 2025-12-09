@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { usePoseDetection } from "./usePoseDetection";
 import { useDrowsinessDetection } from "./useDrowsinessDetection";
 import { useNotification } from "./useNotification";
-import { Settings, DEFAULT_SETTINGS, hslToRgb } from "./SettingsModal";
+import { DEFAULT_SETTINGS, hslToRgb } from "./SettingsModal";
 import { useBGM, BGM_OPTIONS } from "./useBGM";
 
 export const usePostureApp = () => {

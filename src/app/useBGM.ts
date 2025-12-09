@@ -40,7 +40,7 @@ export const useBGM = () => {
       audioRef.current.src = '';
       setIsPlaying(false);
     }
-  }, [currentBGM]); // Only re-run if currentBGM changes
+  }, [currentBGM, isPlaying]); // Only re-run if currentBGM changes
 
   // Control play/pause
   useEffect(() => {
