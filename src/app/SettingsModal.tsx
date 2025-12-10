@@ -45,8 +45,6 @@ interface SettingsModalProps {
   onClose: () => void;
   settings: Settings;
   setSettings: React.Dispatch<React.SetStateAction<Settings>>;
-  isDrowsinessDetectionEnabled: boolean;
-  setIsDrowsinessDetectionEnabled: (enabled: boolean) => void;
   notificationType: string;
   notificationSound: string;
   setNotificationSound: (sound: string) => void;
@@ -67,8 +65,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   onClose,
   settings,
   setSettings,
-  isDrowsinessDetectionEnabled,
-  setIsDrowsinessDetectionEnabled,
   notificationType,
   notificationSound,
   setNotificationSound,
@@ -86,8 +82,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="absolute inset-0 bg-[#2d3436]/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
-      <div className="w-full max-w-2xl bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-8 relative border border-[#c9b8a8]/40 max-h-[90vh] overflow-y-auto">
+    <div className="absolute inset-0 bg-[#2d3436]/60 backdrop-blur-md flex items-center justify-center p-4 z-50" onClick={onClose}>
+      <div className="w-full max-w-2xl bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-8 relative border border-[#c9b8a8]/40 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <button
           onClick={onClose}
           className="absolute top-4 right-4 w-10 h-10 bg-[#c9b8a8]/30 hover:bg-[#c9b8a8]/50 text-gray-700 rounded-2xl flex items-center justify-center transition-all duration-200 hover:scale-110"
@@ -168,54 +164,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               onChange={(e) => setSettings(s => ({ ...s, cooldownTime: Number(e.target.value) }))}
               className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#f4d06f]"
             />
-          </div>
-
-          <div className="bg-[#d4a59a]/10 rounded-3xl p-6 border border-[#d4a59a]/30">
-            <label htmlFor="drowsinessDetection" className="flex items-center justify-between cursor-pointer text-gray-700 mb-4">
-              <span className="text-lg font-semibold">眠気検知を有効にする</span>
-              <input
-                type="checkbox"
-                id="drowsinessDetection"
-                checked={isDrowsinessDetectionEnabled}
-                onChange={(e) => setIsDrowsinessDetectionEnabled(e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="relative w-11 h-6 bg-[#c9b8a8]/30 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#d4a59a]/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-[#c9b8a8] after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#d4a59a]"></div>
-            </label>
-            {isDrowsinessDetectionEnabled && (
-              <div className="pl-4 mt-4 space-y-6 border-l-2 border-[#d4a59a]/30">
-                <div>
-                  <label htmlFor="drowsinessEarThreshold" className="block text-sm font-medium text-gray-700 mb-2">
-                    目の開き具合のしきい値: <span className="font-bold text-[#d4a59a]">{settings.drowsinessEarThreshold.toFixed(2)}</span>
-                  </label>
-                  <input
-                    type="range"
-                    id="drowsinessEarThreshold"
-                    min="0.05"
-                    max="0.4"
-                    step="0.01"
-                    value={settings.drowsinessEarThreshold}
-                    onChange={(e) => setSettings(s => ({ ...s, drowsinessEarThreshold: Number(e.target.value) }))}
-                    className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#d4a59a]"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="drowsinessTimeThreshold" className="block text-sm font-medium text-gray-700 mb-2">
-                    眠気と判断するまでの時間: <span className="font-bold text-[#d4a59a]">{settings.drowsinessTimeThreshold}秒</span>
-                  </label>
-                  <input
-                    type="range"
-                    id="drowsinessTimeThreshold"
-                    min="1"
-                    max="180"
-                    step="1"
-                    value={settings.drowsinessTimeThreshold}
-                    onChange={(e) => setSettings(s => ({ ...s, drowsinessTimeThreshold: Number(e.target.value) }))}
-                    className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#d4a59a]"
-                  />
-                </div>
-              </div>
-            )}
           </div>
 
           <div className="bg-[#a8b8d5]/10 rounded-3xl p-6 border border-[#a8b8d5]/30">

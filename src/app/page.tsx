@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from 'react';
 import SettingsModal from "@/app/SettingsModal";
 import PostureReport from "@/app/components/PostureReport";
 import InfoModal from "@/app/components/InfoModal";
 import ScoreDisplay from "@/app/components/ScoreDisplay";
+import DrowsinessDisplay from "@/app/components/DrowsinessDisplay";
 import CameraView from "@/app/components/CameraView";
 import ControlButtons from "@/app/components/ControlButtons";
 import ActionButtons from "@/app/components/ActionButtons";
@@ -12,6 +14,34 @@ import WelcomePopup from "@/app/components/WelcomePopup";
 import { usePostureApp } from "@/app/usePostureApp";
 import PomodoroTimer from "@/app/components/PomodoroTimer";
 
+const SlouchInfo = () => (
+  <div className="bg-[#a8d5ba]/10 rounded-3xl p-6 border border-[#a8d5ba]/30">
+    <p className="text-gray-700 leading-relaxed mb-3">
+      Syakittoは、肩と耳の位置、そして顔の大きさを検知することで猫背を判断します。
+      耳が肩よりも画面に近づいていくと猫背スコアが上昇し、顔の大きさも考慮することで、カメラとの距離が変わっても正確に猫背を検知できるようになりました。
+    </p>
+    <p className="text-gray-700 leading-relaxed">
+      設定では、「猫背と判断するスコア」と「この秒数続いたら通知」の2つの項目を調整できます。
+      「猫背と判断するスコア」は、猫背とみなすスコアの閾値です。この数値を超えると猫背と判断されます。
+      「この秒数続いたら通知」は、猫背スコアが閾値を超えた状態が指定した秒数継続した場合に通知を行うかの設定です。
+      これらの数値を調整することで、ご自身の作業環境や姿勢に合わせて検知の厳しさを変更できます。
+    </p>
+  </div>
+);
+
+const DrowsinessInfo = () => (
+  <div className="bg-[#b8c9b8]/10 rounded-3xl p-6 border border-[#b8c9b8]/30">
+    <p className="text-gray-700 leading-relaxed mb-3">
+      眠気はEAR（Eye Aspect Ratio：目の開き具合を数値で表したもの）を用いて検知されます。EARが一定の閾値を下回る時間が継続すると、「眠い」と判断されます。
+    </p>
+    <p className="text-gray-700 leading-relaxed">
+      眠気検知は初期設定ではオフになっています。トグルをオンにすることで、眠気検知が開始され、目の開き具合（EAR）が表示されるようになります。
+      眠気に関する設定は設定画面から調整できます。
+    </p>
+  </div>
+);
+
+
 export default function Home() {
   const {
     videoRef,
@@ -19,13 +49,13 @@ export default function Home() {
     setIsPaused,
     isDrowsinessDetectionEnabled,
     setIsDrowsinessDetectionEnabled,
+    isSlouchDetectionEnabled,
+    setIsSlouchDetectionEnabled,
     settings,
     setSettings,
     isSettingsOpen,
     setIsSettingsOpen,
     isElectron,
-    isInfoOpen,
-    setIsInfoOpen,
     isReportOpen,
     setIsReportOpen,
     isWelcomeOpen,
@@ -47,7 +77,6 @@ export default function Home() {
     notificationSound,
     setNotificationSound,
     SOUND_OPTIONS,
-    borderColor,
     handleDownload,
     // BGM related states and functions
     currentBGM,
@@ -60,6 +89,22 @@ export default function Home() {
     BGM_OPTIONS,
   } = usePostureApp();
 
+  const [infoModalContent, setInfoModalContent] = useState<{ title: string; content: React.ReactNode } | null>(null);
+
+  const handleSlouchInfoOpen = () => {
+    setInfoModalContent({
+      title: "猫背検知について",
+      content: <SlouchInfo />,
+    });
+  };
+
+  const handleDrowsinessInfoOpen = () => {
+    setInfoModalContent({
+      title: "眠気検知について",
+      content: <DrowsinessInfo />,
+    });
+  };
+
   return (
     <main className="relative min-h-screen p-6 flex flex-col">
       <header className="mb-6 text-center">
@@ -71,13 +116,19 @@ export default function Home() {
       
       <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6">
         {/* スコア表示 */}
-        <div className="md:col-start-2 lg:col-span-3 lg:col-start-10 lg:row-start-1 overflow-y-auto">
+        <div className="md:col-start-2 lg:col-span-3 lg:col-start-10 lg:row-start-1 overflow-y-auto space-y-6">
           <ScoreDisplay
             slouchScore={slouchScore}
-            borderColor={borderColor}
+            isSlouchDetectionEnabled={isSlouchDetectionEnabled}
+            onToggleSlouch={() => setIsSlouchDetectionEnabled(!isSlouchDetectionEnabled)}
+            onInfoClick={handleSlouchInfoOpen}
+          />
+          <DrowsinessDisplay
             isDrowsinessDetectionEnabled={isDrowsinessDetectionEnabled}
+            onToggleDrowsiness={() => setIsDrowsinessDetectionEnabled(!isDrowsinessDetectionEnabled)}
             ear={ear}
             isDrowsy={isDrowsy}
+            onInfoClick={handleDrowsinessInfoOpen}
           />
         </div>
 
@@ -116,8 +167,8 @@ export default function Home() {
       </div>
 
       {isReportOpen && (
-        <div className="fixed inset-0 bg-[#2d3436]/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
-          <div className="w-full max-w-3xl bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-8 relative border border-[#c9b8a8]/40">
+        <div className="fixed inset-0 bg-[#2d3436]/60 backdrop-blur-md flex items-center justify-center p-4 z-50" onClick={() => setIsReportOpen(false)}>
+          <div className="w-full max-w-3xl bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-8 relative border border-[#c9b8a8]/40" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={() => setIsReportOpen(false)}
               className="absolute top-4 right-4 w-10 h-10 bg-[#c9b8a8]/30 hover:bg-[#c9b8a8]/50 text-gray-700 rounded-2xl flex items-center justify-center transition-all duration-200 hover:scale-110"
@@ -139,8 +190,6 @@ export default function Home() {
         onClose={() => setIsSettingsOpen(false)}
         settings={settings}
         setSettings={setSettings}
-        isDrowsinessDetectionEnabled={isDrowsinessDetectionEnabled}
-        setIsDrowsinessDetectionEnabled={setIsDrowsinessDetectionEnabled}
         notificationType={notificationType}
         notificationSound={notificationSound}
         setNotificationSound={setNotificationSound}
@@ -155,11 +204,19 @@ export default function Home() {
         BGM_OPTIONS={BGM_OPTIONS}
       />
 
-      <InfoModal isOpen={isInfoOpen} onClose={() => setIsInfoOpen(false)} />
+      {infoModalContent && (
+        <InfoModal 
+          isOpen={!!infoModalContent} 
+          onClose={() => setInfoModalContent(null)}
+          title={infoModalContent.title}
+        >
+          {infoModalContent.content}
+        </InfoModal>
+      )}
+
 
       <ActionButtons
         onDownload={handleDownload}
-        onInfoOpen={() => setIsInfoOpen(true)}
         onReportOpen={() => setIsReportOpen(true)}
         onSettingsOpen={() => setIsSettingsOpen(true)}
         isTimerVisible={isTimerVisible}
