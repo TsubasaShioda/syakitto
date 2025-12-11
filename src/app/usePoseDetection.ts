@@ -15,6 +15,7 @@ interface UsePoseDetectionProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
   isPaused: boolean;
   isRecordingEnabled: boolean;
+  isEnabled: boolean;
 }
 
 // このフックが返す値の型定義
@@ -32,7 +33,7 @@ const euclideanDist = (p1: { x: number; y: number }, p2: { x: number; y: number 
   return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
 };
 
-export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled }: UsePoseDetectionProps): UsePoseDetectionReturn => {
+export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled, isEnabled }: UsePoseDetectionProps): UsePoseDetectionReturn => {
   const [poseDetector, setPoseDetector] = useState<poseDetection.PoseDetector | null>(null);
   const [faceDetector, setFaceDetector] = useState<faceLandmarksDetection.FaceLandmarksDetector | null>(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
@@ -204,6 +205,12 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled }: Use
 
   // --- 軽量ループ（2FPS） ---
   useEffect(() => {
+    if (!isEnabled) {
+      setSlouchScore(0);
+      smoothingHistory.current = [];
+      return;
+    }
+
     if (isPaused || !poseDetector || !faceDetector || !isCameraReady || !videoRef.current) {
       return;
     }
@@ -238,7 +245,7 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled }: Use
 
     const intervalId = setInterval(analyze, 2000); // 2秒ごとに記録
     return () => clearInterval(intervalId);
-  }, [isPaused, poseDetector, faceDetector, isCameraReady, videoRef, calculateSlouchScore, isRecordingEnabled]);
+  }, [isEnabled, isPaused, poseDetector, faceDetector, isCameraReady, videoRef, calculateSlouchScore, isRecordingEnabled]);
 
   return { slouchScore, isCameraReady, isCalibrated, calibrate, scoreHistory, stopCamera };
 };

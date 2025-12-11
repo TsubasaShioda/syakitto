@@ -2,7 +2,6 @@
 
 interface ActionButtonsProps {
   onDownload: () => void;
-  onInfoOpen: () => void;
   onReportOpen: () => void;
   onSettingsOpen: () => void;
   onToggleTimer: () => void;
@@ -10,7 +9,7 @@ interface ActionButtonsProps {
   isElectron: boolean;
 }
 
-const ActionButtons = ({ onDownload, onInfoOpen, onReportOpen, onSettingsOpen, onToggleTimer, isTimerVisible }: ActionButtonsProps) => {
+const ActionButtons = ({ onDownload, onReportOpen, onSettingsOpen, onToggleTimer, isTimerVisible }: ActionButtonsProps) => {
   return (
     <div className="fixed bottom-6 right-6 flex flex-col items-end gap-3">
       <div className="relative flex items-center">
@@ -25,20 +24,6 @@ const ActionButtons = ({ onDownload, onInfoOpen, onReportOpen, onSettingsOpen, o
         </button>
         <span className="absolute right-16 w-auto whitespace-nowrap p-2 px-3 bg-white text-[#5a8f7b] text-sm font-bold rounded-md shadow-lg opacity-0 peer-hover:opacity-100 transition-opacity duration-300">
           インストーラー
-        </span>
-      </div>
-      <div className="relative flex items-center">
-        <button
-            onClick={onInfoOpen}
-            className="peer w-14 h-14 bg-white/80 backdrop-blur-sm text-[#5a8f7b] rounded-2xl flex items-center justify-center shadow-lg hover:shadow-xl hover:bg-[#a8d5ba]/40 transition-all duration-300 transform hover:scale-110 border border-[#c9b8a8]/30"
-            aria-label="情報ページを開く"
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-6 h-6 group-hover:scale-110 transition-transform">
-                <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
-            </svg>
-        </button>
-        <span className="absolute right-16 w-auto whitespace-nowrap p-2 px-3 bg-white text-[#5a8f7b] text-sm font-bold rounded-md shadow-lg opacity-0 peer-hover:opacity-100 transition-opacity duration-300">
-            インフォメーション
         </span>
       </div>
       <div className="relative flex items-center">

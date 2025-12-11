@@ -9,10 +9,11 @@ export const usePostureApp = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [isDrowsinessDetectionEnabled, setIsDrowsinessDetectionEnabled] = useState(false);
+  const [isSlouchDetectionEnabled, setIsSlouchDetectionEnabled] = useState(true);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isElectron, setIsElectron] = useState(false);
-  const [isInfoOpen, setIsInfoOpen] = useState(false);
+
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(true);
   const [isCalibrating, setIsCalibrating] = useState(false);
@@ -21,7 +22,12 @@ export const usePostureApp = () => {
   const [isVisualizationEnabled, setIsVisualizationEnabled] = useState(false);
   const [isTimerVisible, setIsTimerVisible] = useState(false);
 
-  const { slouchScore, isCalibrated, calibrate, scoreHistory, stopCamera } = usePoseDetection({ videoRef, isPaused, isRecordingEnabled });
+  const { slouchScore, isCalibrated, calibrate, scoreHistory, stopCamera } = usePoseDetection({
+    videoRef,
+    isPaused,
+    isRecordingEnabled,
+    isEnabled: isSlouchDetectionEnabled,
+  });
 
   useEffect(() => {
     if (window.electron?.isElectron) {
@@ -110,13 +116,13 @@ export const usePostureApp = () => {
     setIsPaused,
     isDrowsinessDetectionEnabled,
     setIsDrowsinessDetectionEnabled,
+    isSlouchDetectionEnabled,
+    setIsSlouchDetectionEnabled,
     settings,
     setSettings,
     isSettingsOpen,
     setIsSettingsOpen,
     isElectron,
-    isInfoOpen,
-    setIsInfoOpen,
     isReportOpen,
     setIsReportOpen,
     isWelcomeOpen,
