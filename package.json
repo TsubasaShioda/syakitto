@@ -15,7 +15,7 @@
     "electron:package:mac": "npm run electron:package -- --mac",
     "electron:package:win": "npm run electron:package -- --win",
     "electron:package:linux": "npm run electron:package -- --linux",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall:electron": "electron-builder install-app-deps"
   },
   "build": {
     "appId": "com.postureChecker.app",
