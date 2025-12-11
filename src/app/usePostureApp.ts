@@ -15,7 +15,22 @@ export const usePostureApp = () => {
   const [isElectron, setIsElectron] = useState(false);
 
   const [isReportOpen, setIsReportOpen] = useState(false);
-  const [isWelcomeOpen, setIsWelcomeOpen] = useState(true);
+  const [isWelcomeOpen, setIsWelcomeOpenState] = useState(false); // Default to false, controlled by useEffect
+
+  useEffect(() => {
+    // Check if the welcome popup has been shown before
+    const hasSeenWelcomePopup = localStorage.getItem('hasSeenWelcomePopup');
+    if (!hasSeenWelcomePopup) {
+      setIsWelcomeOpenState(true); // Show welcome popup if not seen before
+    }
+  }, []);
+
+  const setIsWelcomeOpen = (isOpen: boolean) => {
+    setIsWelcomeOpenState(isOpen);
+    if (!isOpen) {
+      localStorage.setItem('hasSeenWelcomePopup', 'true'); // Mark as seen when closed
+    }
+  };
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [calibrationTimestamp, setCalibrationTimestamp] = useState<Date | null>(null);
   const [isRecordingEnabled, setIsRecordingEnabled] = useState(false);
