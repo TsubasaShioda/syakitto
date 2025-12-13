@@ -48,15 +48,23 @@ export const usePostureApp = () => {
     if (window.electron?.isElectron) {
       setIsElectron(true);
 
-      // アプリ終了前のクリーンアップイベントを登録
-      window.electron.onBeforeQuit(() => {
+      const handleBeforeQuit = () => {
         console.log('Received before-quit event, stopping camera...');
         stopCamera();
         // クリーンアップ完了を通知
         setTimeout(() => {
           window.electron?.cleanupComplete();
         }, 500); // カメラ停止に少し時間を与える
-      });
+      };
+
+      // アプリ終了前のクリーンアップイベントを登録
+      window.electron.onBeforeQuit(handleBeforeQuit);
+
+      // クリーンアップ関数を返す
+      return () => {
+        // コンポーネントがアンマウントされるときにリスナーを解除
+        window.electron?.removeOnBeforeQuit(handleBeforeQuit);
+      };
     }
   }, [stopCamera]);
   const { isDrowsy, ear } = useDrowsinessDetection({
@@ -121,7 +129,7 @@ export const usePostureApp = () => {
 
   const handleDownload = () => {
     if (window.confirm('macOS版インストーラーをダウンロードしますか？')) {
-      window.location.href = 'https://github.com/TsubasaShioda/syakitto/releases/download/v0.1.0/Posture.Checker-0.1.0-arm64.dmg';
+      window.location.href = 'https://github.com/TsubasaShioda/syakitto/releases/download/v0.2.1/syakitto-0.2.1-arm64.dmg';
     }
   };
 
