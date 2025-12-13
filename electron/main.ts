@@ -10,7 +10,7 @@ let isQuitting = false; // アプリ終了中フラグ
 // アプリケーション準備完了時の処理
 app.whenReady().then(() => {
   // メインウィンドウを作成して表示
-  mainWindow = createMainWindow();
+  mainWindow = createMainWindow(quitApp);
   mainWindow.show();
 
   // macOSでDockアイコンを表示する（デフォルトの動作）
@@ -27,7 +27,7 @@ app.whenReady().then(() => {
       { label: '表示', click: () => mainWindow?.show() },
       { label: '終了', click: () => quitApp() },
     ]);
-    tray.setToolTip('Posture Checker');
+    tray.setToolTip('syakitto');
     tray.setContextMenu(contextMenu);
 
     tray.on('click', () => {
@@ -43,7 +43,7 @@ app.whenReady().then(() => {
     if (mainWindow) {
       mainWindow.show();
     } else {
-      mainWindow = createMainWindow();
+      mainWindow = createMainWindow(quitApp);
     }
   });
 

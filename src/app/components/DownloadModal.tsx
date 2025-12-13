@@ -58,7 +58,7 @@ const DownloadModal = ({ isOpen, onClose, onDownload }: DownloadModalProps) => {
               ほとんどの場合、`sudo`は不要ですが、アクセス権の問題が発生した場合は、コマンドの前に`sudo `を追加して再試行してください。
             </p>
             <code className="block bg-gray-800 text-white p-3 rounded-lg my-3 text-sm">
-              xattr -d com.apple.quarantine /Applications/Posture\ Checker.app
+              xattr -d com.apple.quarantine /Applications/syakitto.app
             </code>
             <p className="text-gray-700 leading-relaxed mt-3">
               これにより、次回以降は通常通りアプリケーションを起動できます。

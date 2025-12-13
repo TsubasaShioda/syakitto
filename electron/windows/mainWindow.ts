@@ -12,7 +12,7 @@ export function createMainWindow(quitApp: () => void): BrowserWindow {
       contextIsolation: true,
       webSecurity: true,
     },
-    title: 'Posture Checker',
+    title: 'syakitto',
   });
 
   // 開発環境と本番環境でURLを切り替え
