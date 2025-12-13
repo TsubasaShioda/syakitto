@@ -1,7 +1,8 @@
-import { BrowserWindow, shell } from 'electron';
+import { BrowserWindow, shell, app } from 'electron';
 import * as path from 'path';
+import * as url from 'url';
 
-export function createMainWindow(): BrowserWindow {
+export function createMainWindow(quitApp: () => void): BrowserWindow {
   const mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -20,7 +21,15 @@ export function createMainWindow(): BrowserWindow {
     // 開発者ツールを開く（コメントアウト）
     // mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../../out/index.html'));
+    // app.getAppPath() is unreliable in translocated apps. Use __dirname instead.
+    const indexPath = path.join(__dirname, '../../../out/index.html');
+    mainWindow.loadURL(
+      url.format({
+        pathname: indexPath,
+        protocol: 'file:',
+        slashes: true,
+      }),
+    );
   }
 
   // 外部リンクはブラウザで開く
@@ -32,10 +41,12 @@ export function createMainWindow(): BrowserWindow {
     return { action: 'allow' };
   });
 
-  // ウィンドウを閉じる時は非表示にする（終了しない）
+  // ウィンドウを閉じる時は、クリーンアップ処理を伴う終了を要求
   mainWindow.on('close', (event) => {
+    // デフォルトの終了処理を防止し、クリーンアップを許可
     event.preventDefault();
-    mainWindow.hide();
+    // クリーンアップを伴うアプリの正常終了を要求
+    quitApp(); // Directly call the passed quitApp function
   });
 
   return mainWindow;
