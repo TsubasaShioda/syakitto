@@ -18,7 +18,7 @@
     "postinstall:electron": "electron-builder install-app-deps"
   },
   "build": {
-    "appId": "com.postureChecker.app",
+    "appId": "com.syakitto.app",
     "productName": "syakitto",
     "files": [
       "dist/electron/**/*",

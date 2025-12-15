@@ -12,6 +12,9 @@ export interface ElectronAPI {
   onBeforeQuit: (callback: () => void) => void;
   removeOnBeforeQuit: (callback: () => void) => void;
   cleanupComplete: () => void;
+  startPostureCheck: (interval: number) => void;
+  stopPostureCheck: () => void;
+  onTriggerPostureCheck: (callback: () => void) => void;
 }
 
 declare global {

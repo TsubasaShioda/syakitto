@@ -5,12 +5,20 @@ import { createMainWindow } from './windows/mainWindow';
 // グローバルウィンドウ参照（ガベージコレクション防止）
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
-let isQuitting = false;
+let isQuitting = false; // アプリ終了中フラグ
 let forceQuitTimeout: NodeJS.Timeout | null = null;
-
+let postureCheckInterval: NodeJS.Timeout | null = null; // 姿勢チェック用タイマー
 
 // アプリケーション準備完了時の処理
 app.whenReady().then(() => {
+  // アプリ名を設定
+  app.name = 'syakitto';
+
+  // macOSでDockアイコンを明示的に表示
+  if (process.platform === 'darwin' && app.dock) {
+    app.dock.show();
+  }
+
   // メインウィンドウを作成して表示
   mainWindow = createMainWindow();
   mainWindow.show();
@@ -168,6 +176,28 @@ app.whenReady().then(() => {
     }
     app.exit(0);
   });
+
+  // 姿勢チェックタイマーの開始/停止
+  ipcMain.on('start-posture-check', (_event, interval: number) => {
+    // 既存のタイマーがあればクリア
+    if (postureCheckInterval) {
+      clearInterval(postureCheckInterval);
+    }
+
+    // メインプロセスで定期的にレンダラーに測定を指示
+    postureCheckInterval = setInterval(() => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('trigger-posture-check');
+      }
+    }, interval);
+  });
+
+  ipcMain.on('stop-posture-check', () => {
+    if (postureCheckInterval) {
+      clearInterval(postureCheckInterval);
+      postureCheckInterval = null;
+    }
+  });
 });
 
 
@@ -181,12 +211,16 @@ app.on('window-all-closed', () => {
 // アプリケーションが終了する前の最後の処理
 app.on('before-quit', (event) => {
   if (isQuitting) {
+    // Dockアイコンを非表示にする
+    if (process.platform === 'darwin' && app.dock) {
+      app.dock.hide();
+    }
     if (tray && !tray.isDestroyed()) {
       tray.destroy();
     }
     return;
   }
-  
+
   event.preventDefault();
 
   if (mainWindow && !mainWindow.isDestroyed()) {
