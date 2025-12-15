@@ -41,4 +41,18 @@ contextBridge.exposeInMainWorld('electron', {
     ipcRenderer.removeAllListeners('trigger-posture-check');
     ipcRenderer.on('trigger-posture-check', callback);
   },
+
+  // タイマーウィンドウ関連
+  showTimerWindow: () => ipcRenderer.send('show-timer-window'),
+  updateTimerWindow: (data: { timeLeft: number; isActive: boolean; sessionType: string }) =>
+    ipcRenderer.send('update-timer-window', data),
+  closeTimerWindow: () => ipcRenderer.send('close-timer-window'),
+});
+
+// タイマーウィンドウ用のAPI
+contextBridge.exposeInMainWorld('electronAPI', {
+  onUpdateTimer: (callback: (data: { timeLeft: number; isActive: boolean; sessionType: string }) => void) => {
+    ipcRenderer.on('update-timer', (_event, data) => callback(data));
+  },
+  closeTimerWindow: () => ipcRenderer.send('close-timer-window'),
 });

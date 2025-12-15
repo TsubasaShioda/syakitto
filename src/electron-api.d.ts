@@ -15,10 +15,19 @@ export interface ElectronAPI {
   startPostureCheck: (interval: number) => void;
   stopPostureCheck: () => void;
   onTriggerPostureCheck: (callback: () => void) => void;
+  showTimerWindow: () => void;
+  updateTimerWindow: (data: { timeLeft: number; isActive: boolean; sessionType: string }) => void;
+  closeTimerWindow: () => void;
+}
+
+export interface ElectronTimerAPI {
+  onUpdateTimer: (callback: (data: { timeLeft: number; isActive: boolean; sessionType: string }) => void) => void;
+  closeTimerWindow: () => void;
 }
 
 declare global {
   interface Window {
     electron: ElectronAPI;
+    electronAPI?: ElectronTimerAPI;
   }
 }
