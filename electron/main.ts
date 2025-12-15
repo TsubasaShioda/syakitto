@@ -246,9 +246,11 @@ app.whenReady().then(() => {
     win?.close();
   });
 
+  // (The top part of the file remains the same)
+
   // クリーンアップ完了通知を受け取る
   ipcMain.on('cleanup-complete', () => {
-    console.log('Cleanup complete, quitting app...');
+    console.log('Cleanup complete, now really quitting...');
     isQuitting = true;
     app.quit();
   });
@@ -256,36 +258,49 @@ app.whenReady().then(() => {
 
 // アプリ終了処理
 function quitApp() {
-  if (!mainWindow || mainWindow.isDestroyed()) {
-    app.quit();
+  if (isQuitting) {
     return;
   }
+  console.log("Attempting to gracefully quit...");
+  isQuitting = true;
 
-  // Rendererプロセスにクリーンアップを要求
-  mainWindow.webContents.send('before-quit-cleanup');
-
-  // タイムアウト: 3秒以内にクリーンアップが完了しなければ強制終了
-  setTimeout(() => {
-    if (!isQuitting) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('before-quit-cleanup');
+    
+    // タイムアウト: 3秒以内にクリーンアップが完了しなければ強制終了
+    setTimeout(() => {
       console.log('Cleanup timeout, force quitting...');
-      isQuitting = true;
-      app.quit();
-    }
-  }, 3000);
+      if (!app.isQuitting) { // Check if app is already quitting
+        app.quit();
+      }
+    }, 3000);
+  } else {
+    // ウィンドウがない場合は、すぐに終了
+    app.quit();
+  }
 }
 
 // すべてのウィンドウが閉じられた時の処理
 app.on('window-all-closed', () => {
   // macOS以外ではアプリケーションを終了
   if (process.platform !== 'darwin') {
-    quitApp();
+    app.quit();
   }
 });
 
-// ウィンドウが閉じられた時の処理
-app.on('before-quit', () => {
-  mainWindow = null;
-  if (tray) {
-    tray.destroy(); // アプリ終了時にトレイアイコンを破棄
+// アプリケーションが終了する前の最後の処理
+app.on('before-quit', (event) => {
+  console.log("Before-quit event triggered.");
+  if (!isQuitting) {
+    // ユーザーがDockから終了した場合など
+    console.log("Quit initiated by user (e.g., from Dock). Preventing immediate quit and starting cleanup.");
+    event.preventDefault(); // 即時終了をキャンセル
+    quitApp(); // クリーンアップ処理を開始
+  } else {
+    // isQuittingがtrueなら、クリーンアップは完了しているのでアプリを終了させる
+    console.log("isQuitting is true, allowing app to quit.");
+    if (tray && !tray.isDestroyed()) {
+      tray.destroy();
+    }
   }
 });
