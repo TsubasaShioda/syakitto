@@ -11,6 +11,7 @@ export function createMainWindow(): BrowserWindow {
       nodeIntegration: false,
       contextIsolation: true,
       webSecurity: true,
+      backgroundThrottling: false, // バックグラウンド時も姿勢検出を継続するため無効化
     },
     title: 'syakitto',
   });

@@ -52,7 +52,7 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled, isEna
       try {
         await tf.ready();
         await tf.setBackend("webgl");
-        
+
         // Pose Detector
         const poseModel = poseDetection.SupportedModels.MoveNet;
         const poseDetectorConfig = {
@@ -203,49 +203,76 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled, isEna
     return uncalibratedScore;
   }, [calibratedPose, calibratedFaceSize]);
 
-  // --- 軽量ループ（2FPS） ---
+  // --- 姿勢測定処理 ---
+  const analyze = useCallback(async () => {
+    if (isPaused || !poseDetector || !faceDetector || !isCameraReady || !videoRef.current) {
+      return;
+    }
+
+    try {
+      const [poses, faces] = await Promise.all([
+        poseDetector.estimatePoses(videoRef.current!),
+        faceDetector.estimateFaces(videoRef.current!, { flipHorizontal: false }),
+      ]);
+
+      if (poses.length > 0 && faces.length > 0) {
+        const score = calculateSlouchScore(poses[0].keypoints, faces[0].keypoints);
+        if (score !== null) {
+          // スムージング
+          const history = smoothingHistory.current;
+          history.push(score);
+          if (history.length > 3) history.shift();
+          const avgScore = history.reduce((a, b) => a + b, 0) / history.length;
+          setSlouchScore(avgScore);
+
+          // スコアを履歴に追加
+          if (isRecordingEnabled) {
+            setScoreHistory(prevHistory => [...prevHistory, { time: Date.now(), score: avgScore }]);
+          }
+        }
+      }
+    } catch (e) {
+      console.error('[Posture Detection] Error during analysis:', e);
+    }
+  }, [isPaused, poseDetector, faceDetector, isCameraReady, videoRef, calculateSlouchScore, isRecordingEnabled]);
+
+  // --- isEnabledチェック ---
   useEffect(() => {
     if (!isEnabled) {
       setSlouchScore(0);
       smoothingHistory.current = [];
       return;
     }
+  }, [isEnabled]);
 
-    if (isPaused || !poseDetector || !faceDetector || !isCameraReady || !videoRef.current) {
-      return;
+  // --- メインプロセスからのタイマー制御 ---
+  useEffect(() => {
+    if (!isEnabled) return;
+
+    if (typeof window === 'undefined' || !window.electron) {
+      // Electron環境でない場合は従来のsetIntervalを使用
+      if (isPaused || !poseDetector || !faceDetector || !isCameraReady) {
+        return;
+      }
+      const intervalId = setInterval(analyze, 1500);
+      return () => clearInterval(intervalId);
     }
 
-    const analyze = async () => {
-      try {
-        const [poses, faces] = await Promise.all([
-          poseDetector.estimatePoses(videoRef.current!),
-          faceDetector.estimateFaces(videoRef.current!, { flipHorizontal: false }),
-        ]);
-        
-        if (poses.length > 0 && faces.length > 0) {
-          const score = calculateSlouchScore(poses[0].keypoints, faces[0].keypoints);
-          if (score !== null) {
-            // スムージング
-            const history = smoothingHistory.current;
-            history.push(score);
-            if (history.length > 3) history.shift();
-            const avgScore = history.reduce((a, b) => a + b, 0) / history.length;
-            setSlouchScore(avgScore);
+    // Electron環境: メインプロセスでタイマーを動かす
+    if (!isPaused && poseDetector && faceDetector && isCameraReady) {
+      // メインプロセスからのトリガーを受け取る
+      const handleTrigger = () => {
+        analyze();
+      };
 
-            // スコアを履歴に追加
-            if (isRecordingEnabled) {
-              setScoreHistory(prevHistory => [...prevHistory, { time: Date.now(), score: avgScore }]);
-            }
-          }
-        }
-      } catch (e) {
-        console.warn(e);
-      }
-    };
+      window.electron.onTriggerPostureCheck(handleTrigger);
+      window.electron.startPostureCheck(1500);
 
-    const intervalId = setInterval(analyze, 2000); // 2秒ごとに記録
-    return () => clearInterval(intervalId);
-  }, [isEnabled, isPaused, poseDetector, faceDetector, isCameraReady, videoRef, calculateSlouchScore, isRecordingEnabled]);
+      return () => {
+        window.electron.stopPostureCheck();
+      };
+    }
+  }, [isEnabled, isPaused, poseDetector, faceDetector, isCameraReady, analyze]);
 
   return { slouchScore, isCameraReady, isCalibrated, calibrate, scoreHistory, stopCamera };
 };

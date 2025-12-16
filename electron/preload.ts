@@ -27,4 +27,13 @@ contextBridge.exposeInMainWorld('electron', {
   },
   // クリーンアップ完了を通知
   cleanupComplete: () => ipcRenderer.send('cleanup-complete'),
+
+  // 姿勢チェックタイマー制御
+  startPostureCheck: (interval: number) => ipcRenderer.send('start-posture-check', interval),
+  stopPostureCheck: () => ipcRenderer.send('stop-posture-check'),
+  onTriggerPostureCheck: (callback: () => void) => {
+    // 既存のリスナーを削除してから新しいリスナーを登録
+    ipcRenderer.removeAllListeners('trigger-posture-check');
+    ipcRenderer.on('trigger-posture-check', callback);
+  },
 });
