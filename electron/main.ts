@@ -17,6 +17,7 @@ let postureCheckInterval: NodeJS.Timeout | null = null; // 姿勢チェック用
 app.whenReady().then(() => {
   // --- Logger Initialization ---
   const logPath = path.join(app.getPath('userData'), 'session.log');
+  console.log(`[DEBUG] Attempting to write log to: ${logPath}`); // Add this debug log
   logToFile = (message: string) => {
     const timestamp = new Date().toISOString();
     try {
@@ -196,6 +197,10 @@ app.whenReady().then(() => {
     }, 6000);
   });
 
+  // レンダラープロセスからのログを受け取るハンドラ
+  ipcMain.on('log-from-renderer', (event, message: string) => {
+    logToFile(message);
+  });
 
   // クリーンアップ完了通知を受け取る
   ipcMain.on('cleanup-complete', () => {
