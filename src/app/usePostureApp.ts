@@ -49,24 +49,27 @@ export const usePostureApp = () => {
       setIsElectron(true);
 
       const handleBeforeQuit = () => {
-        console.log('Received before-quit event, stopping camera...');
-        stopCamera();
-        // クリーンアップ完了を通知
+        try {
+          setIsSlouchDetectionEnabled(false);
+          setIsDrowsinessDetectionEnabled(false);
+          stopCamera();
+        } catch (e) {
+          console.error('[Renderer] Error during cleanup:', e);
+        }
+        
         setTimeout(() => {
           window.electron?.cleanupComplete();
-        }, 500); // カメラ停止に少し時間を与える
+        }, 500);
       };
 
-      // アプリ終了前のクリーンアップイベントを登録
       window.electron.onBeforeQuit(handleBeforeQuit);
 
-      // クリーンアップ関数を返す
       return () => {
-        // コンポーネントがアンマウントされるときにリスナーを解除
         window.electron?.removeOnBeforeQuit(handleBeforeQuit);
       };
     }
-  }, [stopCamera]);
+  }, [stopCamera, setIsSlouchDetectionEnabled, setIsDrowsinessDetectionEnabled]);
+  
   const { isDrowsy, ear } = useDrowsinessDetection({
     videoRef,
     isEnabled: isDrowsinessDetectionEnabled,

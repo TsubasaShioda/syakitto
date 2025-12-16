@@ -40,8 +40,6 @@ export const useNotification = ({ slouchScore, isDrowsy, isPaused, settings }: U
   ];
 
   const triggerNotification = useCallback((message: string) => {
-    console.log('triggerNotification called with message:', message);
-
     // Electron環境でのフラッシュ通知
     if (notificationType === 'flash' && typeof window !== 'undefined' && window.electron && window.electron.flashScreen) {
       window.electron.flashScreen();
@@ -59,16 +57,13 @@ export const useNotification = ({ slouchScore, isDrowsy, isPaused, settings }: U
 
     // デスクトップ通知 (desktop の場合)
     if (notificationType === 'desktop') {
-      console.log('Checking for window.electron:', window.electron);
       if (typeof window !== 'undefined' && window.electron && window.electron.showNotification) {
-        console.log('Using Electron notification');
         window.electron.showNotification({
           title: "syakitto",
           body: message,
           silent: true,
         });
       } else if (Notification.permission === 'granted') {
-        console.log('Using browser notification');
         new Notification("syakitto", {
           body: message,
           silent: true,
@@ -106,10 +101,7 @@ export const useNotification = ({ slouchScore, isDrowsy, isPaused, settings }: U
     const { threshold, delay, reNotificationMode, cooldownTime } = settings;
     const now = Date.now();
 
-    console.log(`slouchScore: ${slouchScore}, threshold: ${threshold}`);
-
     if (slouchScore > threshold) {
-      console.log('Slouch score exceeded threshold');
       if (reNotificationMode === 'cooldown' && !notificationTimer.current && now - lastNotificationTime > cooldownTime * 1000) {
         notificationTimer.current = setTimeout(() => {
           triggerNotification("猫背になっています。姿勢を直してください。");

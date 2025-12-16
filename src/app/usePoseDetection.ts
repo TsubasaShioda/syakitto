@@ -49,36 +49,38 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled, isEna
   // --- 初期化 ---
   useEffect(() => {
     const init = async () => {
-      await tf.ready();
-      await tf.setBackend("webgl");
-      
-      // Pose Detector
-      const poseModel = poseDetection.SupportedModels.MoveNet;
-      const poseDetectorConfig = {
-        modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
-      };
-      const _poseDetector = await poseDetection.createDetector(poseModel, poseDetectorConfig);
-      setPoseDetector(_poseDetector);
+      try {
+        await tf.ready();
+        await tf.setBackend("webgl");
+        
+        // Pose Detector
+        const poseModel = poseDetection.SupportedModels.MoveNet;
+        const poseDetectorConfig = {
+          modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
+        };
+        const _poseDetector = await poseDetection.createDetector(poseModel, poseDetectorConfig);
+        setPoseDetector(_poseDetector);
 
-      // Face Detector
-      const faceModel = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
-      const faceDetectorConfig: faceLandmarksDetection.MediaPipeFaceMeshTfjsModelConfig = {
-        runtime: 'tfjs',
-        refineLandmarks: true,
-      };
-      const _faceDetector = await faceLandmarksDetection.createDetector(faceModel, faceDetectorConfig);
-      setFaceDetector(_faceDetector);
+        // Face Detector
+        const faceModel = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
+        const faceDetectorConfig: faceLandmarksDetection.MediaPipeFaceMeshTfjsModelConfig = {
+          runtime: 'tfjs',
+          refineLandmarks: true,
+        };
+        const _faceDetector = await faceLandmarksDetection.createDetector(faceModel, faceDetectorConfig);
+        setFaceDetector(_faceDetector);
+      } catch (error) {
+        console.error("Error during model initialization:", error);
+      }
     };
     init();
   }, []);
 
   // カメラ停止関数
   const stopCamera = useCallback(() => {
-    console.log('Stopping camera...');
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => {
         track.stop();
-        console.log('Track stopped:', track.label);
       });
       streamRef.current = null;
     }
@@ -125,7 +127,6 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled, isEna
 
       if (poses.length > 0) {
         setCalibratedPose(poses[0].keypoints);
-        console.log("Calibrated pose:", poses[0].keypoints);
       }
       if (faces.length > 0) {
         const leftEye = faces[0].keypoints.find(k => k.name === 'leftEye');
@@ -133,7 +134,6 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled, isEna
         if (leftEye && rightEye) {
           const faceSize = euclideanDist(leftEye, rightEye);
           setCalibratedFaceSize(faceSize);
-          console.log("Calibrated face size:", faceSize);
         }
       }
     } catch (e) {
