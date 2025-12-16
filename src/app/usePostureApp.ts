@@ -3,7 +3,6 @@ import { usePoseDetection } from "./usePoseDetection";
 import { useDrowsinessDetection } from "./useDrowsinessDetection";
 import { useNotification } from "./useNotification";
 import { DEFAULT_SETTINGS, hslToRgb } from "./SettingsModal";
-import { useBGM, BGM_OPTIONS } from "./useBGM";
 
 export const usePostureApp = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -91,16 +90,6 @@ export const usePostureApp = () => {
     settings,
   });
 
-  const {
-    currentBGM,
-    isPlaying: isBGMPlaying,
-    volume: bgmVolume,
-    playBGM,
-    pauseBGM,
-    selectBGM,
-    setBGMVolume,
-  } = useBGM();
-
   useEffect(() => {
     if (window.electron?.updateTrayIcon) {
       const canvas = document.createElement('canvas');
@@ -177,14 +166,5 @@ export const usePostureApp = () => {
     SOUND_OPTIONS,
     borderColor,
     handleDownload,
-    // BGM related states and functions
-    currentBGM,
-    isBGMPlaying,
-    bgmVolume,
-    playBGM,
-    pauseBGM,
-    selectBGM,
-    setBGMVolume,
-    BGM_OPTIONS,
   };
 };

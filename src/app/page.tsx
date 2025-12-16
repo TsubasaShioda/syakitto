@@ -81,15 +81,6 @@ export default function Home() {
     handleDownload,
     isCameraViewVisible,
     setIsCameraViewVisible,
-    // BGM related states and functions
-    currentBGM,
-    isBGMPlaying,
-    bgmVolume,
-    playBGM,
-pauseBGM,
-    selectBGM,
-    setBGMVolume,
-    BGM_OPTIONS,
   } = usePostureApp();
 
   const [infoModalContent, setInfoModalContent] = useState<{ title: string; content: React.ReactNode } | null>(null);
@@ -207,14 +198,6 @@ pauseBGM,
         notificationSound={notificationSound}
         setNotificationSound={setNotificationSound}
         SOUND_OPTIONS={SOUND_OPTIONS}
-        currentBGM={currentBGM}
-        isBGMPlaying={isBGMPlaying}
-        bgmVolume={bgmVolume}
-        playBGM={playBGM}
-        pauseBGM={pauseBGM}
-        selectBGM={selectBGM}
-        setBGMVolume={setBGMVolume}
-        BGM_OPTIONS={BGM_OPTIONS}
       />
 
       {infoModalContent && (
