@@ -65,7 +65,7 @@ export const usePostureApp = () => {
       window.electron.onBeforeQuit(handleBeforeQuit);
 
       return () => {
-        window.electron?.removeOnBeforeQuit(handleBeforeQuit);
+        window.electron?.removeOnBeforeQuit();
       };
     }
   }, [isElectron, stopCamera]); // isElectronとstopCameraに依存させる

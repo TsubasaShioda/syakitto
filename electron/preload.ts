@@ -27,6 +27,9 @@ contextBridge.exposeInMainWorld('electron', {
       ipcRenderer.send('log-from-renderer', '[RENDERER] Executed before-quit-cleanup callback and sending cleanupComplete.');
     });
   },
+  removeOnBeforeQuit: () => {
+    ipcRenderer.removeAllListeners('before-quit-cleanup');
+  },
   // クリーンアップ完了を通知
   cleanupComplete: () => ipcRenderer.send('cleanup-complete'),
 

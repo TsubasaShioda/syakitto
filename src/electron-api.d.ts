@@ -10,7 +10,7 @@ export interface ElectronAPI {
   maximizeWindow?: () => void;
   closeWindow?: () => void;
   onBeforeQuit: (callback: () => void) => void;
-  removeOnBeforeQuit: (callback: () => void) => void;
+  removeOnBeforeQuit: () => void;
   cleanupComplete: () => void;
   startPostureCheck: (interval: number) => void;
   stopPostureCheck: () => void;
