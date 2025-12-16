@@ -51,16 +51,16 @@ export const usePostureApp = () => {
 
       const handleBeforeQuit = () => {
         try {
+          // Note: useStateのセッターを直接呼んでも、この非同期コンテキストでは即時反映されない。
+          // しかし、目的は検出を停止することなので、状態の変更自体は機能する。
           setIsSlouchDetectionEnabled(false);
           setIsDrowsinessDetectionEnabled(false);
           stopCamera();
         } catch (e) {
           console.error('[Renderer] Error during cleanup:', e);
         }
-        
-        setTimeout(() => {
-          window.electron?.cleanupComplete();
-        }, 500);
+        // クリーンアップ処理が完了したら、すぐにメインプロセスに通知する
+        window.electron?.cleanupComplete();
       };
 
       window.electron.onBeforeQuit(handleBeforeQuit);
@@ -69,7 +69,7 @@ export const usePostureApp = () => {
         window.electron?.removeOnBeforeQuit(handleBeforeQuit);
       };
     }
-  }, [stopCamera, setIsSlouchDetectionEnabled, setIsDrowsinessDetectionEnabled]);
+  }, [isElectron, stopCamera]); // isElectronとstopCameraに依存させる
   
   const { isDrowsy, ear } = useDrowsinessDetection({
     videoRef,
