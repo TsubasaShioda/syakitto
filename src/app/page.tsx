@@ -11,6 +11,7 @@ import ControlButtons from "@/app/components/ControlButtons";
 import ActionButtons from "@/app/components/ActionButtons";
 import NotificationSelector from "@/app/components/NotificationSelector";
 import WelcomePopup from "@/app/components/WelcomePopup";
+import DownloadModal from "@/app/components/DownloadModal"; // Import DownloadModal
 import { usePostureApp } from "@/app/usePostureApp";
 import PomodoroTimer from "@/app/components/PomodoroTimer";
 
@@ -90,6 +91,7 @@ export default function Home() {
   } = usePostureApp();
 
   const [infoModalContent, setInfoModalContent] = useState<{ title: string; content: React.ReactNode } | null>(null);
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false); // New state for DownloadModal
 
   const handleSlouchInfoOpen = () => {
     setInfoModalContent({
@@ -103,6 +105,10 @@ export default function Home() {
       title: "眠気検知について",
       content: <DrowsinessInfo />,
     });
+  };
+
+  const handleDownloadButtonClick = () => {
+    setIsDownloadModalOpen(true);
   };
 
   return (
@@ -214,9 +220,15 @@ export default function Home() {
         </InfoModal>
       )}
 
+      {/* DownloadModalの追加 */}
+      <DownloadModal
+        isOpen={isDownloadModalOpen}
+        onClose={() => setIsDownloadModalOpen(false)}
+        onDownload={handleDownload} // usePostureAppから渡されたhandleDownload関数
+      />
 
       <ActionButtons
-        onDownload={handleDownload}
+        onDownload={handleDownloadButtonClick} // Change to handleDownloadButtonClick
         onReportOpen={() => setIsReportOpen(true)}
         onSettingsOpen={() => setIsSettingsOpen(true)}
         isTimerVisible={isTimerVisible}

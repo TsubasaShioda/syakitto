@@ -9,23 +9,25 @@ interface ActionButtonsProps {
   isElectron: boolean;
 }
 
-const ActionButtons = ({ onDownload, onReportOpen, onSettingsOpen, onToggleTimer, isTimerVisible }: ActionButtonsProps) => {
+const ActionButtons = ({ onDownload, onReportOpen, onSettingsOpen, onToggleTimer, isTimerVisible, isElectron }: ActionButtonsProps) => {
   return (
     <div className="fixed bottom-6 right-6 flex flex-col items-end gap-3">
-      <div className="relative flex items-center">
-        <button
-          onClick={onDownload}
-          className="peer w-14 h-14 bg-white/80 backdrop-blur-sm text-[#5a8f7b] rounded-2xl flex items-center justify-center shadow-lg hover:shadow-xl hover:bg-[#a8d5ba]/40 transition-all duration-300 transform hover:scale-110 border border-[#c9b8a8]/30"
-          aria-label="macOS版をダウンロード"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-6 h-6 group-hover:scale-110 transition-transform">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-          </svg>
-        </button>
-        <span className="absolute right-16 w-auto whitespace-nowrap p-2 px-3 bg-white text-[#5a8f7b] text-sm font-bold rounded-md shadow-lg opacity-0 peer-hover:opacity-100 transition-opacity duration-300">
-          インストーラー
-        </span>
-      </div>
+      {!isElectron && (
+        <div className="relative flex items-center">
+          <button
+            onClick={onDownload}
+            className="peer w-14 h-14 bg-white/80 backdrop-blur-sm text-[#5a8f7b] rounded-2xl flex items-center justify-center shadow-lg hover:shadow-xl hover:bg-[#a8d5ba]/40 transition-all duration-300 transform hover:scale-110 border border-[#c9b8a8]/30"
+            aria-label="macOS版をダウンロード"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-6 h-6 group-hover:scale-110 transition-transform">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+          </button>
+          <span className="absolute right-16 w-auto whitespace-nowrap p-2 px-3 bg-white text-[#5a8f7b] text-sm font-bold rounded-md shadow-lg opacity-0 peer-hover:opacity-100 transition-opacity duration-300">
+            インストーラー
+          </span>
+        </div>
+      )}
       <div className="relative flex items-center">
         <button
             onClick={onReportOpen}
