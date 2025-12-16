@@ -79,12 +79,14 @@ export default function Home() {
     setNotificationSound,
     SOUND_OPTIONS,
     handleDownload,
+    isCameraViewVisible,
+    setIsCameraViewVisible,
     // BGM related states and functions
     currentBGM,
     isBGMPlaying,
     bgmVolume,
     playBGM,
-    pauseBGM,
+pauseBGM,
     selectBGM,
     setBGMVolume,
     BGM_OPTIONS,
@@ -159,7 +161,12 @@ export default function Home() {
 
         {/* カメラとコントロール */}
         <div className="md:col-span-2 md:row-start-2 lg:col-span-6 lg:col-start-4 lg:row-start-1 flex flex-col justify-center space-y-6">
-          <CameraView videoRef={videoRef} isPaused={isPaused} />
+          <CameraView
+            videoRef={videoRef}
+            isPaused={isPaused}
+            isCameraViewVisible={isCameraViewVisible}
+            onToggleCameraView={() => setIsCameraViewVisible(!isCameraViewVisible)}
+          />
 
           <ControlButtons
             isPaused={isPaused}
