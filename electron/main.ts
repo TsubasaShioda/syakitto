@@ -1,6 +1,10 @@
 import { app, BrowserWindow, ipcMain, Notification, Tray, Menu, nativeImage, screen } from 'electron';
 import * as path from 'path';
+import * as fs from 'fs';
 import { createMainWindow } from './windows/mainWindow';
+
+// --- File Logger Placeholder ---
+let logToFile: (message: string) => void = () => {};
 
 // グローバルウィンドウ参照（ガベージコレクション防止）
 let mainWindow: BrowserWindow | null = null;
@@ -11,6 +15,27 @@ let postureCheckInterval: NodeJS.Timeout | null = null; // 姿勢チェック用
 
 // アプリケーション準備完了時の処理
 app.whenReady().then(() => {
+  // --- Logger Initialization ---
+  const logPath = path.join(app.getPath('userData'), 'session.log');
+  logToFile = (message: string) => {
+    const timestamp = new Date().toISOString();
+    try {
+      fs.appendFileSync(logPath, `${timestamp}: ${message}\n`);
+    } catch (err) {
+      console.error('Failed to write to log file:', err);
+    }
+  };
+
+  if (fs.existsSync(logPath)) {
+    fs.unlinkSync(logPath);
+  }
+
+  logToFile('---------------------------------');
+  logToFile('Application starting...');
+  logToFile(`Log file path: ${logPath}`);
+  logToFile('App is ready.');
+  // --- End Logger Initialization ---
+  
   // アプリ名を設定
   app.name = 'syakitto';
 
@@ -38,15 +63,19 @@ app.whenReady().then(() => {
     tray.on('click', () => {
       mainWindow?.isVisible() ? mainWindow?.hide() : mainWindow?.show();
     });
+    logToFile('Tray icon created successfully.');
   } catch (error) {
     console.error('Failed to create Tray icon:', error);
+    logToFile(`Failed to create Tray icon: ${error}`);
   }
 
   // macOSでの動作: Dockアイコンクリック時にウィンドウを表示
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
+      logToFile('App activated, creating new window.');
       mainWindow = createMainWindow();
     } else {
+      logToFile('App activated, showing existing window.');
       mainWindow?.show();
     }
   });
@@ -170,10 +199,13 @@ app.whenReady().then(() => {
 
   // クリーンアップ完了通知を受け取る
   ipcMain.on('cleanup-complete', () => {
+    logToFile('[QUIT] Received "cleanup-complete" from renderer.');
     isQuitting = true;
     if (forceQuitTimeout) {
+      logToFile('[QUIT] Clearing force quit timeout.');
       clearTimeout(forceQuitTimeout);
     }
+    logToFile('[QUIT] Calling app.exit(0).');
     app.exit(0);
   });
 
@@ -203,6 +235,7 @@ app.whenReady().then(() => {
 
 // すべてのウィンドウが閉じられた時の処理
 app.on('window-all-closed', () => {
+  logToFile('All windows closed.');
   if (process.platform !== 'darwin') {
     app.quit();
   }
@@ -210,7 +243,9 @@ app.on('window-all-closed', () => {
 
 // アプリケーションが終了する前の最後の処理
 app.on('before-quit', (event) => {
+  logToFile('[QUIT] "before-quit" event triggered.');
   if (isQuitting) {
+    logToFile('[QUIT] isQuitting is true, performing final cleanup.');
     // Dockアイコンを非表示にする
     if (process.platform === 'darwin' && app.dock) {
       app.dock.hide();
@@ -221,14 +256,20 @@ app.on('before-quit', (event) => {
     return;
   }
 
+  logToFile('[QUIT] Preventing default quit action.');
   event.preventDefault();
 
   if (mainWindow && !mainWindow.isDestroyed()) {
+    logToFile('[QUIT] Sending "before-quit-cleanup" to renderer.');
     mainWindow.webContents.send('before-quit-cleanup');
+    
+    logToFile('[QUIT] Setting force quit timeout for 2000ms.');
     forceQuitTimeout = setTimeout(() => {
+        logToFile('[QUIT] Force quit timeout executed. Forcing exit.');
         app.exit();
     }, 2000);
   } else {
+    logToFile('[QUIT] Main window not found or destroyed. Quitting directly.');
     isQuitting = true;
     app.quit();
   }
