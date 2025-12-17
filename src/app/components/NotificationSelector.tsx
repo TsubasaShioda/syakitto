@@ -1,6 +1,8 @@
 "use client";
 
 import React from 'react';
+import NotificationSettings from './NotificationSettings';
+import { Settings } from '@/app/settings';
 
 interface NotificationOption {
   value: string;
@@ -13,13 +15,22 @@ interface NotificationSelectorProps {
   notificationType: string;
   setNotificationType: (type: string) => void;
   isElectron: boolean;
-  
+  settings: Settings;
+  setSettings: React.Dispatch<React.SetStateAction<Settings>>;
+  notificationSound: string;
+  setNotificationSound: (sound: string) => void;
+  SOUND_OPTIONS: { value: string; label: string }[];
 }
 
 const NotificationSelector = ({
   notificationType,
   setNotificationType,
   isElectron,
+  settings,
+  setSettings,
+  notificationSound,
+  setNotificationSound,
+  SOUND_OPTIONS
 }: NotificationSelectorProps) => {
   const baseOptions: NotificationOption[] = [
     {
@@ -148,6 +159,14 @@ const NotificationSelector = ({
           </button>
         ))}
       </div>
+      <NotificationSettings 
+        settings={settings}
+        setSettings={setSettings}
+        notificationSound={notificationSound}
+        setNotificationSound={setNotificationSound}
+        SOUND_OPTIONS={SOUND_OPTIONS}
+        notificationType={notificationType}
+      />
     </div>
   );
 };

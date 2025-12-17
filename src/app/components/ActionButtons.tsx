@@ -3,13 +3,12 @@
 interface ActionButtonsProps {
   onDownload: () => void;
   onReportOpen: () => void;
-  onSettingsOpen: () => void;
   onToggleTimer: () => void;
   isTimerVisible: boolean;
   isElectron: boolean;
 }
 
-const ActionButtons = ({ onDownload, onReportOpen, onSettingsOpen, onToggleTimer, isTimerVisible, isElectron }: ActionButtonsProps) => {
+const ActionButtons = ({ onDownload, onReportOpen, onToggleTimer, isTimerVisible, isElectron }: ActionButtonsProps) => {
   return (
     <div className="fixed bottom-6 right-6 flex flex-col items-end gap-3">
       {!isElectron && (
@@ -56,21 +55,6 @@ const ActionButtons = ({ onDownload, onReportOpen, onSettingsOpen, onToggleTimer
         </button>
         <span className="absolute right-16 w-auto whitespace-nowrap p-2 px-3 bg-white text-[#5a8f7b] text-sm font-bold rounded-md shadow-lg opacity-0 peer-hover:opacity-100 transition-opacity duration-300">
             タイマー
-        </span>
-      </div>
-      <div className="relative flex items-center">
-        <button
-            onClick={onSettingsOpen}
-            className="peer w-14 h-14 bg-white/80 backdrop-blur-sm text-[#5a8f7b] rounded-2xl flex items-center justify-center shadow-lg hover:shadow-xl hover:bg-[#a8d5ba]/40 transition-all duration-300 transform hover:scale-110 border border-[#c9b8a8]/30"
-            aria-label="設定を開く"
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300">
-                <circle cx="12" cy="12" r="3" />
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-            </svg>
-        </button>
-        <span className="absolute right-16 w-auto whitespace-nowrap p-2 px-3 bg-white text-[#5a8f7b] text-sm font-bold rounded-md shadow-lg opacity-0 peer-hover:opacity-100 transition-opacity duration-300">
-            設定
         </span>
       </div>
     </div>
