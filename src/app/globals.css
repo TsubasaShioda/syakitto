@@ -23,3 +23,12 @@ body {
   color: var(--foreground);
   font-family: 'Geist Sans', Arial, Helvetica, sans-serif;
 }
+
+button,
+a,
+input[type="range"],
+input[type="checkbox"],
+select {
+  cursor: pointer;
+}
+
