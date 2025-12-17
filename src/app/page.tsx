@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from 'react';
-import SettingsModal from "@/app/SettingsModal";
 import PostureReport from "@/app/components/PostureReport";
 import InfoModal from "@/app/components/InfoModal";
 import ScoreDisplay from "@/app/components/ScoreDisplay";
@@ -54,8 +53,6 @@ export default function Home() {
     setIsSlouchDetectionEnabled,
     settings,
     setSettings,
-    isSettingsOpen,
-    setIsSettingsOpen,
     isElectron,
     isReportOpen,
     setIsReportOpen,
@@ -121,6 +118,8 @@ export default function Home() {
             isSlouchDetectionEnabled={isSlouchDetectionEnabled}
             onToggleSlouch={() => setIsSlouchDetectionEnabled(!isSlouchDetectionEnabled)}
             onInfoClick={handleSlouchInfoOpen}
+            settings={settings}
+            setSettings={setSettings}
           />
           <DrowsinessDisplay
             isDrowsinessDetectionEnabled={isDrowsinessDetectionEnabled}
@@ -128,6 +127,8 @@ export default function Home() {
             ear={ear}
             isDrowsy={isDrowsy}
             onInfoClick={handleDrowsinessInfoOpen}
+            settings={settings}
+            setSettings={setSettings}
           />
         </div>
 
@@ -138,6 +139,11 @@ export default function Home() {
             notificationType={notificationType}
             setNotificationType={setNotificationType}
             isElectron={isElectron}
+            settings={settings}
+            setSettings={setSettings}
+            notificationSound={notificationSound}
+            setNotificationSound={setNotificationSound}
+            SOUND_OPTIONS={SOUND_OPTIONS}
           />
 
           <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-4 shadow-sm border border-[#c9b8a8]/30">
@@ -189,17 +195,6 @@ export default function Home() {
 
       <WelcomePopup isOpen={isWelcomeOpen} onClose={() => setIsWelcomeOpen(false)} />
 
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        settings={settings}
-        setSettings={setSettings}
-        notificationType={notificationType}
-        notificationSound={notificationSound}
-        setNotificationSound={setNotificationSound}
-        SOUND_OPTIONS={SOUND_OPTIONS}
-      />
-
       {infoModalContent && (
         <InfoModal 
           isOpen={!!infoModalContent} 
@@ -220,7 +215,6 @@ export default function Home() {
       <ActionButtons
         onDownload={handleDownloadButtonClick} // Change to handleDownloadButtonClick
         onReportOpen={() => setIsReportOpen(true)}
-        onSettingsOpen={() => setIsSettingsOpen(true)}
         isTimerVisible={isTimerVisible}
         onToggleTimer={() => setIsTimerVisible(!isTimerVisible)}
         isElectron={isElectron}

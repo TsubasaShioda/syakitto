@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { usePoseDetection } from "./usePoseDetection";
 import { useDrowsinessDetection } from "./useDrowsinessDetection";
 import { useNotification } from "./useNotification";
-import { DEFAULT_SETTINGS, hslToRgb } from "./SettingsModal";
+import { DEFAULT_SETTINGS, hslToRgb } from "./settings";
 
 export const usePostureApp = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -10,7 +10,6 @@ export const usePostureApp = () => {
   const [isDrowsinessDetectionEnabled, setIsDrowsinessDetectionEnabled] = useState(false);
   const [isSlouchDetectionEnabled, setIsSlouchDetectionEnabled] = useState(true);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isElectron, setIsElectron] = useState(false);
 
   const [isReportOpen, setIsReportOpen] = useState(false);
@@ -136,8 +135,6 @@ export const usePostureApp = () => {
     setIsSlouchDetectionEnabled,
     settings,
     setSettings,
-    isSettingsOpen,
-    setIsSettingsOpen,
     isElectron,
     isReportOpen,
     setIsReportOpen,

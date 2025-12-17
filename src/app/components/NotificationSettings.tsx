@@ -1,0 +1,59 @@
+
+import React from 'react';
+import { Settings } from '@/app/settings';
+
+interface NotificationSettingsProps {
+    settings: Settings;
+    setSettings: React.Dispatch<React.SetStateAction<Settings>>;
+    notificationSound: string;
+    setNotificationSound: (sound: string) => void;
+    SOUND_OPTIONS: { value: string; label: string }[];
+    notificationType: string;
+}
+
+const NotificationSettings: React.FC<NotificationSettingsProps> = ({ 
+    settings, 
+    setSettings,
+    notificationSound,
+    setNotificationSound,
+    SOUND_OPTIONS,
+    notificationType
+}) => {
+  return (
+    <div className="space-y-4 pt-4">
+        {notificationType === 'voice' && (
+        <div className="bg-[#b8c9b8]/10 rounded-3xl p-4 border border-[#b8c9b8]/30">
+            <label htmlFor="notificationSound" className="block text-sm font-medium text-gray-700 mb-2">通知音</label>
+            <select
+            id="notificationSound"
+            name="notificationSound"
+            value={notificationSound}
+            onChange={(e) => setNotificationSound(e.target.value)}
+            className="mt-1 block w-full px-4 py-3 text-base border-[#c9b8a8]/30 bg-white/60 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#a8d5ba] focus:border-[#a8d5ba] rounded-2xl"
+            >
+            {SOUND_OPTIONS.map(option => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+            </select>
+        </div>
+        )}
+        <div className="bg-[#f4d06f]/10 rounded-3xl p-4 border border-[#f4d06f]/30">
+        <label htmlFor="cooldownTime" className="block text-sm font-medium text-gray-700 mb-2">
+            通知の間隔: <span className="font-bold text-[#d4a04f]">{settings.cooldownTime}秒</span>
+        </label>
+        <input
+            type="range"
+            id="cooldownTime"
+            min="5"
+            max="180"
+            step="5"
+            value={settings.cooldownTime}
+            onChange={(e) => setSettings(s => ({ ...s, cooldownTime: Number(e.target.value) }))}
+            className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#f4d06f]"
+        />
+        </div>
+    </div>
+  );
+};
+
+export default NotificationSettings;
