@@ -32,11 +32,11 @@ export const usePostureApp = () => {
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [calibrationTimestamp, setCalibrationTimestamp] = useState<Date | null>(null);
   const [isRecordingEnabled, setIsRecordingEnabled] = useState(false);
-  const [isVisualizationEnabled, setIsVisualizationEnabled] = useState(false);
+  const [isAnalyzeModeEnabled, setIsAnalyzeModeEnabled] = useState(false);
   const [isTimerVisible, setIsTimerVisible] = useState(false);
   const [isCameraViewVisible, setIsCameraViewVisible] = useState(true);
 
-  const { slouchScore, isCalibrated, calibrate, scoreHistory, stopCamera } = usePoseDetection({
+  const { slouchScore, isCalibrated, calibrate, scoreHistory, stopCamera, keypoints } = usePoseDetection({
     videoRef,
     isPaused,
     isRecordingEnabled,
@@ -144,8 +144,8 @@ export const usePostureApp = () => {
     calibrationTimestamp,
     isRecordingEnabled,
     setIsRecordingEnabled,
-    isVisualizationEnabled,
-    setIsVisualizationEnabled,
+    isAnalyzeModeEnabled,
+    setIsAnalyzeModeEnabled,
     isTimerVisible,
     setIsTimerVisible,
     isCameraViewVisible,
@@ -163,5 +163,6 @@ export const usePostureApp = () => {
     SOUND_OPTIONS,
     borderColor,
     handleDownload,
+    keypoints,
   };
 };

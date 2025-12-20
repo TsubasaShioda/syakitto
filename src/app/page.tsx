@@ -13,6 +13,8 @@ import WelcomePopup from "@/app/components/WelcomePopup";
 import DownloadModal from "@/app/components/DownloadModal"; // Import DownloadModal
 import { usePostureApp } from "@/app/usePostureApp";
 import PomodoroTimer from "@/app/components/PomodoroTimer";
+import ToggleSwitch from './components/ToggleSwitch';
+import InfoButton from './components/InfoButton';
 
 const SlouchInfo = () => (
   <div className="bg-[#a8d5ba]/10 rounded-3xl p-6 border border-[#a8d5ba]/30">
@@ -37,6 +39,16 @@ const DrowsinessInfo = () => (
     <p className="text-gray-700 leading-relaxed">
       眠気検知は初期設定ではオフになっています。トグルをオンにすることで、眠気検知が開始され、目の開き具合（EAR）が表示されるようになります。
       眠気に関する設定は設定画面から調整できます。
+    </p>
+  </div>
+);
+
+const AnalyzeModeInfo = () => (
+  <div className="bg-[#c9b8a8]/10 rounded-3xl p-6 border border-[#c9b8a8]/30">
+    <p className="text-gray-700 leading-relaxed">
+      アナライズモードをオンにすると、カメラ映像上に姿勢推定のキーポイント（ドット）が描画されます。
+      これにより、どの身体の部分がどのように検出されているかを視覚的に確認できます。
+      デバッグや、より詳細な姿勢の確認に役立ちます。
     </p>
   </div>
 );
@@ -78,6 +90,9 @@ export default function Home() {
     handleDownload,
     isCameraViewVisible,
     setIsCameraViewVisible,
+    isAnalyzeModeEnabled,
+    setIsAnalyzeModeEnabled,
+    keypoints,
   } = usePostureApp();
 
   const [infoModalContent, setInfoModalContent] = useState<{ title: string; content: React.ReactNode } | null>(null);
@@ -94,6 +109,13 @@ export default function Home() {
     setInfoModalContent({
       title: "眠気検知について",
       content: <DrowsinessInfo />,
+    });
+  };
+
+  const handleAnalyzeModeInfoOpen = () => {
+    setInfoModalContent({
+      title: "アナライズモードについて",
+      content: <AnalyzeModeInfo />,
     });
   };
 
@@ -130,6 +152,21 @@ export default function Home() {
             settings={settings}
             setSettings={setSettings}
           />
+          <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-6 shadow-sm border border-[#c9b8a8]/30">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="font-semibold text-lg text-gray-800">アナライズモード</h3>
+              <div className="flex items-center gap-3">
+                <InfoButton onClick={handleAnalyzeModeInfoOpen} />
+                <ToggleSwitch
+                  isEnabled={isAnalyzeModeEnabled}
+                  onToggle={() => setIsAnalyzeModeEnabled(!isAnalyzeModeEnabled)}
+                />
+              </div>
+            </div>
+            <p className="text-sm text-gray-600">
+              姿勢推定のキーポイントを映像上に描画します。
+            </p>
+          </div>
         </div>
 
         {/* 通知設定 */}
@@ -163,6 +200,8 @@ export default function Home() {
             isPaused={isPaused}
             isCameraViewVisible={isCameraViewVisible}
             onToggleCameraView={() => setIsCameraViewVisible(!isCameraViewVisible)}
+            isAnalyzeModeEnabled={isAnalyzeModeEnabled}
+            keypoints={keypoints}
           />
 
           <ControlButtons

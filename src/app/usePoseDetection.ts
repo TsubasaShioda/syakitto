@@ -10,6 +10,12 @@ export interface ScoreHistory {
   score: number;
 }
 
+// キーポイントの型定義
+export type Keypoints = {
+  pose: poseDetection.Keypoint[];
+  face: faceLandmarksDetection.Keypoint[];
+};
+
 // このフックが受け取る引数の型定義
 interface UsePoseDetectionProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
@@ -26,6 +32,7 @@ interface UsePoseDetectionReturn {
   calibrate: () => void;
   scoreHistory: ScoreHistory[];
   stopCamera: () => void; // カメラを手動で停止する関数
+  keypoints: Keypoints | null; // キーポイントを追加
 }
 
 // 距離を計算するヘルパー関数
@@ -43,6 +50,7 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled, isEna
   const smoothingHistory = useRef<number[]>([]);
   const [scoreHistory, setScoreHistory] = useState<ScoreHistory[]>([]);
   const streamRef = useRef<MediaStream | null>(null); // ビデオストリームの参照を保持
+  const [keypoints, setKeypoints] = useState<Keypoints | null>(null); // キーポイントのstate
 
   const isCalibrated = calibratedPose !== null;
 
@@ -216,6 +224,7 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled, isEna
       ]);
 
       if (poses.length > 0 && faces.length > 0) {
+        setKeypoints({ pose: poses[0].keypoints, face: faces[0].keypoints }); // キーポイントを更新
         const score = calculateSlouchScore(poses[0].keypoints, faces[0].keypoints);
         if (score !== null) {
           // スムージング
@@ -241,6 +250,7 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled, isEna
     if (!isEnabled) {
       setSlouchScore(0);
       smoothingHistory.current = [];
+      setKeypoints(null); // isEnabledがfalseのときはキーポイントもリセット
       return;
     }
   }, [isEnabled]);
@@ -274,5 +284,5 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled, isEna
     }
   }, [isEnabled, isPaused, poseDetector, faceDetector, isCameraReady, analyze]);
 
-  return { slouchScore, isCameraReady, isCalibrated, calibrate, scoreHistory, stopCamera };
+  return { slouchScore, isCameraReady, isCalibrated, calibrate, scoreHistory, stopCamera, keypoints };
 };
