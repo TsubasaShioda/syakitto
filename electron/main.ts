@@ -12,6 +12,7 @@ let tray: Tray | null = null;
 let isQuitting = false; // アプリ終了中フラグ
 let forceQuitTimeout: NodeJS.Timeout | null = null;
 let postureCheckInterval: NodeJS.Timeout | null = null; // 姿勢チェック用タイマー
+let timerWindow: BrowserWindow | null = null; // タイマーウィンドウ
 
 // アプリケーション準備完了時の処理
 app.whenReady().then(() => {
@@ -122,6 +123,57 @@ app.whenReady().then(() => {
         flashWindow.close();
       }
     }, 500);
+  });
+
+  // タイマーウィンドウの表示
+  ipcMain.on('show-timer-window', () => {
+    if (timerWindow && !timerWindow.isDestroyed()) {
+      timerWindow.show();
+      timerWindow.focus();
+      return;
+    }
+
+    const { width } = screen.getPrimaryDisplay().workAreaSize;
+    timerWindow = new BrowserWindow({
+      width: 200,
+      height: 64,
+      x: width - 220,
+      y: 20,
+      transparent: true,
+      frame: false,
+      alwaysOnTop: true,
+      skipTaskbar: true,
+      resizable: false,
+      hasShadow: false,
+      webPreferences: {
+        preload: path.join(__dirname, 'preload.js'),
+        nodeIntegration: false,
+        contextIsolation: true,
+        backgroundThrottling: false,
+      },
+    });
+
+    const timerPath = path.join(__dirname, 'windows', 'timer', 'timer.html');
+    timerWindow.loadFile(timerPath);
+    timerWindow.setVisibleOnAllWorkspaces(true);
+
+    timerWindow.on('closed', () => {
+      timerWindow = null;
+    });
+  });
+
+  // タイマーウィンドウの更新
+  ipcMain.on('update-timer-window', (_event, data) => {
+    if (timerWindow && !timerWindow.isDestroyed()) {
+      timerWindow.webContents.send('update-timer', data);
+    }
+  });
+
+  // タイマーウィンドウを閉じる
+  ipcMain.on('close-timer-window', () => {
+    if (timerWindow && !timerWindow.isDestroyed()) {
+      timerWindow.close();
+    }
   });
 
   // アニメーション通知用のIPCイベントハンドラ（旧toggleから変更）

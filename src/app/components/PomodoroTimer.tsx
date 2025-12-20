@@ -117,6 +117,24 @@ const PomodoroTimer = () => {
   const toggleTimer = () => setIsActive(!isActive);
   const resetTimer = () => switchSession(sessionType, false);
 
+  // タイマーウィンドウを開く
+  const showTimerWindow = () => {
+    if (typeof window !== 'undefined' && window.electron?.showTimerWindow) {
+      window.electron.showTimerWindow();
+    }
+  };
+
+  // タイマー状態が変わるたびにウィンドウを更新
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.electron?.updateTimerWindow) {
+      window.electron.updateTimerWindow({
+        timeLeft,
+        isActive,
+        sessionType,
+      });
+    }
+  }, [timeLeft, isActive, sessionType]);
+
   const openSettings = () => {
     setTempTimerSettings(timerSettings);
     setIsSettingsOpen(true);
@@ -187,24 +205,32 @@ const PomodoroTimer = () => {
         <button onClick={() => switchSession('長い休憩', false)} className={`px-3 py-1 text-sm rounded-full transition-colors ${sessionType === '長い休憩' ? 'bg-[#a8d5ba] text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>長い休憩</button>
       </div>
       <div className="text-6xl font-mono mb-4 text-[#5a8f7b]">{formatTime(timeLeft)}</div>
-      <div className="flex justify-center space-x-4 mb-4 w-full">
-        <button onClick={toggleTimer} className="px-6 py-2 bg-[#a8d5ba] text-white rounded-2xl hover:bg-[#93c9a8] transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 font-semibold flex items-center justify-center gap-2">
-          {isActive ? (
-            <>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6"><path fillRule="evenodd" d="M6.75 5.25a.75.75 0 0 1 .75-.75H9a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H7.5a.75.75 0 0 1-.75-.75V5.25Zm7.5 0A.75.75 0 0 1 15 4.5h1.5a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H15a.75.75 0 0 1-.75-.75V5.25Z" clipRule="evenodd" /></svg>
-              一時停止
-            </>
-          ) : (
-            <>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6"><path fillRule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clipRule="evenodd" /></svg>
-              開始
-            </>
-          )}
-        </button>
-        <button onClick={resetTimer} className="px-6 py-2 bg-gray-300 text-gray-700 rounded-2xl hover:bg-gray-400 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 font-semibold flex items-center justify-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6"><path fillRule="evenodd" d="M9.53 2.47a.75.75 0 0 1 0 1.06L4.81 8.25H15a6.75 6.75 0 0 1 0 13.5h-3a.75.75 0 0 1 0-1.5h3a5.25 5.25 0 1 0 0-10.5H4.81l4.72 4.72a.75.75 0 1 1-1.06 1.06l-6-6a.75.75 0 0 1 0-1.06l6-6a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" /></svg>
-          リセット
-        </button>
+      <div className="flex flex-col gap-3 mb-4 w-full">
+        <div className="flex justify-center gap-3">
+          <button onClick={toggleTimer} className="flex-1 px-6 py-2 bg-[#a8d5ba] text-white rounded-2xl hover:bg-[#93c9a8] transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 font-semibold flex items-center justify-center gap-2">
+            {isActive ? (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6"><path fillRule="evenodd" d="M6.75 5.25a.75.75 0 0 1 .75-.75H9a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H7.5a.75.75 0 0 1-.75-.75V5.25Zm7.5 0A.75.75 0 0 1 15 4.5h1.5a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H15a.75.75 0 0 1-.75-.75V5.25Z" clipRule="evenodd" /></svg>
+                一時停止
+              </>
+            ) : (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6"><path fillRule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clipRule="evenodd" /></svg>
+                開始
+              </>
+            )}
+          </button>
+          <button onClick={resetTimer} className="flex-1 px-6 py-2 bg-gray-300 text-gray-700 rounded-2xl hover:bg-gray-400 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 font-semibold flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6"><path fillRule="evenodd" d="M9.53 2.47a.75.75 0 0 1 0 1.06L4.81 8.25H15a6.75 6.75 0 0 1 0 13.5h-3a.75.75 0 0 1 0-1.5h3a5.25 5.25 0 1 0 0-10.5H4.81l4.72 4.72a.75.75 0 1 1-1.06 1.06l-6-6a.75.75 0 0 1 0-1.06l6-6a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" /></svg>
+            リセット
+          </button>
+        </div>
+        {typeof window !== 'undefined' && window.electron && (
+          <button onClick={showTimerWindow} className="w-full px-6 py-2 bg-[#c9b8a8] text-white rounded-2xl hover:bg-[#b8a798] transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 font-semibold flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6"><path fillRule="evenodd" d="M2.25 5.25a3 3 0 0 1 3-3h13.5a3 3 0 0 1 3 3V15a3 3 0 0 1-3 3h-3v.257c0 .597.237 1.17.659 1.591l.621.622a.75.75 0 0 1-.53 1.28h-9a.75.75 0 0 1-.53-1.28l.621-.622a2.25 2.25 0 0 0 .659-1.59V18h-3a3 3 0 0 1-3-3V5.25Zm1.5 0v7.5a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5v-7.5a1.5 1.5 0 0 0-1.5-1.5H5.25a1.5 1.5 0 0 0-1.5 1.5Z" clipRule="evenodd" /></svg>
+            ウィンドウ表示
+          </button>
+        )}
       </div>
       <div className="text-sm">
         <p className="mb-2 font-medium">通知方法:</p>
