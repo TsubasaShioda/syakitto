@@ -13,19 +13,23 @@ const WelcomePopup = ({ isOpen, onClose }: WelcomePopupProps) => {
   const pages = [
     {
       title: "Syakittoへようこそ！",
-      content: "Syakittoは、リアルタイムであなたの姿勢をモニタリングし、長時間のデスクワークによる身体への負担を軽減するお手伝いをします。",
+      content: "Syakittoは、webカメラのみでリアルタイムであなたの姿勢をモニタリングします。",
+      image: "/images/welcome.png", 
     },
     {
       title: "猫背検知",
-      content: "肩と耳の位置、そして顔の大きさを検知することで猫背を判断します。猫背スコアや通知のタイミングは設定で調整可能です。",
+      content: "肩と耳の位置、そして顔の大きさを検知することで猫背を判断します。",
+      image: "/images/posture.png",
     },
     {
         title: "眠気検知",
-        content: "眠気はEAR（Eye Aspect Ratio：目の開き具合を数値で表したもの）を用いて検知されます。EARが一定の閾値を下回る時間が継続すると、「眠い」と判断されます。",
+        content: "眠気はEAR（Eye Aspect Ratio：目の開き具合を数値で表したもの）を用いて眠気を判断します。",
+        image: "/images/ear.png", 
     },
     {
         title: "さあ、始めましょう！",
-        content: "準備はいいですか？「はじめる」ボタンをクリックして、Syakittoで健康的な作業習慣を身につけましょう！"
+        content: "「はじめる」ボタンをクリックして、Syakittoで健康的な作業習慣を身につけましょう！",
+        image: "/images/start.png",
     }
   ];
 
@@ -48,6 +52,11 @@ const WelcomePopup = ({ isOpen, onClose }: WelcomePopupProps) => {
         <h2 className="text-2xl font-bold text-[#5a8f7b] mb-4">
           {pages[page].title}
         </h2>
+        {pages[page].image && (
+          <div className="my-4">
+            <img src={pages[page].image} alt={pages[page].title} className="w-full h-48 object-contain" />
+          </div>
+        )}
         <p className="text-gray-700 leading-relaxed" style={{ minHeight: '8rem' }}>
           {pages[page].content}
         </p>
