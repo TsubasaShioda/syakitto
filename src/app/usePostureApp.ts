@@ -9,27 +9,35 @@ export const usePostureApp = () => {
   const [isSlouchDetectionEnabled, setIsSlouchDetectionEnabled] = useState(true);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [isElectron, setIsElectron] = useState(false);
-
-  const [isWelcomeOpen, setIsWelcomeOpenState] = useState(false); // Default to false, controlled by useEffect
+  const [isWelcomeOpen, setIsWelcomeOpenState] = useState(false);
+  const [isNotificationSettingsOpen, setIsNotificationSettingsOpenState] = useState(false);
 
   useEffect(() => {
-    // Check if the welcome popup has been shown before
     const hasSeenWelcomePopup = localStorage.getItem('hasSeenWelcomePopup');
     if (!hasSeenWelcomePopup) {
-      setIsWelcomeOpenState(true); // Show welcome popup if not seen before
+      setIsWelcomeOpenState(true);
     }
   }, []);
 
-  const setIsWelcomeOpen = (isOpen: boolean) => {
-    setIsWelcomeOpenState(isOpen);
-    if (!isOpen) {
-      localStorage.setItem('hasSeenWelcomePopup', 'true'); // Mark as seen when closed
+  const handleWelcomePopupClose = () => {
+    setIsWelcomeOpenState(false);
+    localStorage.setItem('hasSeenWelcomePopup', 'true');
+
+    const hasSeenNotificationSettingsPopup = localStorage.getItem('hasSeenNotificationSettingsPopup');
+    if (!hasSeenNotificationSettingsPopup) {
+      setIsNotificationSettingsOpenState(true);
     }
+  };
+
+  const handleNotificationSettingsPopupClose = () => {
+    setIsNotificationSettingsOpenState(false);
+    localStorage.setItem('hasSeenNotificationSettingsPopup', 'true');
   };
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [calibrationTimestamp, setCalibrationTimestamp] = useState<Date | null>(null);
   const [isRecordingEnabled, setIsRecordingEnabled] = useState(false);
   const [isVisualizationEnabled, setIsVisualizationEnabled] = useState(false);
+  const [isTimerVisible, setIsTimerVisible] = useState(false);
   const [isCameraViewVisible, setIsCameraViewVisible] = useState(true);
 
   const { slouchScore, isCalibrated, calibrate, scoreHistory, stopCamera } = usePoseDetection({
@@ -45,14 +53,11 @@ export const usePostureApp = () => {
 
       const handleBeforeQuit = () => {
         try {
-          // Note: useStateのセッターを直接呼んでも、この非同期コンテキストでは即時反映されない。
-          // しかし、目的は検出を停止することなので、状態の変更自体は機能する。
           setIsSlouchDetectionEnabled(false);
           stopCamera();
         } catch (e) {
           console.error('[Renderer] Error during cleanup:', e);
         }
-        // クリーンアップ処理が完了したら、すぐにメインプロセスに通知する
         window.electron?.cleanupComplete();
       };
 
@@ -62,7 +67,7 @@ export const usePostureApp = () => {
         window.electron?.removeOnBeforeQuit();
       };
     }
-  }, [isElectron, stopCamera]); // isElectronとstopCameraに依存させる
+  }, [isElectron, stopCamera]);
   
   const {
     notificationType,
@@ -99,13 +104,17 @@ export const usePostureApp = () => {
     setSettings,
     isElectron,
     isWelcomeOpen,
-    setIsWelcomeOpen,
+    handleWelcomePopupClose,
+    isNotificationSettingsOpen,
+    handleNotificationSettingsPopupClose,
     isCalibrating,
     calibrationTimestamp,
     isRecordingEnabled,
     setIsRecordingEnabled,
     isVisualizationEnabled,
     setIsVisualizationEnabled,
+    isTimerVisible,
+    setIsTimerVisible,
     isCameraViewVisible,
     setIsCameraViewVisible,
     slouchScore,
