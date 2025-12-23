@@ -21,11 +21,7 @@ const WelcomePopup = ({ isOpen, onClose }: WelcomePopupProps) => {
       content: "肩と耳の位置、そして顔の大きさを検知することで猫背を判断します。",
       image: "/images/posture.png",
     },
-    {
-        title: "眠気検知",
-        content: "眠気はEAR（Eye Aspect Ratio：目の開き具合を数値で表したもの）を用いて眠気を判断します。",
-        image: "/images/ear.png", 
-    },
+
     {
         title: "さあ、始めましょう！",
         content: "「はじめる」ボタンをクリックして、Syakittoで健康的な作業習慣を身につけましょう！",
