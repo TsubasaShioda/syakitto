@@ -40,6 +40,20 @@ const PomodoroTimer = () => {
   }, []);
 
   // Update timer only when settings are saved or session type changes
+  useEffect(() => {
+    if (isActive) return;
+    switch (sessionType) {
+      case '作業':
+        setTimeLeft(pomodoroWork * 60);
+        break;
+      case '短い休憩':
+        setTimeLeft(pomodoroShortBreak * 60);
+        break;
+      case '長い休憩':
+        setTimeLeft(pomodoroLongBreak * 60);
+        break;
+    }
+  }, [pomodoroWork, pomodoroShortBreak, pomodoroLongBreak, sessionType]);
 
 
 
