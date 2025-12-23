@@ -89,26 +89,7 @@ export const usePostureApp = () => {
     settings,
   });
 
-  useEffect(() => {
-    if (window.electron?.updateTrayIcon) {
-      const canvas = document.createElement('canvas');
-      const size = 32;
-      canvas.width = size;
-      canvas.height = size;
-      const context = canvas.getContext('2d');
 
-      if (context) {
-        const hue = 120 * (1 - Math.min(slouchScore, 100) / 100);
-        const [r, g, b] = hslToRgb(hue, 100, 50);
-        context.fillStyle = `rgb(${r}, ${g}, ${b})`;
-        context.beginPath();
-        context.arc(size / 2, size / 2, size / 2 - 2, 0, 2 * Math.PI);
-        context.fill();
-        const dataUrl = canvas.toDataURL('image/png');
-        window.electron.updateTrayIcon(dataUrl);
-      }
-    }
-  }, [slouchScore]);
 
   const borderColor = `hsl(${120 * (1 - slouchScore / 100)}, 100%, 50%)`;
 

@@ -116,13 +116,7 @@ app.whenReady().then(() => {
     new Notification(options).show();
   });
 
-  // Data URL から Tray アイコンを更新 (元の機能に戻す)
-  ipcMain.on('update-tray-icon', (event, dataUrl: string) => {
-    if (tray && !tray.isDestroyed()) {
-      const newImage = nativeImage.createFromDataURL(dataUrl);
-      tray.setImage(newImage);
-    }
-  });
+
 
   // (他のIPCハンドラは変更なしのため省略... )
   // フラッシュ通知用のIPCイベントハンドラ
