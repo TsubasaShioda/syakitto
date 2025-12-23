@@ -1,10 +1,8 @@
 "use client";
 
 import { useState } from 'react';
-import PostureReport from "@/app/components/PostureReport";
 import InfoModal from "@/app/components/InfoModal";
 import ScoreDisplay from "@/app/components/ScoreDisplay";
-import DrowsinessDisplay from "@/app/components/DrowsinessDisplay";
 import CameraView from "@/app/components/CameraView";
 import ControlButtons from "@/app/components/ControlButtons";
 import ActionButtons from "@/app/components/ActionButtons";
@@ -29,33 +27,16 @@ const SlouchInfo = () => (
   </div>
 );
 
-const DrowsinessInfo = () => (
-  <div className="bg-[#b8c9b8]/10 rounded-3xl p-6 border border-[#b8c9b8]/30">
-    <p className="text-gray-700 leading-relaxed mb-3">
-      眠気はEAR（Eye Aspect Ratio：目の開き具合を数値で表したもの）を用いて検知されます。EARが一定の閾値を下回る時間が継続すると、「眠い」と判断されます。
-    </p>
-    <p className="text-gray-700 leading-relaxed">
-      眠気検知は初期設定ではオフになっています。トグルをオンにすることで、眠気検知が開始され、目の開き具合（EAR）が表示されるようになります。
-      眠気に関する設定は設定画面から調整できます。
-    </p>
-  </div>
-);
-
-
 export default function Home() {
   const {
     videoRef,
     isPaused,
     setIsPaused,
-    isDrowsinessDetectionEnabled,
-    setIsDrowsinessDetectionEnabled,
     isSlouchDetectionEnabled,
     setIsSlouchDetectionEnabled,
     settings,
     setSettings,
     isElectron,
-    isReportOpen,
-    setIsReportOpen,
     isWelcomeOpen,
     setIsWelcomeOpen,
     isCalibrating,
@@ -68,8 +49,6 @@ export default function Home() {
     isCalibrated,
     calibrate,
     scoreHistory,
-    isDrowsy,
-    ear,
     notificationType,
     setNotificationType,
     notificationSound,
@@ -87,13 +66,6 @@ export default function Home() {
     setInfoModalContent({
       title: "猫背検知について",
       content: <SlouchInfo />,
-    });
-  };
-
-  const handleDrowsinessInfoOpen = () => {
-    setInfoModalContent({
-      title: "眠気検知について",
-      content: <DrowsinessInfo />,
     });
   };
 
@@ -118,15 +90,6 @@ export default function Home() {
             isSlouchDetectionEnabled={isSlouchDetectionEnabled}
             onToggleSlouch={() => setIsSlouchDetectionEnabled(!isSlouchDetectionEnabled)}
             onInfoClick={handleSlouchInfoOpen}
-            settings={settings}
-            setSettings={setSettings}
-          />
-          <DrowsinessDisplay
-            isDrowsinessDetectionEnabled={isDrowsinessDetectionEnabled}
-            onToggleDrowsiness={() => setIsDrowsinessDetectionEnabled(!isDrowsinessDetectionEnabled)}
-            ear={ear}
-            isDrowsy={isDrowsy}
-            onInfoClick={handleDrowsinessInfoOpen}
             settings={settings}
             setSettings={setSettings}
           />
@@ -176,23 +139,6 @@ export default function Home() {
         </div>
       </div>
 
-      {isReportOpen && (
-        <div className="fixed inset-0 bg-[#2d3436]/60 backdrop-blur-md flex items-center justify-center p-4 z-50" onClick={() => setIsReportOpen(false)}>
-          <div className="w-full max-w-3xl bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-8 relative border border-[#c9b8a8]/40" onClick={(e) => e.stopPropagation()}>
-            <button
-              onClick={() => setIsReportOpen(false)}
-              className="absolute top-4 right-4 w-10 h-10 bg-[#c9b8a8]/30 hover:bg-[#c9b8a8]/50 text-gray-700 rounded-2xl flex items-center justify-center transition-all duration-200 hover:scale-110"
-              aria-label="レポートを閉じる"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-5 h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <PostureReport scoreHistory={scoreHistory} isRecordingEnabled={isRecordingEnabled} setIsRecordingEnabled={setIsRecordingEnabled} />
-          </div>
-        </div>
-      )}
-
       <WelcomePopup isOpen={isWelcomeOpen} onClose={() => setIsWelcomeOpen(false)} />
 
       {infoModalContent && (
@@ -214,7 +160,6 @@ export default function Home() {
 
       <ActionButtons
         onDownload={handleDownloadButtonClick} // Change to handleDownloadButtonClick
-        onReportOpen={() => setIsReportOpen(true)}
         isTimerVisible={isTimerVisible}
         onToggleTimer={() => setIsTimerVisible(!isTimerVisible)}
         isElectron={isElectron}

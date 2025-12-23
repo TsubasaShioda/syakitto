@@ -116,38 +116,6 @@ app.whenReady().then(() => {
     new Notification(options).show();
   });
 
-
-
-  // (他のIPCハンドラは変更なしのため省略... )
-  // フラッシュ通知用のIPCイベントハンドラ
-  ipcMain.on('flash-screen', () => {
-    const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-    const flashWindow = new BrowserWindow({
-      width,
-      height,
-      x: 0,
-      y: 0,
-      transparent: true,
-      frame: false,
-      alwaysOnTop: true,
-      webPreferences: {
-        preload: path.join(__dirname, 'preload.js'),
-        devTools: false,
-      },
-    });
-
-    const flashPath = path.join(__dirname, 'windows', 'flash', 'flash.html');
-    flashWindow.loadFile(flashPath);
-    flashWindow.setVisibleOnAllWorkspaces(true);
-    flashWindow.focus();
-
-    setTimeout(() => {
-      if (!flashWindow.isDestroyed()) {
-        flashWindow.close();
-      }
-    }, 500);
-  });
-
   // タイマーウィンドウの表示
   ipcMain.on('show-timer-window', () => {
     if (timerWindow && !timerWindow.isDestroyed()) {

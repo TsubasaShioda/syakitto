@@ -3,7 +3,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface UseNotificationProps {
   slouchScore: number;
-  isDrowsy: boolean;
   isPaused: boolean;
   settings: {
     threshold: number;
@@ -23,7 +22,7 @@ interface UseNotificationReturn {
   SOUND_OPTIONS: { value: string; label: string }[];
 }
 
-export const useNotification = ({ slouchScore, isDrowsy, isPaused, settings }: UseNotificationProps): UseNotificationReturn => {
+export const useNotification = ({ slouchScore, isPaused, settings }: UseNotificationProps): UseNotificationReturn => {
   const notificationTimer = useRef<NodeJS.Timeout | null>(null);
   const [lastNotificationTime, setLastNotificationTime] = useState(0);
   const [notificationType, setNotificationType] = useState("desktop");
@@ -40,11 +39,6 @@ export const useNotification = ({ slouchScore, isDrowsy, isPaused, settings }: U
   ];
 
   const triggerNotification = useCallback((message: string) => {
-    // Electron環境でのフラッシュ通知
-    if (notificationType === 'flash' && typeof window !== 'undefined' && window.electron && window.electron.flashScreen) {
-      window.electron.flashScreen();
-    }
-
     // Electron環境でのアニメーション通知（画像トグル）
     if (notificationType === 'animation' && typeof window !== 'undefined' && window.electron && window.electron.showAnimationNotification) {
       window.electron.showAnimationNotification();
@@ -142,13 +136,6 @@ export const useNotification = ({ slouchScore, isDrowsy, isPaused, settings }: U
       clearInterval(interval);
     };
   }, [isContinuouslyNotifying, settings.continuousInterval, triggerNotification, isPaused]);
-
-  // --- 眠気通知トリガー ---
-  useEffect(() => {
-    if (isDrowsy && !isPaused) {
-      triggerNotification("眠気を検知しました。休憩してください。");
-    }
-  }, [isDrowsy, isPaused, triggerNotification]);
 
   return {
     notificationType,

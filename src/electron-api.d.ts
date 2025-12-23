@@ -4,7 +4,6 @@ export interface ElectronAPI {
   showNotification: (options: Electron.NotificationConstructorOptions) => void;
   updateTrayIcon: (dataUrl: string) => void;
   updatePostureScore: (score: number) => void; // <--- 追加
-  flashScreen: () => void;
   showAnimationNotification: () => void;
   showCatHandNotification: () => void;
   minimizeWindow?: () => void;

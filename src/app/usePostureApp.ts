@@ -1,18 +1,15 @@
 import { useRef, useState, useEffect } from "react";
 import { usePoseDetection } from "./usePoseDetection";
-import { useDrowsinessDetection } from "./useDrowsinessDetection";
 import { useNotification } from "./useNotification";
 import { DEFAULT_SETTINGS, hslToRgb } from "./settings";
 
 export const usePostureApp = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPaused, setIsPaused] = useState(false);
-  const [isDrowsinessDetectionEnabled, setIsDrowsinessDetectionEnabled] = useState(false);
   const [isSlouchDetectionEnabled, setIsSlouchDetectionEnabled] = useState(true);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [isElectron, setIsElectron] = useState(false);
 
-  const [isReportOpen, setIsReportOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpenState] = useState(false); // Default to false, controlled by useEffect
 
   useEffect(() => {
@@ -52,7 +49,6 @@ export const usePostureApp = () => {
           // Note: useStateのセッターを直接呼んでも、この非同期コンテキストでは即時反映されない。
           // しかし、目的は検出を停止することなので、状態の変更自体は機能する。
           setIsSlouchDetectionEnabled(false);
-          setIsDrowsinessDetectionEnabled(false);
           stopCamera();
         } catch (e) {
           console.error('[Renderer] Error during cleanup:', e);
@@ -69,13 +65,6 @@ export const usePostureApp = () => {
     }
   }, [isElectron, stopCamera]); // isElectronとstopCameraに依存させる
   
-  const { isDrowsy, ear } = useDrowsinessDetection({
-    videoRef,
-    isEnabled: isDrowsinessDetectionEnabled,
-    isPaused,
-    settings
-  });
-
   const {
     notificationType,
     setNotificationType,
@@ -84,14 +73,9 @@ export const usePostureApp = () => {
     SOUND_OPTIONS,
   } = useNotification({
     slouchScore,
-    isDrowsy,
     isPaused,
     settings,
   });
-
-
-
-  const borderColor = `hsl(${120 * (1 - slouchScore / 100)}, 100%, 50%)`;
 
   const handleCalibrate = async () => {
     setIsCalibrating(true);
@@ -110,15 +94,11 @@ export const usePostureApp = () => {
     videoRef,
     isPaused,
     setIsPaused,
-    isDrowsinessDetectionEnabled,
-    setIsDrowsinessDetectionEnabled,
     isSlouchDetectionEnabled,
     setIsSlouchDetectionEnabled,
     settings,
     setSettings,
     isElectron,
-    isReportOpen,
-    setIsReportOpen,
     isWelcomeOpen,
     setIsWelcomeOpen,
     isCalibrating,
@@ -135,14 +115,11 @@ export const usePostureApp = () => {
     isCalibrated,
     calibrate: handleCalibrate,
     scoreHistory,
-    isDrowsy,
-    ear,
     notificationType,
     setNotificationType,
     notificationSound,
     setNotificationSound,
     SOUND_OPTIONS,
-    borderColor,
     handleDownload,
   };
 };
