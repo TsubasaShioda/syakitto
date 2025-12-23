@@ -30,7 +30,6 @@ export const usePostureApp = () => {
   const [calibrationTimestamp, setCalibrationTimestamp] = useState<Date | null>(null);
   const [isRecordingEnabled, setIsRecordingEnabled] = useState(false);
   const [isVisualizationEnabled, setIsVisualizationEnabled] = useState(false);
-  const [isTimerVisible, setIsTimerVisible] = useState(false);
   const [isCameraViewVisible, setIsCameraViewVisible] = useState(true);
 
   const { slouchScore, isCalibrated, calibrate, scoreHistory, stopCamera } = usePoseDetection({
@@ -107,8 +106,6 @@ export const usePostureApp = () => {
     setIsRecordingEnabled,
     isVisualizationEnabled,
     setIsVisualizationEnabled,
-    isTimerVisible,
-    setIsTimerVisible,
     isCameraViewVisible,
     setIsCameraViewVisible,
     slouchScore,

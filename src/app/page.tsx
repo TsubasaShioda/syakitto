@@ -43,8 +43,6 @@ export default function Home() {
     calibrationTimestamp,
     isRecordingEnabled,
     setIsRecordingEnabled,
-    isTimerVisible,
-    setIsTimerVisible,
     slouchScore,
     isCalibrated,
     calibrate,
@@ -93,11 +91,11 @@ export default function Home() {
             settings={settings}
             setSettings={setSettings}
           />
+          <PomodoroTimer />
         </div>
 
         {/* 通知設定 */}
         <div className="md:col-start-1 md:row-start-1 lg:col-span-3 lg:col-start-1 lg:row-start-1 space-y-6 overflow-y-auto">
-          {isTimerVisible && <PomodoroTimer />}
           <NotificationSelector
             notificationType={notificationType}
             setNotificationType={setNotificationType}
@@ -108,7 +106,6 @@ export default function Home() {
             setNotificationSound={setNotificationSound}
             SOUND_OPTIONS={SOUND_OPTIONS}
           />
-
           <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-4 shadow-sm border border-[#c9b8a8]/30">
             <p className="text-sm text-gray-600 flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4 text-[#a8d5ba]">
@@ -120,7 +117,7 @@ export default function Home() {
         </div>
 
         {/* カメラとコントロール */}
-        <div className="md:col-span-2 md:row-start-2 lg:col-span-6 lg:col-start-4 lg:row-start-1 flex flex-col justify-center space-y-6">
+        <div className="md:col-span-2 lg:col-span-6 lg:col-start-4 lg:row-start-1 flex flex-col space-y-6">
           <CameraView
             videoRef={videoRef}
             isPaused={isPaused}
@@ -160,8 +157,6 @@ export default function Home() {
 
       <ActionButtons
         onDownload={handleDownloadButtonClick} // Change to handleDownloadButtonClick
-        isTimerVisible={isTimerVisible}
-        onToggleTimer={() => setIsTimerVisible(!isTimerVisible)}
         isElectron={isElectron}
       />
     </main>
