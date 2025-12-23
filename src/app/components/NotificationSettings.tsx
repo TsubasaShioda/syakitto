@@ -9,6 +9,8 @@ interface NotificationSettingsProps {
     setNotificationSound: (sound: string) => void;
     SOUND_OPTIONS: { value: string; label: string }[];
     notificationType: string;
+    animationType: string;
+    setAnimationType: (type: string) => void;
 }
 
 const NotificationSettings: React.FC<NotificationSettingsProps> = ({ 
@@ -17,8 +19,15 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
     notificationSound,
     setNotificationSound,
     SOUND_OPTIONS,
-    notificationType
+    notificationType,
+    animationType,
+    setAnimationType
 }) => {
+  const animationOptions = [
+    { value: 'toggle', label: '画像トグル' },
+    { value: 'cat_hand', label: '猫の手' },
+  ];
+
   return (
     <div className="space-y-4 pt-4">
         {notificationType === 'voice' && (
@@ -32,6 +41,22 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
             className="mt-1 block w-full px-4 py-3 text-base border-[#c9b8a8]/30 bg-white/60 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#a8d5ba] focus:border-[#a8d5ba] rounded-2xl"
             >
             {SOUND_OPTIONS.map(option => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+            </select>
+        </div>
+        )}
+        {notificationType === 'animation' && (
+        <div className="bg-[#a8d5ba]/10 rounded-3xl p-4 border border-[#a8d5ba]/30">
+            <label htmlFor="animationType" className="block text-sm font-medium text-gray-700 mb-2">アニメーションの種類</label>
+            <select
+            id="animationType"
+            name="animationType"
+            value={animationType}
+            onChange={(e) => setAnimationType(e.target.value)}
+            className="mt-1 block w-full px-4 py-3 text-base border-[#c9b8a8]/30 bg-white/60 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#a8d5ba] focus:border-[#a8d5ba] rounded-2xl"
+            >
+            {animationOptions.map(option => (
                 <option key={option.value} value={option.value}>{option.label}</option>
             ))}
             </select>

@@ -41,12 +41,9 @@ export default function Home() {
     setIsWelcomeOpen,
     isCalibrating,
     calibrationTimestamp,
-    isRecordingEnabled,
-    setIsRecordingEnabled,
     slouchScore,
     isCalibrated,
     calibrate,
-    scoreHistory,
     notificationType,
     setNotificationType,
     notificationSound,
@@ -55,6 +52,8 @@ export default function Home() {
     handleDownload,
     isCameraViewVisible,
     setIsCameraViewVisible,
+    animationType,
+    setAnimationType,
   } = usePostureApp();
 
   const [infoModalContent, setInfoModalContent] = useState<{ title: string; content: React.ReactNode } | null>(null);
@@ -105,6 +104,8 @@ export default function Home() {
             notificationSound={notificationSound}
             setNotificationSound={setNotificationSound}
             SOUND_OPTIONS={SOUND_OPTIONS}
+            animationType={animationType}
+            setAnimationType={setAnimationType}
           />
           <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-4 shadow-sm border border-[#c9b8a8]/30">
             <p className="text-sm text-gray-600 flex items-center gap-2">
