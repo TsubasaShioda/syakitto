@@ -14,11 +14,13 @@ let forceQuitTimeout: NodeJS.Timeout | null = null;
 let postureCheckInterval: NodeJS.Timeout | null = null; // 姿勢チェック用タイマー
 let timerWindow: BrowserWindow | null = null; // タイマーウィンドウ
 
+// --- PNGベースのTrayアイコン ---
+const pictogramIcons = new Map<number, Electron.NativeImage>();
+
 // アプリケーション準備完了時の処理
 app.whenReady().then(() => {
   // --- Logger Initialization ---
   const logPath = path.join(app.getPath('userData'), 'session.log');
-  console.log(`[DEBUG] Attempting to write log to: ${logPath}`); // Add this debug log
   logToFile = (message: string) => {
     const timestamp = new Date().toISOString();
     try {
@@ -27,33 +29,49 @@ app.whenReady().then(() => {
       console.error('Failed to write to log file:', err);
     }
   };
-
-  if (fs.existsSync(logPath)) {
-    fs.unlinkSync(logPath);
-  }
-
-  logToFile('---------------------------------');
+  if (fs.existsSync(logPath)) fs.unlinkSync(logPath);
   logToFile('Application starting...');
-  logToFile(`Log file path: ${logPath}`);
-  logToFile('App is ready.');
   // --- End Logger Initialization ---
   
-  // アプリ名を設定
   app.name = 'syakitto';
+  if (process.platform === 'darwin' && app.dock) app.dock.show();
 
-  // macOSでDockアイコンを明示的に表示
-  if (process.platform === 'darwin' && app.dock) {
-    app.dock.show();
-  }
-
-  // メインウィンドウを作成して表示
   mainWindow = createMainWindow();
   mainWindow.show();
 
-  // Tray アイコンの作成 (初期アイコンは透明)
+  // --- Trayアイコンの設定 (PNGテンプレート版) ---
   try {
-    const image = nativeImage.createEmpty();
-    tray = new Tray(image);
+    const imagePath = app.isPackaged
+      ? path.join(process.resourcesPath, 'public', 'images', 'pictograms')
+      : path.join(__dirname, '..', '..', 'public', 'images', 'pictograms');
+    logToFile(`[DEBUG] Icon base path: ${imagePath}`);
+
+    const percentages = [0, 25, 50, 75, 100];
+    for (const p of percentages) {
+      const fullPath = path.join(imagePath, `posture-${p}.png`);
+      logToFile(`[DEBUG] Loading icon: ${fullPath}`);
+      
+      if (!fs.existsSync(fullPath)) {
+        logToFile(`[ERROR] Icon file not found at: ${fullPath}`);
+        continue; // ファイルがなければスキップ
+      }
+
+      const img = nativeImage.createFromPath(fullPath);
+      const isEmpty = img.isEmpty();
+      logToFile(`[DEBUG] Loaded 'posture-${p}.png'. Is empty? ${isEmpty}`);
+
+      if (isEmpty) {
+        throw new Error(`Loaded image is empty: ${fullPath}`);
+      }
+      img.setTemplateImage(true);
+      pictogramIcons.set(p, img);
+    }
+    
+    if (pictogramIcons.size === 0) {
+      throw new Error('No icons were loaded. Check paths and file existence.');
+    }
+
+    tray = new Tray(pictogramIcons.get(0)!);
 
     const contextMenu = Menu.buildFromTemplate([
       { label: '表示', click: () => mainWindow?.show() },
@@ -65,30 +83,40 @@ app.whenReady().then(() => {
     tray.on('click', () => {
       mainWindow?.isVisible() ? mainWindow?.hide() : mainWindow?.show();
     });
-    logToFile('Tray icon created successfully.');
+
+    logToFile('PNG Tray icons initialized successfully.');
   } catch (error) {
     console.error('Failed to create Tray icon:', error);
-    logToFile(`Failed to create Tray icon: ${error}`);
+    logToFile(`[FATAL] Failed to create Tray icon: ${error instanceof Error ? error.message : String(error)}`);
   }
+  // --- END: Trayアイコンの設定 ---
 
-  // macOSでの動作: Dockアイコンクリック時にウィンドウを表示
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      logToFile('App activated, creating new window.');
       mainWindow = createMainWindow();
     } else {
-      logToFile('App activated, showing existing window.');
       mainWindow?.show();
     }
   });
 
-  // IPCイベントハンドラの設定
+  // --- IPCイベントハンドラ ---
+
+  // 姿勢スコアを受け取り、Trayアイコンを更新
+  ipcMain.on('update-posture-score', (event, score: number) => {
+    if (tray && !tray.isDestroyed() && pictogramIcons.size > 0) {
+      const level = Math.round(score / 25) * 25;
+      const icon = pictogramIcons.get(level);
+      if (icon) {
+        tray.setImage(icon);
+      }
+    }
+  });
+  
   ipcMain.on('show-notification', (event, options) => {
-    const notification = new Notification(options);
-    notification.show();
+    new Notification(options).show();
   });
 
-  // Data URL から Tray アイコンを更新
+  // Data URL から Tray アイコンを更新 (元の機能に戻す)
   ipcMain.on('update-tray-icon', (event, dataUrl: string) => {
     if (tray && !tray.isDestroyed()) {
       const newImage = nativeImage.createFromDataURL(dataUrl);
@@ -96,6 +124,7 @@ app.whenReady().then(() => {
     }
   });
 
+  // (他のIPCハンドラは変更なしのため省略... )
   // フラッシュ通知用のIPCイベントハンドラ
   ipcMain.on('flash-screen', () => {
     const { width, height } = screen.getPrimaryDisplay().workAreaSize;
@@ -303,13 +332,8 @@ app.on('before-quit', (event) => {
   logToFile('[QUIT] "before-quit" event triggered.');
   if (isQuitting) {
     logToFile('[QUIT] isQuitting is true, performing final cleanup.');
-    // Dockアイコンを非表示にする
-    if (process.platform === 'darwin' && app.dock) {
-      app.dock.hide();
-    }
-    if (tray && !tray.isDestroyed()) {
-      tray.destroy();
-    }
+    if (process.platform === 'darwin' && app.dock) app.dock.hide();
+    if (tray && !tray.isDestroyed()) tray.destroy();
     return;
   }
 
@@ -320,7 +344,6 @@ app.on('before-quit', (event) => {
     logToFile('[QUIT] Sending "before-quit-cleanup" to renderer.');
     mainWindow.webContents.send('before-quit-cleanup');
     
-    logToFile('[QUIT] Setting force quit timeout for 2000ms.');
     forceQuitTimeout = setTimeout(() => {
         logToFile('[QUIT] Force quit timeout executed. Forcing exit.');
         app.exit();

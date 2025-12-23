@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld('electron', {
   // 通知関連API
   showNotification: (options: Electron.NotificationConstructorOptions) => ipcRenderer.send('show-notification', options),
   updateTrayIcon: (dataUrl: string) => ipcRenderer.send('update-tray-icon', dataUrl),
+  updatePostureScore: (score: number) => ipcRenderer.send('update-posture-score', score), // <--- 追加
   flashScreen: () => ipcRenderer.send('flash-screen'),
   showAnimationNotification: () => ipcRenderer.send('show-animation-notification'), // 画像トグルアニメーション
   showCatHandNotification: () => ipcRenderer.send('show-cat-hand-notification'),

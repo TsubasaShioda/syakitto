@@ -225,6 +225,11 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled, isEna
           const avgScore = history.reduce((a, b) => a + b, 0) / history.length;
           setSlouchScore(avgScore);
 
+          // メインプロセスにスコアを通知
+          if (window.electron) {
+            window.electron.updatePostureScore(avgScore);
+          }
+
           // スコアを履歴に追加
           if (isRecordingEnabled) {
             setScoreHistory(prevHistory => [...prevHistory, { time: Date.now(), score: avgScore }]);
