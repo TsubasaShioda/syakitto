@@ -6,6 +6,7 @@ export interface ElectronAPI {
   updatePostureScore: (score: number) => void; // <--- 追加
   showAnimationNotification: () => void;
   showCatHandNotification: () => void;
+  showNoiseNotification: () => void;
   minimizeWindow?: () => void;
   maximizeWindow?: () => void;
   closeWindow?: () => void;

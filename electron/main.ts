@@ -240,6 +240,37 @@ app.whenReady().then(() => {
     }, 6000);
   });
 
+  // 砂嵐アニメーション通知用のIPCイベントハンドラ
+  ipcMain.on('show-noise-notification', () => {
+    const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+    const noiseWindow = new BrowserWindow({
+      width,
+      height,
+      x: 0,
+      y: 0,
+      transparent: true,
+      frame: false,
+      alwaysOnTop: true,
+      skipTaskbar: true,
+      focusable: false,
+      hasShadow: false,
+      webPreferences: {
+        preload: path.join(__dirname, 'preload.js'),
+        devTools: false,
+      },
+    });
+
+    const noisePath = path.join(__dirname, 'windows', 'noise', 'noise.html');
+    noiseWindow.loadFile(noisePath);
+    noiseWindow.setVisibleOnAllWorkspaces(true);
+
+    setTimeout(() => {
+      if (!noiseWindow.isDestroyed()) {
+        noiseWindow.close();
+      }
+    }, 2000); // 2秒後に閉じる
+  });
+
   // レンダラープロセスからのログを受け取るハンドラ
   ipcMain.on('log-from-renderer', (event, message: string) => {
     logToFile(message);

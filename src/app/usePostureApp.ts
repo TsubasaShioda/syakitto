@@ -75,6 +75,7 @@ export const usePostureApp = () => {
     slouchScore,
     isPaused,
     settings,
+    animationType,
   });
 
   const handleCalibrate = async () => {

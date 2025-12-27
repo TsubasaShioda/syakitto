@@ -11,6 +11,7 @@ interface UseNotificationProps {
     cooldownTime: number;
     continuousInterval: number;
   };
+  animationType: string;
 }
 
 interface UseNotificationReturn {
@@ -22,7 +23,7 @@ interface UseNotificationReturn {
   SOUND_OPTIONS: { value: string; label: string }[];
 }
 
-export const useNotification = ({ slouchScore, isPaused, settings }: UseNotificationProps): UseNotificationReturn => {
+export const useNotification = ({ slouchScore, isPaused, settings, animationType }: UseNotificationProps): UseNotificationReturn => {
   const notificationTimer = useRef<NodeJS.Timeout | null>(null);
   const [lastNotificationTime, setLastNotificationTime] = useState(0);
   const [notificationType, setNotificationType] = useState("desktop");
@@ -39,44 +40,48 @@ export const useNotification = ({ slouchScore, isPaused, settings }: UseNotifica
   ];
 
   const triggerNotification = useCallback((message: string) => {
-    // Electron環境でのアニメーション通知（画像トグル）
-    if (notificationType === 'animation' && typeof window !== 'undefined' && window.electron && window.electron.showAnimationNotification) {
-      window.electron.showAnimationNotification();
-    }
-    
-    // Electron環境での猫の手アニメーション通知
-    if (notificationType === 'cat_hand' && typeof window !== 'undefined' && window.electron && window.electron.showCatHandNotification) {
-      window.electron.showCatHandNotification();
+    if (typeof window === 'undefined' || !window.electron) {
+      // 非Electron環境のフォールバック
+      if (notificationType === 'desktop' && Notification.permission === 'granted') {
+        new Notification("syakitto", { body: message, silent: true });
+      }
+      return;
     }
 
-    // デスクトップ通知 (desktop の場合)
-    if (notificationType === 'desktop') {
-      if (typeof window !== 'undefined' && window.electron && window.electron.showNotification) {
-        window.electron.showNotification({
+    // Electron環境での通知
+    switch (notificationType) {
+      case 'animation':
+        switch (animationType) {
+          case 'toggle':
+            window.electron.showAnimationNotification?.();
+            break;
+          case 'cat_hand':
+            window.electron.showCatHandNotification?.();
+            break;
+          case 'noise':
+            window.electron.showNoiseNotification?.();
+            break;
+        }
+        break;
+      case 'desktop':
+        window.electron.showNotification?.({
           title: "syakitto",
           body: message,
           silent: true,
         });
-      } else if (Notification.permission === 'granted') {
-        new Notification("syakitto", {
-          body: message,
-          silent: true,
-        });
-      }
+        break;
+      case 'voice':
+        if (notificationSound === 'voice') {
+          const utterance = new SpeechSynthesisUtterance(message);
+          utterance.lang = "ja-JP";
+          speechSynthesis.speak(utterance);
+        } else if (notificationSound.endsWith('.mp3')) {
+          const audio = new Audio(`/sounds/${notificationSound}`);
+          audio.play();
+        }
+        break;
     }
-
-    // 音声通知 (voice の場合)
-    if (notificationType === 'voice') {
-      if (notificationSound === 'voice') {
-        const utterance = new SpeechSynthesisUtterance(message);
-        utterance.lang = "ja-JP";
-        speechSynthesis.speak(utterance);
-      } else if (notificationSound.endsWith('.mp3')) {
-        const audio = new Audio(`/sounds/${notificationSound}`);
-        audio.play();
-      }
-    }
-  }, [notificationType, notificationSound]);
+  }, [notificationType, notificationSound, animationType]);
 
   // --- デスクトップ通知の許可 ---
   useEffect(() => {
