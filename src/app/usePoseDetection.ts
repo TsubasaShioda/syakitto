@@ -143,8 +143,13 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled, isEna
 
   // --- 猫背スコア計算 ---
   const calculateSlouchScore = useCallback((poseKeypoints: poseDetection.Keypoint[], faceKeypoints: faceLandmarksDetection.Keypoint[]): number | null => {
+    // キャリブレーションされていない場合は、スコアを計算しない
+    if (!calibratedPose || !calibratedFaceSize) {
+      return null;
+    }
+
     const get = (name: string) => poseKeypoints.find((k) => k.name === name);
-    const getCalibrated = (name: string) => calibratedPose?.find((k) => k.name === name);
+    const getCalibrated = (name: string) => calibratedPose.find((k) => k.name === name);
 
     const leftEar = get("left_ear");
     const rightEar = get("right_ear");
@@ -164,43 +169,32 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled, isEna
     const bodyHeight = Math.abs(shoulderY - eyeY);
     if (bodyHeight < 40) return null; // 体の高さが小さすぎる場合は無視
 
-    // デフォルトのロジックでスコアを計算
-    const defaultPostureRatio = (shoulderY - earY) / bodyHeight;
-    const uncalibratedScore = Math.min(1, Math.max(0, (defaultPostureRatio - 0.8) / 0.3)) * 100;
+    const calibLeftEar = getCalibrated("left_ear");
+    const calibRightEar = getCalibrated("right_ear");
+    const calibLeftShoulder = getCalibrated("left_shoulder");
+    const calibRightShoulder = getCalibrated("right_shoulder");
 
-    // キャリブレーション済みの場合、キャリブレーションスコアを計算し、デフォルトスコアと混ぜる
-    if (calibratedPose && calibratedFaceSize) {
-      const calibLeftEar = getCalibrated("left_ear");
-      const calibRightEar = getCalibrated("right_ear");
-      const calibLeftShoulder = getCalibrated("left_shoulder");
-      const calibRightShoulder = getCalibrated("right_shoulder");
+    if (!calibLeftEar || !calibRightEar || !calibLeftShoulder || !calibRightShoulder) return null;
 
-      if (!calibLeftEar || !calibRightEar || !calibLeftShoulder || !calibRightShoulder) return null;
+    // 現在の顔サイズを計算
+    const currentLeftEye = faceKeypoints.find(k => k.name === 'leftEye');
+    const currentRightEye = faceKeypoints.find(k => k.name === 'rightEye');
+    if (!currentLeftEye || !currentRightEye) return null;
+    const currentFaceSize = euclideanDist(currentLeftEye, currentRightEye);
+    const faceSizeRatio = currentFaceSize / calibratedFaceSize;
 
-      // 現在の顔サイズを計算
-      const currentLeftEye = faceKeypoints.find(k => k.name === 'leftEye');
-      const currentRightEye = faceKeypoints.find(k => k.name === 'rightEye');
-      if (!currentLeftEye || !currentRightEye) return null;
-      const currentFaceSize = euclideanDist(currentLeftEye, currentRightEye);
-      const faceSizeRatio = currentFaceSize / calibratedFaceSize;
+    const calibEarY = (calibLeftEar.y + calibRightEar.y) / 2;
+    const calibShoulderY = (calibLeftShoulder.y + calibRightShoulder.y) / 2;
+    const calibBodyHeight = Math.abs(calibShoulderY - eyeY); // 現在の目の高さを使う
+    const calibPostureRatio = (calibShoulderY - calibEarY) / calibBodyHeight;
 
-      const calibEarY = (calibLeftEar.y + calibRightEar.y) / 2;
-      const calibShoulderY = (calibLeftShoulder.y + calibRightShoulder.y) / 2;
-      const calibBodyHeight = Math.abs(calibShoulderY - eyeY); // 現在の目の高さを使う
-      const calibPostureRatio = (calibShoulderY - calibEarY) / calibBodyHeight;
+    const currentPostureRatio = (shoulderY - earY) / bodyHeight;
 
-      const currentPostureRatio = (shoulderY - earY) / bodyHeight;
+    // 顔の大きさで正規化した差分を計算
+    const deviation = calibPostureRatio - (currentPostureRatio / faceSizeRatio);
+    const calibratedScore = Math.min(1, Math.max(0, deviation / 0.35)) * 100;
 
-      // 顔の大きさで正規化した差分を計算
-      const deviation = calibPostureRatio - (currentPostureRatio / faceSizeRatio);
-      const calibratedScore = Math.min(1, Math.max(0, deviation / 0.35)) * 100;
-
-      // 50/50で混ぜる
-      return (uncalibratedScore * 0.5) + (calibratedScore * 0.5);
-    }
-
-    // キャリブレーションされていない場合は、デフォルトスコアを返す
-    return uncalibratedScore;
+    return calibratedScore;
   }, [calibratedPose, calibratedFaceSize]);
 
   // --- 姿勢測定処理 ---
