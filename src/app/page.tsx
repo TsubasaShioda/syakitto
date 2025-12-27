@@ -9,6 +9,7 @@ import ActionButtons from "@/app/components/ActionButtons";
 import NotificationSelector from "@/app/components/NotificationSelector";
 import WelcomePopup from "@/app/components/WelcomePopup";
 import DownloadModal from "@/app/components/DownloadModal"; // Import DownloadModal
+import NotificationSettingsPopup from "@/app/components/NotificationSettingsPopup"; // Import NotificationSettingsPopup
 import { usePostureApp } from "@/app/usePostureApp";
 import PomodoroTimer from "@/app/components/PomodoroTimer";
 
@@ -38,7 +39,9 @@ export default function Home() {
     setSettings,
     isElectron,
     isWelcomeOpen,
-    setIsWelcomeOpen,
+    handleWelcomePopupClose,
+    isNotificationSettingsOpen,
+    handleNotificationSettingsPopupClose,
     isCalibrating,
     calibrationTimestamp,
     slouchScore,
@@ -82,14 +85,25 @@ export default function Home() {
       <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6">
         {/* スコア表示 */}
         <div className="md:col-start-2 lg:col-span-3 lg:col-start-10 lg:row-start-1 overflow-y-auto space-y-6">
-          <ScoreDisplay
-            slouchScore={slouchScore}
-            isSlouchDetectionEnabled={isSlouchDetectionEnabled}
-            onToggleSlouch={() => setIsSlouchDetectionEnabled(!isSlouchDetectionEnabled)}
-            onInfoClick={handleSlouchInfoOpen}
-            settings={settings}
-            setSettings={setSettings}
-          />
+          {isCalibrated ? (
+            <>
+              <ScoreDisplay
+                slouchScore={slouchScore}
+                isSlouchDetectionEnabled={isSlouchDetectionEnabled}
+                onToggleSlouch={() => setIsSlouchDetectionEnabled(!isSlouchDetectionEnabled)}
+                onInfoClick={handleSlouchInfoOpen}
+                settings={settings}
+                setSettings={setSettings}
+              />
+            </>
+          ) : (
+            <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-6 shadow-sm border border-[#f4d06f]/40 text-center">
+              <h3 className="font-semibold text-lg text-gray-800 mb-2">姿勢判定を開始します</h3>
+              <p className="text-sm text-gray-600">
+                まずはじめに、下の「良い姿勢を記録」ボタンを押して、あなたの正しい姿勢をカメラに記録してください。
+              </p>
+            </div>
+          )}
           <PomodoroTimer />
         </div>
 
@@ -137,7 +151,10 @@ export default function Home() {
         </div>
       </div>
 
-      <WelcomePopup isOpen={isWelcomeOpen} onClose={() => setIsWelcomeOpen(false)} />
+      <WelcomePopup isOpen={isWelcomeOpen} onClose={handleWelcomePopupClose} />
+
+      {/* 通知設定ポップアップ */}
+      <NotificationSettingsPopup isOpen={isNotificationSettingsOpen} onClose={handleNotificationSettingsPopupClose} />
 
       {infoModalContent && (
         <InfoModal 
