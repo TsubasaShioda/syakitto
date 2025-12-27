@@ -86,14 +86,25 @@ export default function Home() {
       <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6">
         {/* スコア表示 */}
         <div className="md:col-start-2 lg:col-span-3 lg:col-start-10 lg:row-start-1 overflow-y-auto space-y-6">
-          <ScoreDisplay
-            slouchScore={slouchScore}
-            isSlouchDetectionEnabled={isSlouchDetectionEnabled}
-            onToggleSlouch={() => setIsSlouchDetectionEnabled(!isSlouchDetectionEnabled)}
-            onInfoClick={handleSlouchInfoOpen}
-            settings={settings}
-            setSettings={setSettings}
-          />
+          {isCalibrated ? (
+            <>
+              <ScoreDisplay
+                slouchScore={slouchScore}
+                isSlouchDetectionEnabled={isSlouchDetectionEnabled}
+                onToggleSlouch={() => setIsSlouchDetectionEnabled(!isSlouchDetectionEnabled)}
+                onInfoClick={handleSlouchInfoOpen}
+                settings={settings}
+                setSettings={setSettings}
+              />
+            </>
+          ) : (
+            <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-6 shadow-sm border border-[#f4d06f]/40 text-center">
+              <h3 className="font-semibold text-lg text-gray-800 mb-2">姿勢判定を開始します</h3>
+              <p className="text-sm text-gray-600">
+                まずはじめに、下の「良い姿勢を記録」ボタンを押して、あなたの正しい姿勢をカメラに記録してください。
+              </p>
+            </div>
+          )}
           <PomodoroTimer />
         </div>
 
