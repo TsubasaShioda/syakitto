@@ -12,6 +12,7 @@ import DownloadModal from "@/app/components/DownloadModal"; // Import DownloadMo
 import NotificationSettingsPopup from "@/app/components/NotificationSettingsPopup"; // Import NotificationSettingsPopup
 import { usePostureApp } from "@/app/usePostureApp";
 import PomodoroTimer from "@/app/components/PomodoroTimer";
+import PostureSettings from "@/app/components/PostureSettings";
 
 const SlouchInfo = () => (
   <div className="bg-[#a8d5ba]/10 rounded-3xl p-6 border border-[#a8d5ba]/30">
@@ -61,6 +62,7 @@ export default function Home() {
 
   const [infoModalContent, setInfoModalContent] = useState<{ title: string; content: React.ReactNode } | null>(null);
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false); // New state for DownloadModal
+  const [isPostureSettingsOpen, setIsPostureSettingsOpen] = useState(false);
 
   const handleSlouchInfoOpen = () => {
     setInfoModalContent({
@@ -93,7 +95,7 @@ export default function Home() {
                 onToggleSlouch={() => setIsSlouchDetectionEnabled(!isSlouchDetectionEnabled)}
                 onInfoClick={handleSlouchInfoOpen}
                 settings={settings}
-                setSettings={setSettings}
+                onSettingsClick={() => setIsPostureSettingsOpen(true)}
               />
             </>
           ) : (
@@ -165,6 +167,14 @@ export default function Home() {
           {infoModalContent.content}
         </InfoModal>
       )}
+
+      <InfoModal
+        isOpen={isPostureSettingsOpen}
+        onClose={() => setIsPostureSettingsOpen(false)}
+        title="猫背検知設定"
+      >
+        <PostureSettings settings={settings} setSettings={setSettings} />
+      </InfoModal>
 
       {/* DownloadModalの追加 */}
       <DownloadModal
