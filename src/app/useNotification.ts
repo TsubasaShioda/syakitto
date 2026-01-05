@@ -12,6 +12,7 @@ interface UseNotificationProps {
     continuousInterval: number;
   };
   animationType: string;
+  onNotificationBlocked?: () => void;
 }
 
 interface UseNotificationReturn {
@@ -23,7 +24,7 @@ interface UseNotificationReturn {
   SOUND_OPTIONS: { value: string; label: string }[];
 }
 
-export const useNotification = ({ slouchScore, isPaused, settings, animationType }: UseNotificationProps): UseNotificationReturn => {
+export const useNotification = ({ slouchScore, isPaused, settings, animationType, onNotificationBlocked }: UseNotificationProps): UseNotificationReturn => {
   const notificationTimer = useRef<NodeJS.Timeout | null>(null);
   const [lastNotificationTime, setLastNotificationTime] = useState(0);
   const [notificationType, setNotificationType] = useState("desktop");
@@ -40,37 +41,49 @@ export const useNotification = ({ slouchScore, isPaused, settings, animationType
   ];
 
   const triggerNotification = useCallback((message: string) => {
-    if (typeof window === 'undefined' || !window.electron) {
-      // 非Electron環境のフォールバック
-      if (notificationType === 'desktop' && Notification.permission === 'granted') {
-        new Notification("syakitto", { body: message, silent: true });
+    // Electron環境のチェック
+    if (window.electron) {
+      switch (notificationType) {
+        case 'animation':
+          switch (animationType) {
+            case 'toggle':
+              window.electron.showAnimationNotification?.();
+              break;
+            case 'cat_hand':
+              window.electron.showCatHandNotification?.();
+              break;
+            case 'noise':
+              window.electron.showNoiseNotification?.();
+              break;
+          }
+          break;
+        case 'desktop':
+          window.electron.showNotification?.({
+            title: "syakitto",
+            body: message,
+            silent: true,
+          });
+          break;
+        case 'voice':
+           if (notificationSound === 'voice') {
+            const utterance = new SpeechSynthesisUtterance(message);
+            utterance.lang = "ja-JP";
+            speechSynthesis.speak(utterance);
+          } else if (notificationSound.endsWith('.mp3')) {
+            const audio = new Audio(`/sounds/${notificationSound}`);
+            audio.play();
+          }
+          break;
       }
-      return;
-    }
-
-    // Electron環境での通知
-    switch (notificationType) {
-      case 'animation':
-        switch (animationType) {
-          case 'toggle':
-            window.electron.showAnimationNotification?.();
-            break;
-          case 'cat_hand':
-            window.electron.showCatHandNotification?.();
-            break;
-          case 'noise':
-            window.electron.showNoiseNotification?.();
-            break;
+    } else {
+      // 非Electron環境 (Webブラウザ)
+      if (notificationType === 'desktop') {
+        if (Notification.permission === 'granted') {
+          new Notification("syakitto", { body: message, silent: true });
+        } else {
+          onNotificationBlocked?.();
         }
-        break;
-      case 'desktop':
-        window.electron.showNotification?.({
-          title: "syakitto",
-          body: message,
-          silent: true,
-        });
-        break;
-      case 'voice':
+      } else if (notificationType === 'voice') {
         if (notificationSound === 'voice') {
           const utterance = new SpeechSynthesisUtterance(message);
           utterance.lang = "ja-JP";
@@ -79,20 +92,9 @@ export const useNotification = ({ slouchScore, isPaused, settings, animationType
           const audio = new Audio(`/sounds/${notificationSound}`);
           audio.play();
         }
-        break;
-    }
-  }, [notificationType, notificationSound, animationType]);
-
-  // --- デスクトップ通知の許可 ---
-  useEffect(() => {
-    if (notificationType === 'desktop') {
-      if (!(typeof window !== 'undefined' && window.electron && window.electron.showNotification)) {
-        if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-          Notification.requestPermission();
-        }
       }
     }
-  }, [notificationType]);
+  }, [notificationType, notificationSound, animationType, onNotificationBlocked]);
 
   // --- 猫背通知トリガー ---
   useEffect(() => {

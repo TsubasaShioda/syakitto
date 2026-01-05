@@ -3,7 +3,7 @@ import { usePoseDetection } from "./usePoseDetection";
 import { useNotification } from "./useNotification";
 import { DEFAULT_SETTINGS, hslToRgb } from "./settings";
 
-export const usePostureApp = () => {
+export const usePostureApp = ({ onNotificationBlocked }: { onNotificationBlocked?: () => void }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [isSlouchDetectionEnabled, setIsSlouchDetectionEnabled] = useState(true);
@@ -81,6 +81,7 @@ export const usePostureApp = () => {
     isPaused,
     settings,
     animationType,
+    onNotificationBlocked,
   });
 
   const handleCalibrate = async () => {

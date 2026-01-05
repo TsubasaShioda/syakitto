@@ -22,6 +22,7 @@ interface NotificationSelectorProps {
   SOUND_OPTIONS: { value: string; label: string }[];
   animationType: string;
   setAnimationType: (type: string) => void;
+  onHelpClick?: () => void;
 }
 
 const NotificationSelector = ({
@@ -34,7 +35,8 @@ const NotificationSelector = ({
   setNotificationSound,
   SOUND_OPTIONS,
   animationType,
-  setAnimationType
+  setAnimationType,
+  onHelpClick,
 }: NotificationSelectorProps) => {
   const baseOptions: NotificationOption[] = [
     {
@@ -86,12 +88,19 @@ const NotificationSelector = ({
 
   return (
     <div className="w-full bg-white/60 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-[#c9b8a8]/30">
-      <h2 className="text-lg font-semibold text-gray-700 mb-6 flex items-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6 text-[#5a8f7b]">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
-        </svg>
-        通知タイプ
-      </h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-lg font-semibold text-gray-700 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6 text-[#5a8f7b]">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+          </svg>
+          通知タイプ
+        </h2>
+        <button onClick={onHelpClick} className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-200/70 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+            </svg>
+        </button>
+      </div>
       <div className="space-y-3">
         {allOptions.map((option) => (
           <button
