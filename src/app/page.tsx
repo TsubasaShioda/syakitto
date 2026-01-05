@@ -15,6 +15,7 @@ import PomodoroTimer from "@/app/components/PomodoroTimer";
 import PostureSettings from "@/app/components/PostureSettings";
 import InfoBanner from "@/app/components/InfoBanner";
 import AdvancedNotificationSettings from "@/app/components/AdvancedNotificationSettings";
+import { NotificationPermissionFlowModal } from "@/app/components/NotificationPermissionFlowModal";
 
 const SlouchInfo = () => (
   <div className="bg-[#a8d5ba]/10 rounded-3xl p-6 border border-[#a8d5ba]/30">
@@ -32,30 +33,37 @@ const SlouchInfo = () => (
 );
 
 const NotificationHelpPreamble = () => (
-    <div className="text-sm text-gray-700 bg-gray-100 p-4 rounded-xl mb-4 border border-gray-200">
-        <p className="mb-2">デスクトップ通知は、<strong>① Webサイト（Syakitto）への許可</strong>と、<strong>② OS（お使いのPC）での許可</strong>の2段階で設定されている場合があります。</p>
-        <p>通知が届かない場合は、両方の設定が許可されているかご確認ください。</p>
-    </div>
+  <div className="text-sm text-gray-700 bg-gray-100 p-4 rounded-xl mb-4 border border-gray-200">
+    <p className="mb-2">
+      デスクトップ通知は、<strong>① Webサイト（Syakitto）への許可</strong>と、<strong>② OS（お使いのPC）での許可</strong>の2段階で設定されている場合があります。
+    </p>
+    <p>通知が届かない場合は、両方の設定が許可されているかご確認ください。</p>
+  </div>
 );
 
+const OsOnlyInstructions = ({ additionalMessage }: { additionalMessage?: string }) => (
+  <div className="mb-6 max-h-48 overflow-y-auto p-1">
+    <AdvancedNotificationSettings
+      isOpen={true}
+      onClose={() => {}}
+      showBrowserInstructions={false}
+      showOsInstructions={true}
+      additionalMessage={additionalMessage}
+      title="OSの通知設定を確認してください"
+    />
+  </div>
+);
 
 export default function Home() {
   const [infoModalContent, setInfoModalContent] = useState<{ title: string; content: React.ReactNode } | null>(null);
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
   const [isPostureSettingsOpen, setIsPostureSettingsOpen] = useState(false);
-  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+  const [notificationFlowStep, setNotificationFlowStep] = useState<'inactive' | 'test_notification' | 'confirm_delivery'>('inactive');
   const [isAdvancedNotificationModalOpen, setIsAdvancedNotificationModalOpen] = useState(false);
   const [isNotificationHelpOpen, setIsNotificationHelpOpen] = useState(false);
-
-  const handleNotificationBlocked = () => {
-    if (typeof Notification === 'undefined') return;
-    const perm = Notification.permission;
-    if (perm === 'denied') {
-      setIsAdvancedNotificationModalOpen(true);
-    } else if (perm === 'default') {
-      setIsNotificationModalOpen(true);
-    }
-  };
+  const [isRecheckingPermission, setIsRecheckingPermission] = useState(false);
+  const [showOsInstructionsInTestFlow, setOsInstructionsInTestFlow] = useState(false);
+  const [previousNotificationType, setPreviousNotificationType] = useState<string>('');
 
   const {
     videoRef,
@@ -85,36 +93,69 @@ export default function Home() {
     setIsCameraViewVisible,
     animationType,
     setAnimationType,
-  } = usePostureApp({ onNotificationBlocked: handleNotificationBlocked });
+  } = usePostureApp();
 
   const handleSlouchInfoOpen = () => {
-    setInfoModalContent({
-      title: "猫背検知について",
-      content: <SlouchInfo />,
-    });
+    setInfoModalContent({ title: "猫背検知について", content: <SlouchInfo /> });
   };
 
   const handleDownloadButtonClick = () => {
     setIsDownloadModalOpen(true);
   };
-
-  const handleToggleSlouchDetection = () => {
-    if (!isSlouchDetectionEnabled) {
-      const perm = typeof Notification !== 'undefined' ? Notification.permission : 'default';
-      if (perm !== 'granted') {
-        handleNotificationBlocked();
-      }
+  
+  const handleCancelNotificationFlow = () => {
+    if (previousNotificationType) {
+      setNotificationType(previousNotificationType);
     }
-    setIsSlouchDetectionEnabled(!isSlouchDetectionEnabled);
+    setNotificationFlowStep('inactive');
+    setIsAdvancedNotificationModalOpen(false);
+    setOsInstructionsInTestFlow(false);
+    setIsRecheckingPermission(false);
   };
 
-  const handleRequestPermissionFromModal = () => {
-    Notification.requestPermission().then((perm) => {
-      if (perm === 'granted') {
-        setIsSlouchDetectionEnabled(true);
+  const handleSetNotificationType = (type: string) => {
+    if (type === 'desktop' && typeof Notification !== 'undefined' && Notification.permission !== 'granted') {
+      setPreviousNotificationType(notificationType);
+      setIsRecheckingPermission(false);
+      setIsAdvancedNotificationModalOpen(true);
+    } else {
+      setNotificationType(type);
+    }
+  };
+
+  const handleSettingsCompletionClick = () => {
+    setIsAdvancedNotificationModalOpen(false);
+    setTimeout(() => {
+      if (typeof Notification !== 'undefined') {
+        const perm = Notification.permission;
+        if (perm === 'granted') {
+          setNotificationType('desktop');
+          setNotificationFlowStep('test_notification');
+          setOsInstructionsInTestFlow(false);
+        } else {
+          setIsRecheckingPermission(true);
+          setIsAdvancedNotificationModalOpen(true);
+        }
       }
-      setIsNotificationModalOpen(false);
-    });
+    }, 500);
+  };
+  
+  const handleSendTestNotification = () => {
+    new Notification("syakitto", { body: "これはテスト通知です。", silent: true });
+    setNotificationFlowStep('confirm_delivery');
+  };
+
+  const handleConfirmNotificationYes = () => {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('notificationTestCompleted', 'true');
+    }
+    setNotificationFlowStep('inactive');
+    setOsInstructionsInTestFlow(false);
+  };
+
+  const handleConfirmNotificationNo = () => {
+    setNotificationFlowStep('test_notification');
+    setOsInstructionsInTestFlow(true);
   };
 
   return (
@@ -122,26 +163,21 @@ export default function Home() {
       <InfoBanner />
       <div className="flex-grow flex flex-col p-6">
         <header className="mb-6 text-center">
-          <h1 className="text-4xl font-bold mb-2 text-[#5a8f7b]">
-            syakitto
-          </h1>
+          <h1 className="text-4xl font-bold mb-2 text-[#5a8f7b]">syakitto</h1>
           <p className="text-gray-600 text-sm">リアルタイム姿勢チェッカー - あなたの健康をサポート</p>
         </header>
         
         <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6">
-          {/* スコア表示 */}
           <div className="md:col-start-2 lg:col-span-3 lg:col-start-10 lg:row-start-1 overflow-y-auto space-y-6">
             {isCalibrated ? (
-              <>
-                <ScoreDisplay
-                  slouchScore={slouchScore}
-                  isSlouchDetectionEnabled={isSlouchDetectionEnabled}
-                  onToggleSlouch={handleToggleSlouchDetection}
-                  onInfoClick={handleSlouchInfoOpen}
-                  settings={settings}
-                  onSettingsClick={() => setIsPostureSettingsOpen(true)}
-                />
-              </>
+              <ScoreDisplay
+                slouchScore={slouchScore}
+                isSlouchDetectionEnabled={isSlouchDetectionEnabled}
+                onToggleSlouch={() => setIsSlouchDetectionEnabled(!isSlouchDetectionEnabled)}
+                onInfoClick={handleSlouchInfoOpen}
+                settings={settings}
+                onSettingsClick={() => setIsPostureSettingsOpen(true)}
+              />
             ) : (
               <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-6 shadow-sm border border-[#f4d06f]/40 text-center">
                 <h3 className="font-semibold text-lg text-gray-800 mb-2">姿勢判定を開始します</h3>
@@ -153,11 +189,10 @@ export default function Home() {
             <PomodoroTimer />
           </div>
 
-          {/* 通知設定 */}
           <div className="md:col-start-1 md:row-start-1 lg:col-span-3 lg:col-start-1 lg:row-start-1 space-y-6 overflow-y-auto">
             <NotificationSelector
               notificationType={notificationType}
-              setNotificationType={setNotificationType}
+              setNotificationType={handleSetNotificationType}
               isElectron={isElectron}
               settings={settings}
               setSettings={setSettings}
@@ -178,7 +213,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* カメラとコントロール */}
           <div className="md:col-span-2 lg:col-span-6 lg:col-start-4 lg:row-start-1 flex flex-col space-y-6">
             <CameraView
               videoRef={videoRef}
@@ -186,12 +220,11 @@ export default function Home() {
               isCameraViewVisible={isCameraViewVisible}
               onToggleCameraView={() => setIsCameraViewVisible(!isCameraViewVisible)}
             />
-
             <ControlButtons
               isPaused={isPaused}
               onTogglePause={() => setIsPaused(!isPaused)}
               isCalibrating={isCalibrating}
-              isCalibrated={isCalibrated} // Add this line
+              isCalibrated={isCalibrated}
               onCalibrate={calibrate}
               calibrationTimestamp={calibrationTimestamp}
             />
@@ -200,64 +233,48 @@ export default function Home() {
       </div>
 
       <WelcomePopup isOpen={isWelcomeOpen} onClose={handleWelcomePopupClose} />
-
-      {/* 通知設定ポップアップ */}
       <NotificationSettingsPopup isOpen={isNotificationSettingsOpen} onClose={handleNotificationSettingsPopupClose} />
 
       {infoModalContent && (
-        <InfoModal 
-          isOpen={!!infoModalContent} 
-          onClose={() => setInfoModalContent(null)}
-          title={infoModalContent.title}
-        >
+        <InfoModal isOpen={!!infoModalContent} onClose={() => setInfoModalContent(null)} title={infoModalContent.title}>
           {infoModalContent.content}
         </InfoModal>
       )}
 
-      <InfoModal
-        isOpen={isPostureSettingsOpen}
-        onClose={() => setIsPostureSettingsOpen(false)}
-        title="猫背検知設定"
-      >
+      <InfoModal isOpen={isPostureSettingsOpen} onClose={() => setIsPostureSettingsOpen(false)} title="猫背検知設定">
         <PostureSettings settings={settings} setSettings={setSettings} />
       </InfoModal>
       
-      <InfoModal
-        isOpen={isNotificationModalOpen}
-        onClose={() => setIsNotificationModalOpen(false)}
-        title="デスクトップ通知を許可しますか？"
-      >
-        <div>
-          <p className="text-gray-700 leading-relaxed mb-6">Syakittoからの通知を受け取るには、ブラウザの許可が必要です。「許可する」をクリックすると、姿勢に関するアラートが届くようになります。</p>
-          <div className="flex justify-end gap-4">
-            <button onClick={() => setIsNotificationModalOpen(false)} className="text-gray-600 px-6 py-2 rounded-xl hover:bg-gray-200 transition-colors">後で</button>
-            <button onClick={handleRequestPermissionFromModal} className="bg-[#5a8f7b] text-white px-6 py-2 rounded-xl hover:bg-[#4a7f6b] transition-colors">許可する</button>
-          </div>
-        </div>
-      </InfoModal>
+      <NotificationPermissionFlowModal
+        isOpen={notificationFlowStep !== 'inactive'}
+        step={notificationFlowStep === 'inactive' ? 'test_notification' : notificationFlowStep}
+        onClose={handleCancelNotificationFlow}
+        showOsInstructions={showOsInstructionsInTestFlow}
+        onTest={handleSendTestNotification}
+        onConfirmYes={handleConfirmNotificationYes}
+        onConfirmNo={handleConfirmNotificationNo}
+      />
       
       <AdvancedNotificationSettings 
         isOpen={isAdvancedNotificationModalOpen}
-        onClose={() => setIsAdvancedNotificationModalOpen(false)}
+        onClose={handleCancelNotificationFlow}
+        showCompletionButton={true}
+        onCompletionClick={handleSettingsCompletionClick}
+        showBrowserInstructions={true}
+        showOsInstructions={false}
+        additionalMessage={isRecheckingPermission ? "通知がまだ許可されていません。ブラウザの設定を再度確認してください。" : undefined}
+        title="ブラウザの通知設定を確認してください"
       />
       
       <AdvancedNotificationSettings 
         isOpen={isNotificationHelpOpen}
         onClose={() => setIsNotificationHelpOpen(false)}
         preamble={<NotificationHelpPreamble />}
+        title="通知設定のヘルプ"
       />
 
-      {/* DownloadModalの追加 */}
-      <DownloadModal
-        isOpen={isDownloadModalOpen}
-        onClose={() => setIsDownloadModalOpen(false)}
-        onDownload={handleDownload}
-      />
-
-      <ActionButtons
-        onDownload={handleDownloadButtonClick}
-        isElectron={isElectron}
-      />
+      <DownloadModal isOpen={isDownloadModalOpen} onClose={() => setIsDownloadModalOpen(false)} onDownload={handleDownload} />
+      <ActionButtons onDownload={handleDownloadButtonClick} isElectron={isElectron} />
     </main>
   );
 }
