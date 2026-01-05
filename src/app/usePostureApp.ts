@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import { usePoseDetection } from "./usePoseDetection";
 import { useNotification } from "./useNotification";
-import { DEFAULT_SETTINGS, hslToRgb } from "./settings";
+import { DEFAULT_SETTINGS } from "./settings";
 
 export const usePostureApp = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -9,13 +9,12 @@ export const usePostureApp = () => {
   const [isSlouchDetectionEnabled, setIsSlouchDetectionEnabled] = useState(true);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [isElectron, setIsElectron] = useState(false);
-  const [animationType, setAnimationType] = useState('toggle'); // 'toggle', 'cat_hand', 'noise'
-  const [isWelcomeOpen, setIsWelcomeOpenState] = useState(false); // Default to false, controlled by useEffect
+  const [animationType, setAnimationType] = useState('toggle');
+  const [isWelcomeOpen, setIsWelcomeOpenState] = useState(false);
   const [isNotificationSettingsOpen, setIsNotificationSettingsOpenState] = useState(false);
 
   useEffect(() => {
-    const hasSeenWelcomePopup = localStorage.getItem('hasSeenWelcomePopup');
-    if (!hasSeenWelcomePopup) {
+    if (typeof window !== 'undefined' && !localStorage.getItem('hasSeenWelcomePopup')) {
       setIsWelcomeOpenState(true);
     }
   }, []);
@@ -23,9 +22,7 @@ export const usePostureApp = () => {
   const handleWelcomePopupClose = () => {
     setIsWelcomeOpenState(false);
     localStorage.setItem('hasSeenWelcomePopup', 'true');
-
-    const hasSeenNotificationSettingsPopup = localStorage.getItem('hasSeenNotificationSettingsPopup');
-    if (!hasSeenNotificationSettingsPopup) {
+    if (!localStorage.getItem('hasSeenNotificationSettingsPopup')) {
       setIsNotificationSettingsOpenState(true);
     }
   };
@@ -34,24 +31,22 @@ export const usePostureApp = () => {
     setIsNotificationSettingsOpenState(false);
     localStorage.setItem('hasSeenNotificationSettingsPopup', 'true');
   };
+
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [calibrationTimestamp, setCalibrationTimestamp] = useState<Date | null>(null);
-  const [isRecordingEnabled, setIsRecordingEnabled] = useState(false);
-  const [isVisualizationEnabled, setIsVisualizationEnabled] = useState(false);
-  const [isTimerVisible, setIsTimerVisible] = useState(false);
+  const [isRecordingEnabled, setIsRecordingEnabled] = useState(false); // Re-introduced
   const [isCameraViewVisible, setIsCameraViewVisible] = useState(true);
 
   const { slouchScore, isCalibrated, calibrate, scoreHistory, stopCamera } = usePoseDetection({
     videoRef,
     isPaused,
-    isRecordingEnabled,
+    isRecordingEnabled, // Passed correctly
     isEnabled: isSlouchDetectionEnabled,
   });
 
   useEffect(() => {
     if (window.electron?.isElectron) {
       setIsElectron(true);
-
       const handleBeforeQuit = () => {
         try {
           setIsSlouchDetectionEnabled(false);
@@ -61,15 +56,11 @@ export const usePostureApp = () => {
         }
         window.electron?.cleanupComplete();
       };
-
       window.electron.onBeforeQuit(handleBeforeQuit);
-
-      return () => {
-        window.electron?.removeOnBeforeQuit();
-      };
+      return () => window.electron?.removeOnBeforeQuit();
     }
   }, [isElectron, stopCamera]);
-  
+
   const {
     notificationType,
     setNotificationType,
@@ -111,12 +102,8 @@ export const usePostureApp = () => {
     handleNotificationSettingsPopupClose,
     isCalibrating,
     calibrationTimestamp,
-    isRecordingEnabled,
-    setIsRecordingEnabled,
-    isVisualizationEnabled,
-    setIsVisualizationEnabled,
-    isTimerVisible,
-    setIsTimerVisible,
+    isRecordingEnabled, // Returned
+    setIsRecordingEnabled, // Returned
     isCameraViewVisible,
     setIsCameraViewVisible,
     slouchScore,

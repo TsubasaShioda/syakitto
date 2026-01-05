@@ -26,7 +26,7 @@ interface UseNotificationReturn {
 export const useNotification = ({ slouchScore, isPaused, settings, animationType }: UseNotificationProps): UseNotificationReturn => {
   const notificationTimer = useRef<NodeJS.Timeout | null>(null);
   const [lastNotificationTime, setLastNotificationTime] = useState(0);
-  const [notificationType, setNotificationType] = useState("desktop");
+  const [notificationType, setNotificationType] = useState("voice");
   const [notificationSound, setNotificationSound] = useState("voice");
   const [isContinuouslyNotifying, setIsContinuouslyNotifying] = useState(false);
 
@@ -40,59 +40,48 @@ export const useNotification = ({ slouchScore, isPaused, settings, animationType
   ];
 
   const triggerNotification = useCallback((message: string) => {
-    if (typeof window === 'undefined' || !window.electron) {
-      // 非Electron環境のフォールバック
+    if (typeof window === 'undefined') return;
+
+    if (window.electron) {
+      // Electron environment
+      switch (notificationType) {
+        case 'animation':
+          switch (animationType) {
+            case 'toggle': window.electron.showAnimationNotification?.(); break;
+            case 'cat_hand': window.electron.showCatHandNotification?.(); break;
+            case 'noise': window.electron.showNoiseNotification?.(); break;
+          }
+          break;
+        case 'desktop':
+          window.electron.showNotification?.({ title: "syakitto", body: message, silent: true });
+          break;
+        case 'voice':
+          if (notificationSound === 'voice') {
+            const utterance = new SpeechSynthesisUtterance(message);
+            utterance.lang = "ja-JP";
+            speechSynthesis.speak(utterance);
+          } else if (notificationSound.endsWith('.mp3')) {
+            const audio = new Audio(`/sounds/${notificationSound}`);
+            audio.play();
+          }
+          break;
+      }
+    } else {
+      // Web browser environment
       if (notificationType === 'desktop' && Notification.permission === 'granted') {
         new Notification("syakitto", { body: message, silent: true });
+      } else if (notificationType === 'voice') {
+         if (notificationSound === 'voice') {
+            const utterance = new SpeechSynthesisUtterance(message);
+            utterance.lang = "ja-JP";
+            speechSynthesis.speak(utterance);
+          } else if (notificationSound.endsWith('.mp3')) {
+            const audio = new Audio(`/sounds/${notificationSound}`);
+            audio.play();
+          }
       }
-      return;
-    }
-
-    // Electron環境での通知
-    switch (notificationType) {
-      case 'animation':
-        switch (animationType) {
-          case 'toggle':
-            window.electron.showAnimationNotification?.();
-            break;
-          case 'cat_hand':
-            window.electron.showCatHandNotification?.();
-            break;
-          case 'noise':
-            window.electron.showNoiseNotification?.();
-            break;
-        }
-        break;
-      case 'desktop':
-        window.electron.showNotification?.({
-          title: "syakitto",
-          body: message,
-          silent: true,
-        });
-        break;
-      case 'voice':
-        if (notificationSound === 'voice') {
-          const utterance = new SpeechSynthesisUtterance(message);
-          utterance.lang = "ja-JP";
-          speechSynthesis.speak(utterance);
-        } else if (notificationSound.endsWith('.mp3')) {
-          const audio = new Audio(`/sounds/${notificationSound}`);
-          audio.play();
-        }
-        break;
     }
   }, [notificationType, notificationSound, animationType]);
-
-  // --- デスクトップ通知の許可 ---
-  useEffect(() => {
-    if (notificationType === 'desktop') {
-      if (!(typeof window !== 'undefined' && window.electron && window.electron.showNotification)) {
-        if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-          Notification.requestPermission();
-        }
-      }
-    }
-  }, [notificationType]);
 
   // --- 猫背通知トリガー ---
   useEffect(() => {
