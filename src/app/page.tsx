@@ -59,10 +59,8 @@ const OsOnlyInstructions = ({ additionalMessage }: { additionalMessage?: string 
 export default function Home() {
   const [infoModalContent, setInfoModalContent] = useState<{ title: string; content: React.ReactNode } | null>(null);
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
-  const [isPostureSettingsOpen, setIsPostureSettingsOpen] = useState(false);
   const [notificationFlowStep, setNotificationFlowStep] = useState<'inactive' | 'test_notification' | 'confirm_delivery'>('inactive');
   const [isAdvancedNotificationModalOpen, setIsAdvancedNotificationModalOpen] = useState(false);
-  const [isNotificationHelpOpen, setIsNotificationHelpOpen] = useState(false);
   const [isRecheckingPermission, setIsRecheckingPermission] = useState(false);
   const [showOsInstructionsInTestFlow, setOsInstructionsInTestFlow] = useState(false);
   const [previousNotificationType, setPreviousNotificationType] = useState<string>('');
@@ -82,6 +80,10 @@ export default function Home() {
     handleNotificationSettingsPopupClose,
     isShortcutHelpOpen,
     setIsShortcutHelpOpen,
+    isPostureSettingsOpen,
+    setIsPostureSettingsOpen,
+    isNotificationHelpOpen,
+    setIsNotificationHelpOpen,
     isCalibrating,
     calibrationTimestamp,
     slouchScore,
