@@ -144,6 +144,16 @@ const PomodoroTimer = () => {
     }
   }, [timeLeft, isActive, sessionType]);
 
+  // タイマーウィンドウからの操作イベントを受け取る
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.electron?.onToggleTimerFromWindow) {
+      window.electron.onToggleTimerFromWindow(toggleTimer);
+    }
+    if (typeof window !== 'undefined' && window.electron?.onResetTimerFromWindow) {
+      window.electron.onResetTimerFromWindow(resetTimer);
+    }
+  }, [toggleTimer, resetTimer]);
+
   const openSettings = () => {
     setTempTimerSettings(timerSettings);
     setIsSettingsOpen(true);

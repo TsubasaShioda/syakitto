@@ -1,6 +1,6 @@
 // タイマー表示を更新
 window.electronAPI?.onUpdateTimer((data) => {
-  const { timeLeft } = data;
+  const { timeLeft, isActive } = data;
 
   // 時間を分:秒形式に変換
   const minutes = Math.floor(timeLeft / 60);
@@ -9,6 +9,22 @@ window.electronAPI?.onUpdateTimer((data) => {
 
   // DOM更新（時間のみ）
   document.getElementById('timeDisplay').textContent = timeString;
+
+  // ボタンのテキストを更新
+  const toggleBtn = document.getElementById('toggleBtn');
+  if (toggleBtn) {
+    toggleBtn.textContent = isActive ? '一時停止' : '開始';
+  }
+});
+
+// 開始/一時停止ボタン
+document.getElementById('toggleBtn').addEventListener('click', () => {
+  window.electronAPI?.toggleTimer();
+});
+
+// 終了ボタン
+document.getElementById('resetBtn').addEventListener('click', () => {
+  window.electronAPI?.resetTimer();
 });
 
 // 閉じるボタン

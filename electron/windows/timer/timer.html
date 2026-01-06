@@ -31,34 +31,67 @@
       background:#a8d5ba;
       backdrop-filter: blur(10px);
       border-radius: 10px;
-      padding: 12px 32px;
+      padding: 16px 16px 8px 16px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
       border: 1px solid rgba(255, 255, 255, 0.1);
       text-align: center;
       position: relative;
       width: 200px;
-      height: 64px;
+      height: 100px;
       box-sizing: border-box;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: space-between;
       opacity: 0.9;
     }
 
     .time-display {
-      font-size: 36px;
+      font-size: 42px;
       font-weight: 600;
       color: rgba(255, 255, 255, 0.95);
       font-variant-numeric: tabular-nums;
       line-height: 1;
       letter-spacing: 2px;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .button-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      width: 100%;
+      -webkit-app-region: no-drag;
+    }
+
+    .control-btn {
+      padding: 4px 8px;
+      border: none;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.25);
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+
+    .control-btn:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    .control-btn:active {
+      background: rgba(255, 255, 255, 0.5);
     }
 
     .close-btn {
       position: absolute;
-      top: 50%;
+      top: 8px;
       right: 8px;
-      transform: translateY(-50%);
       width: 20px;
       height: 20px;
       border-radius: 50%;
@@ -96,8 +129,12 @@
 </head>
 <body>
   <div class="timer-window">
-    <div class="time-display" id="timeDisplay">25:00</div>
     <button class="close-btn" id="closeBtn"></button>
+    <div class="time-display" id="timeDisplay">25:00</div>
+    <div class="button-container">
+      <button class="control-btn" id="toggleBtn">開始</button>
+      <button class="control-btn" id="resetBtn">終了</button>
+    </div>
   </div>
 
   <script src="timer.js"></script>
