@@ -14,6 +14,8 @@ export const usePostureApp = () => {
   const [isWelcomeOpen, setIsWelcomeOpenState] = useState(false); // Default to false, controlled by useEffect
   const [isNotificationSettingsOpen, setIsNotificationSettingsOpenState] = useState(false);
   const [isShortcutHelpOpen, setIsShortcutHelpOpen] = useState(false);
+  const [isPostureSettingsOpen, setIsPostureSettingsOpen] = useState(false);
+  const [isNotificationHelpOpen, setIsNotificationHelpOpen] = useState(false);
 
   useEffect(() => {
     const hasSeenWelcomePopup = localStorage.getItem('hasSeenWelcomePopup');
@@ -95,7 +97,7 @@ export const usePostureApp = () => {
   // ショートカットハンドラー
   const handleShortcut = useCallback((action: string) => {
     // モーダルが開いている場合はEscのみ処理
-    const hasModalOpen = isWelcomeOpen || isNotificationSettingsOpen || isShortcutHelpOpen;
+    const hasModalOpen = isWelcomeOpen || isNotificationSettingsOpen || isShortcutHelpOpen || isPostureSettingsOpen || isNotificationHelpOpen;
 
     if (hasModalOpen && action !== 'CLOSE_MODAL') {
       return;
@@ -107,9 +109,13 @@ export const usePostureApp = () => {
         break;
 
       case 'CLOSE_MODAL':
-        // 開いているモーダルを閉じる
+        // 開いているモーダルを閉じる（優先順位順）
         if (isShortcutHelpOpen) {
           setIsShortcutHelpOpen(false);
+        } else if (isPostureSettingsOpen) {
+          setIsPostureSettingsOpen(false);
+        } else if (isNotificationHelpOpen) {
+          setIsNotificationHelpOpen(false);
         } else if (isWelcomeOpen) {
           handleWelcomePopupClose();
         } else if (isNotificationSettingsOpen) {
@@ -133,6 +139,14 @@ export const usePostureApp = () => {
         handleCalibrate();
         break;
 
+      case 'OPEN_NOTIFICATION_SETTINGS':
+        setIsNotificationHelpOpen(true);
+        break;
+
+      case 'OPEN_SETTINGS':
+        setIsPostureSettingsOpen(true);
+        break;
+
       default:
         break;
     }
@@ -140,6 +154,8 @@ export const usePostureApp = () => {
     isWelcomeOpen,
     isNotificationSettingsOpen,
     isShortcutHelpOpen,
+    isPostureSettingsOpen,
+    isNotificationHelpOpen,
     handleWelcomePopupClose,
     handleNotificationSettingsPopupClose,
     handleCalibrate,
@@ -190,6 +206,10 @@ export const usePostureApp = () => {
     handleNotificationSettingsPopupClose,
     isShortcutHelpOpen,
     setIsShortcutHelpOpen,
+    isPostureSettingsOpen,
+    setIsPostureSettingsOpen,
+    isNotificationHelpOpen,
+    setIsNotificationHelpOpen,
     isCalibrating,
     calibrationTimestamp,
     isRecordingEnabled,
