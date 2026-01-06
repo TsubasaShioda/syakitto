@@ -48,32 +48,29 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled, isEna
 
   // --- 初期化 ---
   useEffect(() => {
-    const init = async () => {
+    const initModels = async () => {
       try {
         await tf.ready();
         await tf.setBackend("webgl");
 
-        // Pose Detector
-        const poseModel = poseDetection.SupportedModels.MoveNet;
-        const poseDetectorConfig = {
-          modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
-        };
-        const _poseDetector = await poseDetection.createDetector(poseModel, poseDetectorConfig);
-        setPoseDetector(_poseDetector);
+        // モデルの並列読み込み
+        const [poseDetector, faceDetector] = await Promise.all([
+          poseDetection.createDetector(poseDetection.SupportedModels.MoveNet, {
+            modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
+          }),
+          faceLandmarksDetection.createDetector(faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh, {
+            runtime: 'tfjs',
+            refineLandmarks: true,
+          })
+        ]);
 
-        // Face Detector
-        const faceModel = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
-        const faceDetectorConfig: faceLandmarksDetection.MediaPipeFaceMeshTfjsModelConfig = {
-          runtime: 'tfjs',
-          refineLandmarks: true,
-        };
-        const _faceDetector = await faceLandmarksDetection.createDetector(faceModel, faceDetectorConfig);
-        setFaceDetector(_faceDetector);
+        setPoseDetector(poseDetector);
+        setFaceDetector(faceDetector);
       } catch (error) {
         console.error("Error during model initialization:", error);
       }
     };
-    init();
+    initModels();
   }, []);
 
   // カメラ停止関数
@@ -93,13 +90,14 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled, isEna
   // --- カメラセットアップ ---
   useEffect(() => {
     const setupCamera = async () => {
-      if (!poseDetector || !faceDetector || !videoRef.current) return;
+      // モデルの準備を待たずにカメラをセットアップ
+      if (!videoRef.current) return;
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { width: 480, height: 360 },
           audio: false,
         });
-        streamRef.current = stream; // ストリームの参照を保存
+        streamRef.current = stream;
         const video = videoRef.current;
         video.srcObject = stream;
         video.onloadedmetadata = () => video.play();
@@ -110,11 +108,11 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled, isEna
     };
     setupCamera();
 
-    // クリーンアップ: コンポーネントがアンマウントされたらカメラを停止
     return () => {
       stopCamera();
     };
-  }, [poseDetector, faceDetector, videoRef, stopCamera]);
+  // poseDetectorとfaceDetectorへの依存を削除
+  }, [videoRef, stopCamera]);
 
   // --- キャリブレーション ---
   const calibrate = async () => {
