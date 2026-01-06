@@ -9,7 +9,7 @@ export const usePostureApp = () => {
   const [isSlouchDetectionEnabled, setIsSlouchDetectionEnabled] = useState(true);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [isElectron, setIsElectron] = useState(false);
-  const [animationType, setAnimationType] = useState('toggle'); // 'toggle', 'cat_hand', 'noise'
+  const [animationType, setAnimationType] = useState('toggle'); // 'toggle', 'cat_hand', 'noise', 'dimmer'
   const [isWelcomeOpen, setIsWelcomeOpenState] = useState(false); // Default to false, controlled by useEffect
   const [isNotificationSettingsOpen, setIsNotificationSettingsOpenState] = useState(false);
 
@@ -95,6 +95,30 @@ export const usePostureApp = () => {
       window.location.href = 'https://github.com/TsubasaShioda/syakitto/releases/download/v0.2.4/syakitto-0.2.4-arm64.dmg';
     }
   };
+
+  // Dimmerアニメーションのスコア更新専用Effect
+  useEffect(() => {
+    if (isElectron && animationType === 'dimmer') {
+      window.electron.requestDimmerUpdate(slouchScore);
+    }
+  }, [slouchScore, animationType, isElectron]);
+
+  // Dimmerアニメーションの有効/無効化とアンマウント時のクリーンアップEffect
+  useEffect(() => {
+    if (!isElectron) return;
+
+    // animationTypeが 'dimmer' でなくなった場合にウィンドウを閉じる
+    if (animationType !== 'dimmer') {
+      window.electron.requestDimmerUpdate(0);
+    }
+
+    // コンポーネントがアンマウントされる際のクリーンアップ
+    return () => {
+      if (window.electron) {
+        window.electron.requestDimmerUpdate(0);
+      }
+    };
+  }, [animationType, isElectron]);
 
   return {
     videoRef,

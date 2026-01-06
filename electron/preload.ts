@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld('electron', {
   showAnimationNotification: () => ipcRenderer.send('show-animation-notification'), // 画像トグルアニメーション
   showCatHandNotification: () => ipcRenderer.send('show-cat-hand-notification'),
   showNoiseNotification: () => ipcRenderer.send('show-noise-notification'),
+  requestDimmerUpdate: (score: number) => ipcRenderer.send('request-dimmer-update', score),
   closeWindow: () => ipcRenderer.send('close-window'),
 
   // アプリ終了前のクリーンアップ通知を受け取る

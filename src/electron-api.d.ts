@@ -7,6 +7,7 @@ export interface ElectronAPI {
   showAnimationNotification: () => void;
   showCatHandNotification: () => void;
   showNoiseNotification: () => void;
+  requestDimmerUpdate: (score: number) => void;
   minimizeWindow?: () => void;
   maximizeWindow?: () => void;
   closeWindow?: () => void;

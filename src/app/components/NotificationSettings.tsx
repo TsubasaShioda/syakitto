@@ -24,9 +24,10 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
     setAnimationType
 }) => {
   const animationOptions = [
-    { value: 'toggle', label: '画像トグル' },
+    { value: 'toggle', label: 'ポップアップアイコン' },
     { value: 'cat_hand', label: '猫の手' },
     { value: 'noise', label: '砂嵐' },
+    { value: 'dimmer', label: 'ダークオーバーレイ' },
   ];
 
   return (
