@@ -9,12 +9,13 @@ export const usePostureApp = () => {
   const [isSlouchDetectionEnabled, setIsSlouchDetectionEnabled] = useState(true);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [isElectron, setIsElectron] = useState(false);
-  const [animationType, setAnimationType] = useState('toggle');
-  const [isWelcomeOpen, setIsWelcomeOpenState] = useState(false);
+  const [animationType, setAnimationType] = useState('toggle'); // 'toggle', 'cat_hand', 'noise', 'dimmer'
+  const [isWelcomeOpen, setIsWelcomeOpenState] = useState(false); // Default to false, controlled by useEffect
   const [isNotificationSettingsOpen, setIsNotificationSettingsOpenState] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && !localStorage.getItem('hasSeenWelcomePopup')) {
+    const hasSeenWelcomePopup = localStorage.getItem('hasSeenWelcomePopup');
+    if (!hasSeenWelcomePopup) {
       setIsWelcomeOpenState(true);
     }
   }, []);
@@ -22,7 +23,9 @@ export const usePostureApp = () => {
   const handleWelcomePopupClose = () => {
     setIsWelcomeOpenState(false);
     localStorage.setItem('hasSeenWelcomePopup', 'true');
-    if (!localStorage.getItem('hasSeenNotificationSettingsPopup')) {
+
+    const hasSeenNotificationSettingsPopup = localStorage.getItem('hasSeenNotificationSettingsPopup');
+    if (!hasSeenNotificationSettingsPopup) {
       setIsNotificationSettingsOpenState(true);
     }
   };
@@ -34,13 +37,13 @@ export const usePostureApp = () => {
 
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [calibrationTimestamp, setCalibrationTimestamp] = useState<Date | null>(null);
-  const [isRecordingEnabled, setIsRecordingEnabled] = useState(false); // Re-introduced
+  const [isRecordingEnabled, setIsRecordingEnabled] = useState(false);
   const [isCameraViewVisible, setIsCameraViewVisible] = useState(true);
 
   const { slouchScore, isCalibrated, calibrate, scoreHistory, stopCamera } = usePoseDetection({
     videoRef,
     isPaused,
-    isRecordingEnabled, // Passed correctly
+    isRecordingEnabled,
     isEnabled: isSlouchDetectionEnabled,
   });
 
@@ -87,6 +90,30 @@ export const usePostureApp = () => {
     }
   };
 
+  // Dimmerアニメーションのスコア更新専用Effect
+  useEffect(() => {
+    if (isElectron && animationType === 'dimmer') {
+      window.electron.requestDimmerUpdate(slouchScore);
+    }
+  }, [slouchScore, animationType, isElectron]);
+
+  // Dimmerアニメーションの有効/無効化とアンマウント時のクリーンアップEffect
+  useEffect(() => {
+    if (!isElectron) return;
+
+    // animationTypeが 'dimmer' でなくなった場合にウィンドウを閉じる
+    if (animationType !== 'dimmer') {
+      window.electron.requestDimmerUpdate(0);
+    }
+
+    // コンポーネントがアンマウントされる際のクリーンアップ
+    return () => {
+      if (window.electron) {
+        window.electron.requestDimmerUpdate(0);
+      }
+    };
+  }, [animationType, isElectron]);
+
   return {
     videoRef,
     isPaused,
@@ -102,8 +129,8 @@ export const usePostureApp = () => {
     handleNotificationSettingsPopupClose,
     isCalibrating,
     calibrationTimestamp,
-    isRecordingEnabled, // Returned
-    setIsRecordingEnabled, // Returned
+    isRecordingEnabled,
+    setIsRecordingEnabled,
     isCameraViewVisible,
     setIsCameraViewVisible,
     slouchScore,

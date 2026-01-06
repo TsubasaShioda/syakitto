@@ -13,6 +13,7 @@ let isQuitting = false; // アプリ終了中フラグ
 let forceQuitTimeout: NodeJS.Timeout | null = null;
 let postureCheckInterval: NodeJS.Timeout | null = null; // 姿勢チェック用タイマー
 let timerWindow: BrowserWindow | null = null; // タイマーウィンドウ
+let dimmerWindow: BrowserWindow | null = null; // 薄暗くするウィンドウ
 
 // --- PNGベースのTrayアイコン ---
 const pictogramIcons = new Map<number, Electron.NativeImage>();
@@ -269,6 +270,59 @@ app.whenReady().then(() => {
         noiseWindow.close();
       }
     }, 2000); // 2秒後に閉じる
+  });
+
+  // 画面を薄暗くするアニメーション用のIPCイベントハンドラ
+  ipcMain.on('request-dimmer-update', (_event, score: number) => {
+    const SHOW_THRESHOLD = 40; // 表示を開始するスコア
+    const HIDE_THRESHOLD = 35; // 表示を終了するスコア
+    const MAX_OPACITY = 0.8;
+
+    if (score > SHOW_THRESHOLD) {
+        // opacityの計算 (SHOW_THRESHOLD-100の範囲を0.0-MAX_OPACITYにマッピング)
+        const opacity = Math.min(
+            ((score - SHOW_THRESHOLD) / (100 - SHOW_THRESHOLD)) * MAX_OPACITY,
+            MAX_OPACITY
+        );
+
+        if (dimmerWindow && !dimmerWindow.isDestroyed()) {
+            // ウィンドウが既に存在すればOpacityを更新
+            dimmerWindow.setOpacity(opacity);
+        } else {
+            // ウィンドウが存在しなければ新規作成
+            const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+            dimmerWindow = new BrowserWindow({
+                width,
+                height,
+                x: 0,
+                y: 0,
+                transparent: true,
+                frame: false,
+                alwaysOnTop: true,
+                skipTaskbar: true,
+                focusable: false,
+                hasShadow: false,
+                webPreferences: {
+                    devTools: false,
+                },
+            });
+            dimmerWindow.setOpacity(opacity);
+            dimmerWindow.setIgnoreMouseEvents(true); // マウスイベントを無視
+            dimmerWindow.setVisibleOnAllWorkspaces(true);
+
+            const dimmerPath = path.join(__dirname, 'windows', 'dimmer', 'dimmer.html');
+            dimmerWindow.loadFile(dimmerPath);
+
+            dimmerWindow.on('closed', () => {
+                dimmerWindow = null;
+            });
+        }
+    } else if (score <= HIDE_THRESHOLD) {
+        // scoreが終了しきい値以下になったらウィンドウを閉じる
+        if (dimmerWindow && !dimmerWindow.isDestroyed()) {
+            dimmerWindow.close();
+        }
+    }
   });
 
   // レンダラープロセスからのログを受け取るハンドラ
