@@ -16,6 +16,8 @@ import PostureSettings from "@/app/components/PostureSettings";
 import InfoBanner from "@/app/components/InfoBanner";
 import AdvancedNotificationSettings from "@/app/components/AdvancedNotificationSettings";
 import { NotificationPermissionFlowModal } from "@/app/components/NotificationPermissionFlowModal";
+import ShortcutHelp from "@/app/components/ShortcutHelp";
+import ShortcutButton from "@/app/components/ShortcutButton";
 
 const SlouchInfo = () => (
   <div className="bg-[#a8d5ba]/10 rounded-3xl p-6 border border-[#a8d5ba]/30">
@@ -78,6 +80,8 @@ export default function Home() {
     handleWelcomePopupClose,
     isNotificationSettingsOpen,
     handleNotificationSettingsPopupClose,
+    isShortcutHelpOpen,
+    setIsShortcutHelpOpen,
     isCalibrating,
     calibrationTimestamp,
     slouchScore,
@@ -274,6 +278,14 @@ export default function Home() {
       />
 
       <DownloadModal isOpen={isDownloadModalOpen} onClose={() => setIsDownloadModalOpen(false)} onDownload={handleDownload} />
+
+      {/* ショートカット機能 */}
+      <ShortcutHelp
+        isOpen={isShortcutHelpOpen}
+        onClose={() => setIsShortcutHelpOpen(false)}
+      />
+      <ShortcutButton onClick={() => setIsShortcutHelpOpen(true)} />
+
       <ActionButtons onDownload={handleDownloadButtonClick} isElectron={isElectron} />
     </main>
   );

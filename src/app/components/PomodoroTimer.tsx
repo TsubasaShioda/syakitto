@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import InfoModal from './InfoModal';
 
 // Settings are now local to the component
@@ -122,8 +122,8 @@ const PomodoroTimer = () => {
     return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const toggleTimer = () => setIsActive(!isActive);
-  const resetTimer = () => switchSession(sessionType, false);
+  const toggleTimer = useCallback(() => setIsActive(!isActive), [isActive]);
+  const resetTimer = useCallback(() => switchSession(sessionType, false), [sessionType, switchSession]);
 
   // タイマーウィンドウを開く
   const showTimerWindow = () => {
@@ -157,6 +157,45 @@ const PomodoroTimer = () => {
     const { name, value } = e.target;
     setTempTimerSettings(prev => ({ ...prev, [name]: Number(value) }));
   };
+
+  // タイマー関連のショートカットキー処理
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // input要素内では無効化
+      const target = event.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      // 設定モーダルが開いている時は無効化
+      if (isSettingsOpen) {
+        return;
+      }
+
+      switch (event.key) {
+        case ' ': // Space
+          event.preventDefault();
+          toggleTimer();
+          break;
+        case '1':
+          switchSession('作業', false);
+          break;
+        case '2':
+          switchSession('短い休憩', false);
+          break;
+        case '3':
+          switchSession('長い休憩', false);
+          break;
+        case 'r':
+        case 'R':
+          resetTimer();
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSettingsOpen, toggleTimer, switchSession, resetTimer]);
 
   return (
     <>
