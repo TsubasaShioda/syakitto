@@ -49,7 +49,7 @@ export default function Home() {
     isPaused,
     setIsPaused,
     isSlouchDetectionEnabled,
-    setIsSlouchDetectionEnabled,
+    setSlouchDetectionEnabled,
     settings,
     setSettings,
     isElectron,
@@ -164,7 +164,7 @@ export default function Home() {
               <ScoreDisplay
                 slouchScore={slouchScore}
                 isSlouchDetectionEnabled={isSlouchDetectionEnabled}
-                onToggleSlouch={() => setIsSlouchDetectionEnabled(!isSlouchDetectionEnabled)}
+                onToggleSlouch={() => setSlouchDetectionEnabled(!isSlouchDetectionEnabled)}
                 onInfoClick={handleSlouchInfoOpen}
                 onSettingsClick={() => setIsPostureSettingsOpen(true)}
               />

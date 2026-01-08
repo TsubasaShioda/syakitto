@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { usePoseDetection } from "./usePoseDetection";
 import { useNotification } from "./useNotification";
 import { DEFAULT_SETTINGS } from "./settings";
@@ -10,18 +10,19 @@ export const usePostureApp = () => {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [isElectron, setIsElectron] = useState(false);
   const [animationType, setAnimationType] = useState('toggle'); // 'toggle', 'cat_hand', 'noise', 'dimmer'
-  const [isWelcomeOpen, setIsWelcomeOpenState] = useState(false); // Default to false, controlled by useEffect
+  const [isWelcomeOpen, setIsWelcomeOpenState] = useState(() => {
+    // For SSR safety
+    if (typeof window === 'undefined') {
+      return false;
+    }
+    return !localStorage.getItem('hasSeenWelcomePopup');
+  });
   const [isNotificationSettingsOpen, setIsNotificationSettingsOpenState] = useState(false);
   const [isShortcutHelpOpen, setIsShortcutHelpOpen] = useState(false);
   const [isPostureSettingsOpen, setIsPostureSettingsOpen] = useState(false);
   const [isNotificationHelpOpen, setIsNotificationHelpOpen] = useState(false);
 
-  useEffect(() => {
-    const hasSeenWelcomePopup = localStorage.getItem('hasSeenWelcomePopup');
-    if (!hasSeenWelcomePopup) {
-      setIsWelcomeOpenState(true);
-    }
-  }, []);
+
 
   const handleWelcomePopupClose = () => {
     setIsWelcomeOpenState(false);
@@ -43,19 +44,26 @@ export const usePostureApp = () => {
   const [isRecordingEnabled, setIsRecordingEnabled] = useState(false);
   const [isCameraViewVisible, setIsCameraViewVisible] = useState(true);
 
-  const { slouchScore, isCalibrated, calibrate, scoreHistory, stopCamera } = usePoseDetection({
+  const { slouchScore, isCalibrated, calibrate, scoreHistory, stopCamera, resetState: resetPoseState } = usePoseDetection({
     videoRef,
     isPaused,
     isRecordingEnabled,
     isEnabled: isSlouchDetectionEnabled,
   });
 
+  const setSlouchDetectionEnabled = useCallback((enabled: boolean) => {
+    setIsSlouchDetectionEnabled(enabled);
+    if (!enabled) {
+      resetPoseState();
+    }
+  }, [resetPoseState]);
+
   useEffect(() => {
     if (window.electron?.isElectron) {
       setIsElectron(true);
       const handleBeforeQuit = () => {
         try {
-          setIsSlouchDetectionEnabled(false);
+          setSlouchDetectionEnabled(false);
           stopCamera();
         } catch (e) {
           console.error('[Renderer] Error during cleanup:', e);
@@ -65,7 +73,7 @@ export const usePostureApp = () => {
       window.electron.onBeforeQuit(handleBeforeQuit);
       return () => window.electron?.removeOnBeforeQuit();
     }
-  }, [isElectron, stopCamera]);
+  }, [isElectron, stopCamera, resetPoseState, setSlouchDetectionEnabled]);
 
   const {
     notificationType,
@@ -122,7 +130,7 @@ export const usePostureApp = () => {
     isPaused,
     setIsPaused,
     isSlouchDetectionEnabled,
-    setIsSlouchDetectionEnabled,
+    setSlouchDetectionEnabled,
     settings,
     setSettings,
     isElectron,

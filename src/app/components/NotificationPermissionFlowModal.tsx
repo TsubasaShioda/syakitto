@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import InfoModal from './InfoModal';
 
 // Re-using the helper and type from AdvancedNotificationSettings
@@ -57,11 +57,10 @@ export const NotificationPermissionFlowModal = ({
   onConfirmNo,
   showOsInstructions,
 }: NotificationPermissionFlowModalProps) => {
-  const [browserInfo, setBrowserInfo] = useState<BrowserInfo | null>(null);
-
-  useEffect(() => {
-    setBrowserInfo(getBrowserInfo());
-  }, []);
+  const [browserInfo] = useState<BrowserInfo | null>(() => {
+    if (typeof window === 'undefined') return null; // SSR safety
+    return getBrowserInfo();
+  });
 
   const renderOsInstructions = () => {
     if (!browserInfo) return null;

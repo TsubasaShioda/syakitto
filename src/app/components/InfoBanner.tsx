@@ -1,20 +1,21 @@
 "use client";
-import { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 
 const InfoBanner = () => {
-  const [isDenied, setIsDenied] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
+  const [isDenied] = useState(() => {
     if (typeof Notification !== 'undefined' && Notification.permission === 'denied') {
-      setIsDenied(true);
-      // セッションストレージで表示状態を管理
-      const hasBeenDismissed = sessionStorage.getItem('notificationBannerDismissed');
-      if (!hasBeenDismissed) {
-        setIsVisible(true);
-      }
+      return true;
     }
-  }, []);
+    return false;
+  });
+  const [isVisible, setIsVisible] = useState(() => {
+    if (typeof Notification !== 'undefined' && Notification.permission === 'denied') {
+      const hasBeenDismissed = sessionStorage.getItem('notificationBannerDismissed');
+      return !hasBeenDismissed;
+    }
+    return false;
+  });
 
   const handleClose = () => {
     setIsVisible(false);
