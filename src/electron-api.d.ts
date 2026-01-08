@@ -27,9 +27,18 @@ export interface ElectronTimerAPI {
   closeTimerWindow: () => void;
 }
 
+export interface ElectronTrayAPI {
+  getSettings: () => Promise<{ notification: { all: boolean } }>;
+  toggleNotifications: (enabled: boolean) => void;
+  quitApp: () => void;
+  // スコア更新を受け取る関数（戻り値は解除用の関数）
+  onUpdatePostureScore: (callback: (score: number) => void) => () => void;
+}
+
 declare global {
   interface Window {
     electron: ElectronAPI;
     electronAPI?: ElectronTimerAPI;
+    trayAPI: ElectronTrayAPI;
   }
 }

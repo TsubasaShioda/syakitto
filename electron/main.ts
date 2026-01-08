@@ -3,12 +3,17 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { createMainWindow } from './windows/mainWindow';
 
+const isDev = process.env.NODE_ENV === 'development';
+const URL = isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '../renderer/index.html')}`;
+
+
 // --- File Logger Placeholder ---
 let logToFile: (message: string) => void = () => {};
 
 // グローバルウィンドウ参照（ガベージコレクション防止）
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
+let trayWindow: BrowserWindow | null = null;
 let isQuitting = false; // アプリ終了中フラグ
 let forceQuitTimeout: NodeJS.Timeout | null = null;
 let postureCheckInterval: NodeJS.Timeout | null = null; // 姿勢チェック用タイマー
@@ -17,6 +22,38 @@ let dimmerWindow: BrowserWindow | null = null; // 薄暗くするウィンドウ
 
 // --- PNGベースのTrayアイコン ---
 const pictogramIcons = new Map<number, Electron.NativeImage>();
+
+// トレイウィンドウを作成する関数
+const createTrayWindow = () => {
+  trayWindow = new BrowserWindow({
+    width: 220,
+    height: 250,
+    show: false,
+    frame: false,
+    fullscreenable: false,
+    resizable: false,
+    transparent: true,
+    skipTaskbar: true,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
+  });
+
+  if (process.platform === 'darwin') {
+    trayWindow.setVibrancy('fullscreen-ui');
+  }
+
+  const trayUrl = isDev ? 'http://localhost:3000/tray' : `file://${path.join(__dirname, '../renderer/tray/index.html')}`;
+  trayWindow.loadURL(trayUrl);
+
+
+  trayWindow.on('blur', () => {
+    trayWindow?.hide();
+  });
+};
+
 
 // アプリケーション準備完了時の処理
 app.whenReady().then(() => {
@@ -39,6 +76,8 @@ app.whenReady().then(() => {
 
   mainWindow = createMainWindow();
   mainWindow.show();
+  createTrayWindow();
+
 
   // --- Trayアイコンの設定 (PNGテンプレート版) ---
   try {
@@ -74,15 +113,23 @@ app.whenReady().then(() => {
 
     tray = new Tray(pictogramIcons.get(0)!);
 
-    const contextMenu = Menu.buildFromTemplate([
-      { label: '表示', click: () => mainWindow?.show() },
-      { label: '終了', click: () => app.quit() },
-    ]);
-    tray.setToolTip('syakitto');
-    tray.setContextMenu(contextMenu);
+    // const contextMenu = Menu.buildFromTemplate([
+    //   { label: '表示', click: () => mainWindow?.show() },
+    //   { label: '終了', click: () => app.quit() },
+    // ]);
+    // tray.setToolTip('syakitto');
+    // tray.setContextMenu(contextMenu);
 
     tray.on('click', () => {
-      mainWindow?.isVisible() ? mainWindow?.hide() : mainWindow?.show();
+      if (trayWindow && tray) {
+        const trayBounds = tray.getBounds();
+        const windowBounds = trayWindow.getBounds();
+        const x = Math.round(trayBounds.x + (trayBounds.width / 2) - (windowBounds.width / 2));
+        const y = Math.round(trayBounds.y + trayBounds.height);
+        
+        trayWindow.setPosition(x, y, false);
+        trayWindow.isVisible() ? trayWindow.hide() : trayWindow.show();
+      }
     });
 
     logToFile('PNG Tray icons initialized successfully.');
@@ -110,6 +157,11 @@ app.whenReady().then(() => {
       if (icon) {
         tray.setImage(icon);
       }
+    }
+
+    // トレイウィンドウが開いていたら、そこにもスコアを送って表示更新させる
+    if (trayWindow && !trayWindow.isDestroyed()) {
+      trayWindow.webContents.send('update-posture-score', score);
     }
   });
   
@@ -379,8 +431,6 @@ app.whenReady().then(() => {
   });
 });
 
-
-// すべてのウィンドウが閉じられた時の処理
 app.on('window-all-closed', () => {
   logToFile('All windows closed.');
   if (process.platform !== 'darwin') {
@@ -388,7 +438,6 @@ app.on('window-all-closed', () => {
   }
 });
 
-// アプリケーションが終了する前の最後の処理
 app.on('before-quit', (event) => {
   logToFile('[QUIT] "before-quit" event triggered.');
   if (isQuitting) {
@@ -414,4 +463,88 @@ app.on('before-quit', (event) => {
     isQuitting = true;
     app.quit();
   }
+});
+
+// Settings management
+const settingsPath = path.join(app.getPath('userData'), 'settings.json');
+
+const defaultSettings = {
+  notification: {
+    all: true,
+    sound: true,
+    soundVolume: 0.5,
+    soundFile: 'Syakiin01.mp3',
+    visual: true,
+    visualType: 'cat_hand', // 'cat_hand', 'dimmer', 'noise'
+    pomodoro: true, // ポモドーロタイマーの通知
+  },
+  threshold: {
+    slouch: 60, // 判定のしきい値
+    duration: 10, // しきい値越えを何秒許容するか
+  },
+  shortcut: {
+    enabled: true,
+    keys: 'CommandOrControl+Shift+S',
+  },
+  camera: {
+    id: 'default',
+  },
+  pomodoro: {
+    work: 25,
+    shortBreak: 5,
+    longBreak: 15,
+    sessions: 4,
+  },
+  startup: {
+    runOnStartup: false,
+    startMinimized: false,
+  },
+};
+
+
+const getSettings = () => {
+  try {
+    if (fs.existsSync(settingsPath)) {
+      const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+      // デフォルト設定とマージして、新しい設定項目を補完する
+      return { ...defaultSettings, ...settings };
+    }
+  } catch (error) {
+    console.error('Failed to read settings, using default:', error);
+  }
+  return defaultSettings;
+};
+
+const saveSettings = (settings: any) => {
+  try {
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
+  } catch (error) {
+    console.error('Failed to save settings:', error);
+  }
+};
+
+ipcMain.handle('get-settings', () => {
+  return getSettings();
+});
+
+ipcMain.handle('save-settings', (event, settings) => {
+  saveSettings(settings);
+});
+
+// 通知のON/OFF切り替え（トレイ画面から呼ばれる）
+ipcMain.on('toggle-notifications', (event, enabled: boolean) => {
+  const currentSettings = getSettings();
+  currentSettings.notification.all = enabled;
+  saveSettings(currentSettings);
+  
+  console.log(`[Tray] Notification toggled: ${enabled}`);
+  
+  // メインウィンドウに設定変更を知らせる
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('settings-updated', currentSettings);
+  }
+});
+
+ipcMain.on('quit-app', () => {
+  app.quit();
 });
