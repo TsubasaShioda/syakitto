@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "syakitto",
   description: "リアルタイム姿勢チェッカー",
+  icons: {
+    icon: "/icons/syakitto_w_trans.png",
+  },
 };
 
 export default function RootLayout({

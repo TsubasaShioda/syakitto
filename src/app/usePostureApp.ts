@@ -1,8 +1,7 @@
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect } from "react";
 import { usePoseDetection } from "./usePoseDetection";
 import { useNotification } from "./useNotification";
 import { DEFAULT_SETTINGS } from "./settings";
-import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 
 export const usePostureApp = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -24,7 +23,7 @@ export const usePostureApp = () => {
     }
   }, []);
 
-  const handleWelcomePopupClose = useCallback(() => {
+  const handleWelcomePopupClose = () => {
     setIsWelcomeOpenState(false);
     localStorage.setItem('hasSeenWelcomePopup', 'true');
 
@@ -32,12 +31,12 @@ export const usePostureApp = () => {
     if (!hasSeenNotificationSettingsPopup) {
       setIsNotificationSettingsOpenState(true);
     }
-  }, []);
+  };
 
-  const handleNotificationSettingsPopupClose = useCallback(() => {
+  const handleNotificationSettingsPopupClose = () => {
     setIsNotificationSettingsOpenState(false);
     localStorage.setItem('hasSeenNotificationSettingsPopup', 'true');
-  }, []);
+  };
 
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [calibrationTimestamp, setCalibrationTimestamp] = useState<Date | null>(null);
@@ -60,7 +59,7 @@ export const usePostureApp = () => {
           stopCamera();
         } catch (e) {
           console.error('[Renderer] Error during cleanup:', e);
-        }
+        } 
         window.electron?.cleanupComplete();
       };
       window.electron.onBeforeQuit(handleBeforeQuit);
@@ -81,91 +80,18 @@ export const usePostureApp = () => {
     animationType,
   });
 
-  const handleCalibrate = useCallback(async () => {
+  const handleCalibrate = async () => {
     setIsCalibrating(true);
     await calibrate();
     setCalibrationTimestamp(new Date());
     setIsCalibrating(false);
-  }, [calibrate]);
+  };
 
   const handleDownload = () => {
     if (window.confirm('macOS版インストーラーをダウンロードしますか？')) {
       window.location.href = 'https://github.com/TsubasaShioda/syakitto/releases/download/v0.2.4/syakitto-0.2.4-arm64.dmg';
     }
   };
-
-  // ショートカットハンドラー
-  const handleShortcut = useCallback((action: string) => {
-    // モーダルが開いている場合はEscのみ処理
-    const hasModalOpen = isWelcomeOpen || isNotificationSettingsOpen || isShortcutHelpOpen || isPostureSettingsOpen || isNotificationHelpOpen;
-
-    if (hasModalOpen && action !== 'CLOSE_MODAL') {
-      return;
-    }
-
-    switch (action) {
-      case 'SHOW_SHORTCUTS':
-        setIsShortcutHelpOpen(true);
-        break;
-
-      case 'CLOSE_MODAL':
-        // 開いているモーダルを閉じる（優先順位順）
-        if (isShortcutHelpOpen) {
-          setIsShortcutHelpOpen(false);
-        } else if (isPostureSettingsOpen) {
-          setIsPostureSettingsOpen(false);
-        } else if (isNotificationHelpOpen) {
-          setIsNotificationHelpOpen(false);
-        } else if (isWelcomeOpen) {
-          handleWelcomePopupClose();
-        } else if (isNotificationSettingsOpen) {
-          handleNotificationSettingsPopupClose();
-        }
-        break;
-
-      case 'TOGGLE_SLOUCH_DETECTION':
-        setIsSlouchDetectionEnabled(prev => !prev);
-        break;
-
-      case 'TOGGLE_CAMERA':
-        setIsCameraViewVisible(prev => !prev);
-        break;
-
-      case 'TOGGLE_PAUSE':
-        setIsPaused(prev => !prev);
-        break;
-
-      case 'CALIBRATE':
-        handleCalibrate();
-        break;
-
-      case 'OPEN_NOTIFICATION_SETTINGS':
-        setIsNotificationHelpOpen(true);
-        break;
-
-      case 'OPEN_SETTINGS':
-        setIsPostureSettingsOpen(true);
-        break;
-
-      default:
-        break;
-    }
-  }, [
-    isWelcomeOpen,
-    isNotificationSettingsOpen,
-    isShortcutHelpOpen,
-    isPostureSettingsOpen,
-    isNotificationHelpOpen,
-    handleWelcomePopupClose,
-    handleNotificationSettingsPopupClose,
-    handleCalibrate,
-  ]);
-
-  // ショートカットキーを有効化
-  useKeyboardShortcuts(handleShortcut, {
-    enabled: true,
-    ignoreInputs: true
-  });
 
   // Dimmerアニメーションのスコア更新専用Effect
   useEffect(() => {

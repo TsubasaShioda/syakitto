@@ -114,7 +114,21 @@ app.whenReady().then(() => {
   });
   
   ipcMain.on('show-notification', (event, options) => {
-    new Notification(options).show();
+    let iconPath: string | undefined = undefined;
+    if (options.icon) {
+      const publicPath = app.isPackaged 
+        ? path.join(process.resourcesPath, 'public')
+        : path.join(__dirname, '..', '..', 'public');
+      const resolvedPath = path.join(publicPath, options.icon);
+
+      if (fs.existsSync(resolvedPath)) {
+        iconPath = resolvedPath;
+      } else {
+        logToFile(`[WARN] Notification icon not found at: ${resolvedPath}`);
+      }
+    }
+
+    new Notification({ ...options, icon: iconPath }).show();
   });
 
   // タイマーウィンドウの表示
