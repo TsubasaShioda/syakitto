@@ -59,3 +59,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   closeTimerWindow: () => ipcRenderer.send('close-timer-window'),
 });
+
+// メニューバートレイ用のAPI
+contextBridge.exposeInMainWorld('trayAPI', {
+  getSettings: () => ipcRenderer.invoke('get-settings'),
+  // 通知切り替え（単純なON/OFF送信に変更）
+  toggleNotifications: (enabled: boolean) => ipcRenderer.send('toggle-notifications', enabled),
+  // アプリ終了
+  quitApp: () => ipcRenderer.send('quit-app'),
+  // ★重要：スコアの更新を受け取るリスナー
+  onUpdatePostureScore: (callback: (score: number) => void) => {
+    const listener = (_event: any, score: number) => callback(score);
+    ipcRenderer.on('update-posture-score', listener);
+    // クリーンアップ用に関数を返す
+    return () => ipcRenderer.removeListener('update-posture-score', listener);
+  },
+});
