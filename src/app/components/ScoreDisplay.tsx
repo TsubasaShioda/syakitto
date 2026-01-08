@@ -1,8 +1,7 @@
 "use client";
 import ToggleSwitch from "./ToggleSwitch";
 import InfoButton from "./InfoButton";
-import { Settings } from "@/app/settings";
-import PostureSettings from "./PostureSettings";
+
 
 interface ScoreDisplayProps {
   slouchScore: number;
@@ -10,7 +9,6 @@ interface ScoreDisplayProps {
   onToggleSlouch: () => void;
   onInfoClick: () => void;
   onSettingsClick: () => void;
-  settings: Settings;
 }
 
 const ScoreDisplay = ({
@@ -19,7 +17,6 @@ const ScoreDisplay = ({
   onToggleSlouch,
   onInfoClick,
   onSettingsClick,
-  settings,
 }: ScoreDisplayProps) => {
 
   const getScoreColor = (score: number) => {
