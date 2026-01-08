@@ -33,44 +33,32 @@ const PomodoroTimer = () => {
   const [pomodoroCount, setPomodoroCount] = useState(0);
   const [notificationType, setNotificationType] = useState<NotificationType>('desktop');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isElectron, setIsElectron] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.electron) {
-      setIsElectron(true);
+  const [isElectron] = useState(() => {
+    if (typeof window === 'undefined') {
+      return false;
     }
-  }, []);
+    return !!window.electron;
+  });
 
   // Update timer only when settings are saved or session type changes
-  useEffect(() => {
-    if (isActive) return;
-    switch (sessionType) {
-      case '作業':
-        setTimeLeft(pomodoroWork * 60);
-        break;
-      case '短い休憩':
-        setTimeLeft(pomodoroShortBreak * 60);
-        break;
-      case '長い休憩':
-        setTimeLeft(pomodoroLongBreak * 60);
-        break;
-    }
-  }, [pomodoroWork, pomodoroShortBreak, pomodoroLongBreak, sessionType, isActive]);
 
-  useEffect(() => {
-    if (notificationType === 'desktop' && !(typeof window !== 'undefined' && window.electron?.showNotification)) {
-      if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-        Notification.requestPermission();
-      }
-    }
-  }, [notificationType]);
+
 
   const sendNotification = useCallback((message: string) => {
     if (notificationType === 'desktop') {
       if (typeof window !== 'undefined' && window.electron?.showNotification) {
         window.electron.showNotification({ title: "ポモドーロタイマー", body: message, silent: true });
-      } else if (Notification.permission === 'granted') {
-        new Notification("ポモドーロタイマー", { body: message, silent: true });
+      } else { // Web browser environment
+        // パーミッションがdefaultの場合のみ要求し、その後通知
+        if (Notification.permission === 'default') {
+          Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+              new Notification("ポモドーロタイマー", { body: message, silent: true });
+            }
+          });
+        } else if (Notification.permission === 'granted') {
+          new Notification("ポモドーロタイマー", { body: message, silent: true });
+        }
       }
     } else if (notificationType === 'voice') {
       const utterance = new SpeechSynthesisUtterance(message);

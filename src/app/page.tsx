@@ -34,27 +34,6 @@ const SlouchInfo = () => (
   </div>
 );
 
-const NotificationHelpPreamble = () => (
-  <div className="text-sm text-gray-700 bg-gray-100 p-4 rounded-xl mb-4 border border-gray-200">
-    <p className="mb-2">
-      デスクトップ通知は、<strong>① Webサイト（Syakitto）への許可</strong>と、<strong>② OS（お使いのPC）での許可</strong>の2段階で設定されている場合があります。
-    </p>
-    <p>通知が届かない場合は、両方の設定が許可されているかご確認ください。</p>
-  </div>
-);
-
-const OsOnlyInstructions = ({ additionalMessage }: { additionalMessage?: string }) => (
-  <div className="mb-6 max-h-48 overflow-y-auto p-1">
-    <AdvancedNotificationSettings
-      isOpen={true}
-      onClose={() => {}}
-      showBrowserInstructions={false}
-      showOsInstructions={true}
-      additionalMessage={additionalMessage}
-      title="OSの通知設定を確認してください"
-    />
-  </div>
-);
 
 export default function Home() {
   const [infoModalContent, setInfoModalContent] = useState<{ title: string; content: React.ReactNode } | null>(null);
@@ -70,7 +49,7 @@ export default function Home() {
     isPaused,
     setIsPaused,
     isSlouchDetectionEnabled,
-    setIsSlouchDetectionEnabled,
+    setSlouchDetectionEnabled,
     settings,
     setSettings,
     isElectron,
@@ -82,8 +61,6 @@ export default function Home() {
     setIsShortcutHelpOpen,
     isPostureSettingsOpen,
     setIsPostureSettingsOpen,
-    isNotificationHelpOpen,
-    setIsNotificationHelpOpen,
     isCalibrating,
     calibrationTimestamp,
     slouchScore,
@@ -126,6 +103,14 @@ export default function Home() {
       setIsAdvancedNotificationModalOpen(true);
     } else {
       setNotificationType(type);
+    }
+  };
+
+  const startNotificationFlowFromSettings = () => {
+    if (typeof Notification !== 'undefined') {
+      setPreviousNotificationType(notificationType);
+      setIsRecheckingPermission(false);
+      setIsAdvancedNotificationModalOpen(true);
     }
   };
 
@@ -179,9 +164,8 @@ export default function Home() {
               <ScoreDisplay
                 slouchScore={slouchScore}
                 isSlouchDetectionEnabled={isSlouchDetectionEnabled}
-                onToggleSlouch={() => setIsSlouchDetectionEnabled(!isSlouchDetectionEnabled)}
+                onToggleSlouch={() => setSlouchDetectionEnabled(!isSlouchDetectionEnabled)}
                 onInfoClick={handleSlouchInfoOpen}
-                settings={settings}
                 onSettingsClick={() => setIsPostureSettingsOpen(true)}
               />
             ) : (
@@ -207,7 +191,7 @@ export default function Home() {
               SOUND_OPTIONS={SOUND_OPTIONS}
               animationType={animationType}
               setAnimationType={setAnimationType}
-              onHelpClick={() => setIsNotificationHelpOpen(true)}
+              onOpenAdvancedSettings={startNotificationFlowFromSettings}
             />
             <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-4 shadow-sm border border-[#c9b8a8]/30">
               <p className="text-sm text-gray-600 flex items-center gap-2">
@@ -272,13 +256,6 @@ export default function Home() {
         title="ブラウザの通知設定を確認してください"
       />
       
-      <AdvancedNotificationSettings 
-        isOpen={isNotificationHelpOpen}
-        onClose={() => setIsNotificationHelpOpen(false)}
-        preamble={<NotificationHelpPreamble />}
-        title="通知設定のヘルプ"
-      />
-
       <DownloadModal isOpen={isDownloadModalOpen} onClose={() => setIsDownloadModalOpen(false)} onDownload={handleDownload} />
 
       {/* ショートカット機能 */}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 interface WelcomePopupProps {
   isOpen: boolean;
@@ -50,7 +51,7 @@ const WelcomePopup = ({ isOpen, onClose }: WelcomePopupProps) => {
         </h2>
         {pages[page].image && (
           <div className="my-4">
-            <img src={pages[page].image} alt={pages[page].title} className="w-full h-48 object-contain" />
+            <Image src={pages[page].image} alt={pages[page].title} width={500} height={300} className="w-full h-48 object-contain" />
           </div>
         )}
         <p className="text-gray-700 leading-relaxed" style={{ minHeight: '8rem' }}>
@@ -101,3 +102,4 @@ const WelcomePopup = ({ isOpen, onClose }: WelcomePopupProps) => {
 };
 
 export default WelcomePopup;
+

@@ -26,6 +26,7 @@ interface UsePoseDetectionReturn {
   calibrate: () => void;
   scoreHistory: ScoreHistory[];
   stopCamera: () => void; // カメラを手動で停止する関数
+  resetState: () => void; // 状態をリセットする関数
 }
 
 // 距離を計算するヘルパー関数
@@ -45,6 +46,11 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled, isEna
   const streamRef = useRef<MediaStream | null>(null); // ビデオストリームの参照を保持
 
   const isCalibrated = calibratedPose !== null;
+
+  const resetState = useCallback(() => {
+    setSlouchScore(0);
+    smoothingHistory.current = [];
+  }, []);
 
   // --- 初期化 ---
   useEffect(() => {
@@ -233,14 +239,7 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled, isEna
     }
   }, [isPaused, poseDetector, faceDetector, isCameraReady, videoRef, calculateSlouchScore, isRecordingEnabled]);
 
-  // --- isEnabledチェック ---
-  useEffect(() => {
-    if (!isEnabled) {
-      setSlouchScore(0);
-      smoothingHistory.current = [];
-      return;
-    }
-  }, [isEnabled]);
+
 
   // --- メインプロセスからのタイマー制御 ---
   useEffect(() => {
@@ -271,5 +270,5 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled, isEna
     }
   }, [isEnabled, isPaused, poseDetector, faceDetector, isCameraReady, analyze]);
 
-  return { slouchScore, isCameraReady, isCalibrated, calibrate, scoreHistory, stopCamera };
+  return { slouchScore, isCameraReady, isCalibrated, calibrate, scoreHistory, stopCamera, resetState };
 };
