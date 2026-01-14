@@ -40,13 +40,11 @@ export const usePostureApp = () => {
 
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [calibrationTimestamp, setCalibrationTimestamp] = useState<Date | null>(null);
-  const [isRecordingEnabled, setIsRecordingEnabled] = useState(false);
   const [isCameraViewVisible, setIsCameraViewVisible] = useState(true);
 
-  const { slouchScore, isCalibrated, calibrate, scoreHistory, stopCamera } = usePoseDetection({
+  const { slouchScore, isCalibrated, calibrate, stopCamera } = usePoseDetection({
     videoRef,
     isPaused,
-    isRecordingEnabled,
     isEnabled: isSlouchDetectionEnabled,
   });
 
@@ -138,14 +136,11 @@ export const usePostureApp = () => {
     setIsNotificationHelpOpen,
     isCalibrating,
     calibrationTimestamp,
-    isRecordingEnabled,
-    setIsRecordingEnabled,
     isCameraViewVisible,
     setIsCameraViewVisible,
     slouchScore,
     isCalibrated,
     calibrate: handleCalibrate,
-    scoreHistory,
     notificationType,
     setNotificationType,
     notificationSound,

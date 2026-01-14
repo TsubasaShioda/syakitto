@@ -4,17 +4,10 @@ import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detec
 import * as tf from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
 
-// スコア履歴の型定義
-export interface ScoreHistory {
-  time: number;
-  score: number;
-}
-
 // このフックが受け取る引数の型定義
 interface UsePoseDetectionProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
   isPaused: boolean;
-  isRecordingEnabled: boolean;
   isEnabled: boolean;
 }
 
@@ -24,7 +17,6 @@ interface UsePoseDetectionReturn {
   isCameraReady: boolean;
   isCalibrated: boolean;
   calibrate: () => void;
-  scoreHistory: ScoreHistory[];
   stopCamera: () => void; // カメラを手動で停止する関数
 }
 
@@ -33,7 +25,7 @@ const euclideanDist = (p1: { x: number; y: number }, p2: { x: number; y: number 
   return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
 };
 
-export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled, isEnabled }: UsePoseDetectionProps): UsePoseDetectionReturn => {
+export const usePoseDetection = ({ videoRef, isPaused, isEnabled }: UsePoseDetectionProps): UsePoseDetectionReturn => {
   const [poseDetector, setPoseDetector] = useState<poseDetection.PoseDetector | null>(null);
   const [faceDetector, setFaceDetector] = useState<faceLandmarksDetection.FaceLandmarksDetector | null>(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
@@ -41,7 +33,6 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled, isEna
   const [calibratedPose, setCalibratedPose] = useState<poseDetection.Keypoint[] | null>(null);
   const [calibratedFaceSize, setCalibratedFaceSize] = useState<number | null>(null);
   const smoothingHistory = useRef<number[]>([]);
-  const [scoreHistory, setScoreHistory] = useState<ScoreHistory[]>([]);
   const streamRef = useRef<MediaStream | null>(null); // ビデオストリームの参照を保持
 
   const isCalibrated = calibratedPose !== null;
@@ -221,17 +212,12 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled, isEna
           if (window.electron) {
             window.electron.updatePostureScore(avgScore);
           }
-
-          // スコアを履歴に追加
-          if (isRecordingEnabled) {
-            setScoreHistory(prevHistory => [...prevHistory, { time: Date.now(), score: avgScore }]);
-          }
         }
       }
     } catch (e) {
       console.error('[Posture Detection] Error during analysis:', e);
     }
-  }, [isPaused, poseDetector, faceDetector, isCameraReady, videoRef, calculateSlouchScore, isRecordingEnabled]);
+  }, [isPaused, poseDetector, faceDetector, isCameraReady, videoRef, calculateSlouchScore]);
 
   // --- isEnabledチェック ---
   useEffect(() => {
@@ -271,5 +257,5 @@ export const usePoseDetection = ({ videoRef, isPaused, isRecordingEnabled, isEna
     }
   }, [isEnabled, isPaused, poseDetector, faceDetector, isCameraReady, analyze]);
 
-  return { slouchScore, isCameraReady, isCalibrated, calibrate, scoreHistory, stopCamera };
+  return { slouchScore, isCameraReady, isCalibrated, calibrate, stopCamera };
 };
