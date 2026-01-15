@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 
 // Renderer プロセスから安全に使える API を公開
 contextBridge.exposeInMainWorld('electron', {
@@ -69,7 +69,7 @@ contextBridge.exposeInMainWorld('trayAPI', {
   quitApp: () => ipcRenderer.send('quit-app'),
   // ★重要：スコアの更新を受け取るリスナー
   onUpdatePostureScore: (callback: (score: number) => void) => {
-    const listener = (_event: any, score: number) => callback(score);
+    const listener = (_event: IpcRendererEvent, score: number) => callback(score);
     ipcRenderer.on('update-posture-score', listener);
     // クリーンアップ用に関数を返す
     return () => ipcRenderer.removeListener('update-posture-score', listener);

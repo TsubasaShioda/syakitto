@@ -502,7 +502,7 @@ const defaultSettings = {
 };
 
 
-const getSettings = () => {
+const getSettings = (): typeof defaultSettings => {
   try {
     if (fs.existsSync(settingsPath)) {
       const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
@@ -515,7 +515,7 @@ const getSettings = () => {
   return defaultSettings;
 };
 
-const saveSettings = (settings: any) => {
+const saveSettings = (settings: typeof defaultSettings) => {
   try {
     fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
   } catch (error) {
