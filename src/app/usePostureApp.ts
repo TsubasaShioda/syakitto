@@ -17,7 +17,6 @@ export const usePostureApp = () => {
     }
     return !localStorage.getItem('hasSeenWelcomePopup');
   });
-  const [isNotificationSettingsOpen, setIsNotificationSettingsOpenState] = useState(false);
   const [isShortcutHelpOpen, setIsShortcutHelpOpen] = useState(false);
   const [isPostureSettingsOpen, setIsPostureSettingsOpen] = useState(false);
   const [isNotificationHelpOpen, setIsNotificationHelpOpen] = useState(false);
@@ -27,16 +26,6 @@ export const usePostureApp = () => {
   const handleWelcomePopupClose = () => {
     setIsWelcomeOpenState(false);
     localStorage.setItem('hasSeenWelcomePopup', 'true');
-
-    const hasSeenNotificationSettingsPopup = localStorage.getItem('hasSeenNotificationSettingsPopup');
-    if (!hasSeenNotificationSettingsPopup) {
-      setIsNotificationSettingsOpenState(true);
-    }
-  };
-
-  const handleNotificationSettingsPopupClose = () => {
-    setIsNotificationSettingsOpenState(false);
-    localStorage.setItem('hasSeenNotificationSettingsPopup', 'true');
   };
 
   const [isCalibrating, setIsCalibrating] = useState(false);
@@ -134,8 +123,6 @@ export const usePostureApp = () => {
     isElectron,
     isWelcomeOpen,
     handleWelcomePopupClose,
-    isNotificationSettingsOpen,
-    handleNotificationSettingsPopupClose,
     isShortcutHelpOpen,
     setIsShortcutHelpOpen,
     isPostureSettingsOpen,
