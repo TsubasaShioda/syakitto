@@ -1,45 +1,29 @@
 // useNotification.ts
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { Settings } from '@/electron-api.d';
 
 interface UseNotificationProps {
   slouchScore: number;
   isPaused: boolean;
-  settings: {
-    threshold: number;
-    delay: number;
-    reNotificationMode: 'cooldown' | 'continuous';
-    cooldownTime: number;
-    continuousInterval: number;
-  };
+  settings: Settings;
+  notificationType: string;
+  notificationSound: string;
   animationType: string;
 }
 
-interface UseNotificationReturn {
-  notificationType: string;
-  setNotificationType: React.Dispatch<React.SetStateAction<string>>;
-  notificationSound: string;
-  setNotificationSound: (sound: string) => void;
-  isContinuouslyNotifying: boolean;
-  SOUND_OPTIONS: { value: string; label: string }[];
-}
-
-export const useNotification = ({ slouchScore, isPaused, settings, animationType }: UseNotificationProps): UseNotificationReturn => {
+export const useNotification = ({ 
+  slouchScore, 
+  isPaused, 
+  settings, 
+  notificationType, 
+  notificationSound, 
+  animationType 
+}: UseNotificationProps) => {
   const notificationTimer = useRef<NodeJS.Timeout | null>(null);
   const [lastNotificationTime, setLastNotificationTime] = useState(0);
-  const [notificationType, setNotificationType] = useState('voice');
-  const [notificationSound, setNotificationSound] = useState("voice");
   const [isContinuouslyNotifying, setIsContinuouslyNotifying] = useState(false);
 
   const originalTitleRef = useRef<string | null>(null);
-
-  const SOUND_OPTIONS = [
-    { value: "voice", label: "音声" },
-    { value: "Syakiin01.mp3", label: "シャキッ！！" },
-    { value: "knock01.mp3", label: "コンコン" },
-    { value: "monster-snore01.mp3", label: "いびき" },
-    { value: "page06.mp3", label: "ペラっ" },
-    { value: "shutter01.mp3", label: "シャッター音" },
-  ];
 
   // 初期タイトルを保存
   useEffect(() => {
@@ -121,7 +105,7 @@ export const useNotification = ({ slouchScore, isPaused, settings, animationType
   // --- 猫背通知トリガー ---
   useEffect(() => {
     if (isPaused) return;
-    const { threshold, delay, reNotificationMode, cooldownTime } = settings;
+    const { slouch: threshold, duration: delay, reNotificationMode, cooldownTime } = settings.threshold;
     const now = Date.now();
 
     const isSlouchingNow = slouchScore > threshold;
@@ -165,19 +149,10 @@ export const useNotification = ({ slouchScore, isPaused, settings, animationType
     const interval = setInterval(() => {
       triggerNotification("猫背になっています。姿勢を直してください。", true);
       setLastNotificationTime(Date.now());
-    }, settings.continuousInterval * 1000);
+    }, settings.threshold.continuousInterval * 1000);
 
     return () => {
       clearInterval(interval);
     };
-  }, [isContinuouslyNotifying, settings.continuousInterval, triggerNotification, isPaused]);
-
-  return {
-    notificationType,
-    setNotificationType,
-    notificationSound,
-    setNotificationSound,
-    isContinuouslyNotifying,
-    SOUND_OPTIONS,
-  };
+  }, [isContinuouslyNotifying, settings.threshold.continuousInterval, triggerNotification, isPaused]);
 };

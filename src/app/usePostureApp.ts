@@ -1,35 +1,110 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { usePoseDetection } from "./usePoseDetection";
 import { useNotification } from "./useNotification";
-import { DEFAULT_SETTINGS } from "./settings";
+import { Settings } from "@/electron-api.d";
+
+const initialSettings: Settings = {
+  notification: {
+    all: true,
+    sound: true,
+    soundVolume: 0.5,
+    soundFile: 'Syakiin01.mp3',
+    visual: true,
+    visualType: 'cat_hand',
+    pomodoro: true,
+    type: 'desktop',
+  },
+  threshold: {
+    slouch: 60,
+    duration: 10,
+    reNotificationMode: 'cooldown',
+    cooldownTime: 5,
+    continuousInterval: 10,
+  },
+  drowsiness: {
+    earThreshold: 0.2,
+    timeThreshold: 2,
+  },
+  shortcut: {
+    enabled: true,
+    keys: 'CommandOrControl+Shift+S',
+  },
+  camera: {
+    id: 'default',
+  },
+  pomodoro: {
+    work: 25,
+    shortBreak: 5,
+    longBreak: 15,
+    sessions: 4,
+  },
+  startup: {
+    runOnStartup: false,
+    startMinimized: false,
+  },
+};
 
 export const usePostureApp = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [isSlouchDetectionEnabled, setIsSlouchDetectionEnabled] = useState(true);
-  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [settings, setSettingsState] = useState<Settings>(initialSettings);
   const [isElectron, setIsElectron] = useState(false);
-  const [animationType, setAnimationType] = useState('toggle'); // 'toggle', 'cat_hand', 'noise', 'dimmer'
+  const [animationType, setAnimationType] = useState('toggle');
+  
   const [isWelcomeOpen, setIsWelcomeOpenState] = useState(() => {
-    // For SSR safety
-    if (typeof window === 'undefined') {
-      return false;
-    }
+    if (typeof window === 'undefined') return false;
     return !localStorage.getItem('hasSeenWelcomePopup');
   });
   const [isNotificationSettingsOpen, setIsNotificationSettingsOpenState] = useState(false);
   const [isShortcutHelpOpen, setIsShortcutHelpOpen] = useState(false);
   const [isPostureSettingsOpen, setIsPostureSettingsOpen] = useState(false);
-  const [isNotificationHelpOpen, setIsNotificationHelpOpen] = useState(false);
 
+  useEffect(() => {
+    const checkIsElectron = async () => {
+      const electron = window.electron;
+      if (electron?.isElectron) {
+        setIsElectron(true);
+        const loadedSettings = await electron.getSettings();
+        setSettingsState(prev => ({...prev, ...loadedSettings}));
+      }
+    };
+    checkIsElectron();
+  }, []);
+
+  const setSettings = useCallback((newSettings: Partial<Settings>) => {
+    setSettingsState(prevSettings => {
+      const updatedSettings = { ...prevSettings, ...newSettings };
+      if (isElectron) {
+        window.electron.saveSettings(updatedSettings);
+      }
+      return updatedSettings;
+    });
+  }, [isElectron]);
+
+  const setNotificationType = useCallback((type: string) => {
+    setSettings({
+      notification: {
+        ...settings.notification,
+        type: type as Settings['notification']['type'],
+      },
+    });
+  }, [settings.notification, setSettings]);
+  
+  const setNotificationSound = useCallback((soundFile: string) => {
+    setSettings({
+      notification: {
+        ...settings.notification,
+        soundFile: soundFile,
+      },
+    });
+  }, [settings.notification, setSettings]);
 
 
   const handleWelcomePopupClose = () => {
     setIsWelcomeOpenState(false);
     localStorage.setItem('hasSeenWelcomePopup', 'true');
-
-    const hasSeenNotificationSettingsPopup = localStorage.getItem('hasSeenNotificationSettingsPopup');
-    if (!hasSeenNotificationSettingsPopup) {
+    if (!localStorage.getItem('hasSeenNotificationSettingsPopup')) {
       setIsNotificationSettingsOpenState(true);
     }
   };
@@ -49,7 +124,7 @@ export const usePostureApp = () => {
     isEnabled: isSlouchDetectionEnabled,
   });
 
-  const setSlouchDetectionEnabled = useCallback((enabled: boolean) => {
+  const setSlouchDetectionEnabledWithReset = useCallback((enabled: boolean) => {
     setIsSlouchDetectionEnabled(enabled);
     if (!enabled) {
       resetPoseState();
@@ -57,34 +132,36 @@ export const usePostureApp = () => {
   }, [resetPoseState]);
 
   useEffect(() => {
-    if (window.electron?.isElectron) {
-      setIsElectron(true);
+    if (isElectron) {
       const handleBeforeQuit = () => {
         try {
-          setSlouchDetectionEnabled(false);
+          setSlouchDetectionEnabledWithReset(false);
           stopCamera();
         } catch (e) {
           console.error('[Renderer] Error during cleanup:', e);
-        } 
+        }
         window.electron?.cleanupComplete();
       };
       window.electron.onBeforeQuit(handleBeforeQuit);
       return () => window.electron?.removeOnBeforeQuit();
     }
-  }, [isElectron, stopCamera, resetPoseState, setSlouchDetectionEnabled]);
+  }, [isElectron, stopCamera, resetPoseState, setSlouchDetectionEnabledWithReset]);
 
-  const {
-    notificationType,
-    setNotificationType,
-    notificationSound,
-    setNotificationSound,
-    SOUND_OPTIONS,
-  } = useNotification({
+  useNotification({
     slouchScore,
     isPaused,
     settings,
+    notificationType: settings.notification.type,
+    notificationSound: settings.notification.soundFile,
     animationType,
   });
+  
+  const SOUND_OPTIONS = [
+    { value: 'Syakiin01.mp3', label: 'シャキーン' },
+    { value: 'knock01.mp3', label: 'ノック' },
+    { value: 'monster-snore01.mp3', label: 'いびき' },
+    { value: 'page06.mp3', label: 'ページをめくる音' },
+  ];
 
   const handleCalibrate = async () => {
     setIsCalibrating(true);
@@ -99,23 +176,17 @@ export const usePostureApp = () => {
     }
   };
 
-  // Dimmerアニメーションのスコア更新専用Effect
   useEffect(() => {
     if (isElectron && animationType === 'dimmer') {
       window.electron.requestDimmerUpdate(slouchScore);
     }
   }, [slouchScore, animationType, isElectron]);
 
-  // Dimmerアニメーションの有効/無効化とアンマウント時のクリーンアップEffect
   useEffect(() => {
     if (!isElectron) return;
-
-    // animationTypeが 'dimmer' でなくなった場合にウィンドウを閉じる
     if (animationType !== 'dimmer') {
       window.electron.requestDimmerUpdate(0);
     }
-
-    // コンポーネントがアンマウントされる際のクリーンアップ
     return () => {
       if (window.electron) {
         window.electron.requestDimmerUpdate(0);
@@ -128,7 +199,7 @@ export const usePostureApp = () => {
     isPaused,
     setIsPaused,
     isSlouchDetectionEnabled,
-    setSlouchDetectionEnabled,
+    setSlouchDetectionEnabled: setSlouchDetectionEnabledWithReset,
     settings,
     setSettings,
     isElectron,
@@ -140,8 +211,6 @@ export const usePostureApp = () => {
     setIsShortcutHelpOpen,
     isPostureSettingsOpen,
     setIsPostureSettingsOpen,
-    isNotificationHelpOpen,
-    setIsNotificationHelpOpen,
     isCalibrating,
     calibrationTimestamp,
     isCameraViewVisible,
@@ -149,9 +218,9 @@ export const usePostureApp = () => {
     slouchScore,
     isCalibrated,
     calibrate: handleCalibrate,
-    notificationType,
+    notificationType: settings.notification.type,
     setNotificationType,
-    notificationSound,
+    notificationSound: settings.notification.soundFile,
     setNotificationSound,
     SOUND_OPTIONS,
     handleDownload,
