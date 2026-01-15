@@ -65,7 +65,7 @@ const NotificationSelector = ({
       description: "デスクトップ通知を表示",
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454 -1.31 A8.967 8.967 0 0 1 18 9.75v-.7V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1 -2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1 -5.714 0m5.714 0a3 3 0 1 1 -5.714 0" />
         </svg>
       ),
     },
@@ -91,7 +91,7 @@ const NotificationSelector = ({
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold text-gray-700 flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6 text-[#5a8f7b]">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454 -1.31 A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1 -2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1 -5.714 0m5.714 0a3 3 0 1 1 -5.714 0" />
           </svg>
           通知タイプ
         </h2>
@@ -125,7 +125,7 @@ const NotificationSelector = ({
               </div>
               <div className="flex-1 text-left">
                 <p className="font-semibold text-gray-700 text-sm">{option.label}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{option.description}</p>
+                <p style={{ display: 'block', fontSize: '0.75rem', color: '#6B7280', marginTop: '0.125rem' }}>{option.description}</p>
               </div>
               {notificationType === option.value && (
                 <div className="flex-shrink-0">

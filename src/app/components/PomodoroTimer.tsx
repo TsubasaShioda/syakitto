@@ -33,12 +33,11 @@ const PomodoroTimer = () => {
   const [pomodoroCount, setPomodoroCount] = useState(0);
   const [notificationType, setNotificationType] = useState<NotificationType>('desktop');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isElectron] = useState(() => {
-    if (typeof window === 'undefined') {
-      return false;
-    }
-    return !!window.electron;
-  });
+  const [isElectron, setIsElectron] = useState(false);
+
+  useEffect(() => {
+    setIsElectron(typeof window !== 'undefined' && !!window.electron);
+  }, []);
 
   // Update timer only when settings are saved or session type changes
 
