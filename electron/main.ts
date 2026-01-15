@@ -236,12 +236,15 @@ app.whenReady().then(() => {
 
   // アニメーション通知用のIPCイベントハンドラ（旧toggleから変更）
   ipcMain.on('show-animation-notification', () => {
+    const settings = getSettings();
+    const pos = settings.animationWindowPositions?.toggle;
     const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+
     const animationWindow = new BrowserWindow({
       width: 280,
       height: 280,
-      x: width - 280,
-      y: 10,
+      x: pos?.x ?? width - 280,
+      y: pos?.y ?? 10,
       transparent: true,
       frame: false,
       alwaysOnTop: true,
@@ -251,7 +254,7 @@ app.whenReady().then(() => {
       acceptFirstMouse: false,
       minimizable: false,
       maximizable: false,
-      closable: false,
+      closable: true,
       resizable: false,
       ...(process.platform === 'darwin' && {
         type: 'panel',
@@ -260,6 +263,13 @@ app.whenReady().then(() => {
         preload: path.join(__dirname, 'preload.js'),
         devTools: false,
       },
+    });
+
+    animationWindow.on('close', () => {
+      const currentSettings = getSettings();
+      const bounds = animationWindow.getBounds();
+      currentSettings.animationWindowPositions.toggle = { x: bounds.x, y: bounds.y };
+      saveSettings(currentSettings);
     });
 
     const animationPath = path.join(__dirname, 'windows', 'toggle', 'toggle.html');
@@ -274,12 +284,15 @@ app.whenReady().then(() => {
 
   // 猫の手アニメーション通知用のIPCイベントハンドラ
   ipcMain.on('show-cat-hand-notification', () => {
+    const settings = getSettings();
+    const pos = settings.animationWindowPositions?.cat_hand;
     const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+
     const catHandWindow = new BrowserWindow({
       width: 300,
       height: 400,
-      x: width - 300,
-      y: height - 400,
+      x: pos?.x ?? width - 300,
+      y: pos?.y ?? height - 400,
       transparent: true,
       frame: false,
       alwaysOnTop: true,
@@ -289,12 +302,19 @@ app.whenReady().then(() => {
       acceptFirstMouse: false,
       minimizable: false,
       maximizable: false,
-      closable: false,
+      closable: true,
       resizable: false,
       webPreferences: {
         preload: path.join(__dirname, 'preload.js'),
         devTools: false,
       },
+    });
+
+    catHandWindow.on('close', () => {
+      const currentSettings = getSettings();
+      const bounds = catHandWindow.getBounds();
+      currentSettings.animationWindowPositions.cat_hand = { x: bounds.x, y: bounds.y };
+      saveSettings(currentSettings);
     });
 
     const catHandPath = path.join(__dirname, 'windows', 'cat_hand', 'cat_hand.html');
@@ -477,10 +497,18 @@ const defaultSettings = {
     visual: true,
     visualType: 'cat_hand', // 'cat_hand', 'dimmer', 'noise'
     pomodoro: true, // ポモドーロタイマーの通知
+    type: 'desktop', // 'desktop', 'voice', 'animation', 'none'
   },
   threshold: {
     slouch: 60, // 判定のしきい値
     duration: 10, // しきい値越えを何秒許容するか
+    reNotificationMode: 'cooldown',
+    cooldownTime: 5,
+    continuousInterval: 10,
+  },
+  drowsiness: {
+    earThreshold: 0.2,
+    timeThreshold: 2,
   },
   shortcut: {
     enabled: true,
@@ -498,6 +526,10 @@ const defaultSettings = {
   startup: {
     runOnStartup: false,
     startMinimized: false,
+  },
+  animationWindowPositions: {
+    toggle: null as { x: number; y: number } | null,
+    cat_hand: null as { x: number; y: number } | null,
   },
 };
 

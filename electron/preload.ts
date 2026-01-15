@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
+import { Settings } from '@/electron-api.d';
 
 // Renderer プロセスから安全に使える API を公開
 contextBridge.exposeInMainWorld('electron', {
@@ -7,6 +8,10 @@ contextBridge.exposeInMainWorld('electron', {
 
   // アプリがElectron環境で動作しているかの判定用
   isElectron: true,
+
+  // 設定の読み書き
+  getSettings: () => ipcRenderer.invoke('get-settings'),
+  saveSettings: (settings: Partial<Settings>) => ipcRenderer.invoke('save-settings', settings),
 
   // レンダラープロセスからのログをメインプロセスに送信する
   logRenderer: (message: string) => ipcRenderer.send('log-from-renderer', message),
@@ -62,7 +67,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
 // メニューバートレイ用のAPI
 contextBridge.exposeInMainWorld('trayAPI', {
-  getSettings: () => ipcRenderer.invoke('get-settings'),
   // 通知切り替え（単純なON/OFF送信に変更）
   toggleNotifications: (enabled: boolean) => ipcRenderer.send('toggle-notifications', enabled),
   // アプリ終了

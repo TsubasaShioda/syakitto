@@ -2,7 +2,7 @@
 
 import React from 'react';
 import NotificationSettings from './NotificationSettings';
-import { Settings } from '@/app/settings';
+import { Settings } from '@/electron-api.d';
 
 interface NotificationOption {
   value: string;
@@ -16,7 +16,7 @@ interface NotificationSelectorProps {
   setNotificationType: (type: string) => void;
   isElectron: boolean;
   settings: Settings;
-  setSettings: React.Dispatch<React.SetStateAction<Settings>>;
+  setSettings: (settings: Partial<Settings>) => void;
   notificationSound: string;
   setNotificationSound: (sound: string) => void;
   SOUND_OPTIONS: { value: string; label: string }[];
