@@ -42,6 +42,7 @@ const ControlButtons = ({
         </button>
         <button
           onClick={onCalibrate}
+          id="record-good-posture-button"
           className="px-8 py-4 bg-[#a8d5ba] text-white rounded-3xl hover:bg-[#93c9a8] transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none font-semibold flex items-center justify-center gap-3"
           disabled={isCalibrating}
         >

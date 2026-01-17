@@ -52,15 +52,21 @@ export const usePostureApp = () => {
   const [isElectron, setIsElectron] = useState(false);
   const [animationType, setAnimationType] = useState('toggle');
   
-  const [isWelcomeOpen, setIsWelcomeOpenState] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return !localStorage.getItem('hasSeenWelcomePopup');
-  });
+  const [isWelcomeOpen, setIsWelcomeOpenState] = useState(false);
   const [isNotificationSettingsOpen, setIsNotificationSettingsOpenState] = useState(false);
   const [isShortcutHelpOpen, setIsShortcutHelpOpen] = useState(false);
   const [isPostureSettingsOpen, setIsPostureSettingsOpen] = useState(false);
+  
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+  const [tutorialStep, setTutorialStep] = useState(0);
 
   useEffect(() => {
+    // For hydration safety and tutorial logic
+    if (!localStorage.getItem('hasSeenWelcomePopup')) {
+      setIsWelcomeOpenState(true);
+    }
+
+    // For electron settings
     const checkIsElectron = async () => {
       const electron = window.electron;
       if (electron?.isElectron) {
@@ -71,6 +77,20 @@ export const usePostureApp = () => {
     };
     checkIsElectron();
   }, []);
+
+  const startTutorial = () => {
+    setIsTutorialOpen(true);
+    setTutorialStep(1);
+  };
+
+  const nextTutorialStep = () => {
+    setTutorialStep(prev => prev + 1);
+  };
+
+  const closeTutorial = () => {
+    setIsTutorialOpen(false);
+    setTutorialStep(0);
+  };
 
   const setSettings = useCallback((newSettings: Partial<Settings>) => {
     setSettingsState(prevSettings => {
@@ -226,5 +246,10 @@ export const usePostureApp = () => {
     handleDownload,
     animationType,
     setAnimationType,
+    isTutorialOpen,
+    tutorialStep,
+    startTutorial,
+    nextTutorialStep,
+    closeTutorial,
   };
 };
