@@ -1,6 +1,5 @@
 import { BrowserWindow, shell, app } from 'electron';
 import * as path from 'path';
-import * as url from 'url';
 
 export function createMainWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
@@ -22,13 +21,7 @@ export function createMainWindow(): BrowserWindow {
     mainWindow.webContents.openDevTools();
   } else {
     const indexPath = path.join(__dirname, '../../../out/index.html');
-    mainWindow.loadURL(
-      url.format({
-        pathname: indexPath,
-        protocol: 'file:',
-        slashes: true,
-      }),
-    );
+    mainWindow.loadFile(indexPath);
   }
 
   // 外部リンクはブラウザで開く
