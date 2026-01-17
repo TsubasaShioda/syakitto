@@ -20,7 +20,7 @@ export function createMainWindow(): BrowserWindow {
     mainWindow.loadURL('http://localhost:3000');
     mainWindow.webContents.openDevTools();
   } else {
-    const indexPath = path.join(__dirname, '../../../out/index.html');
+    const indexPath = path.join(app.getAppPath(), 'out/index.html');
     mainWindow.loadFile(indexPath);
   }
 
