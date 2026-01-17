@@ -10,18 +10,34 @@ export const usePostureApp = () => {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [isElectron, setIsElectron] = useState(false);
   const [animationType, setAnimationType] = useState('toggle'); // 'toggle', 'cat_hand', 'noise', 'dimmer'
-  const [isWelcomeOpen, setIsWelcomeOpenState] = useState(() => {
-    // For SSR safety
-    if (typeof window === 'undefined') {
-      return false;
-    }
-    return !localStorage.getItem('hasSeenWelcomePopup');
-  });
+  const [isWelcomeOpen, setIsWelcomeOpenState] = useState(false);
   const [isNotificationSettingsOpen, setIsNotificationSettingsOpenState] = useState(false);
   const [isShortcutHelpOpen, setIsShortcutHelpOpen] = useState(false);
   const [isPostureSettingsOpen, setIsPostureSettingsOpen] = useState(false);
   const [isNotificationHelpOpen, setIsNotificationHelpOpen] = useState(false);
 
+  useEffect(() => {
+    if (!localStorage.getItem('hasSeenWelcomePopup')) {
+      setIsWelcomeOpenState(true);
+    }
+  }, []);
+
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+  const [tutorialStep, setTutorialStep] = useState(0);
+
+  const startTutorial = () => {
+    setIsTutorialOpen(true);
+    setTutorialStep(1);
+  };
+
+  const nextTutorialStep = () => {
+    setTutorialStep(prev => prev + 1);
+  };
+
+  const closeTutorial = () => {
+    setIsTutorialOpen(false);
+    setTutorialStep(0);
+  };
 
 
   const handleWelcomePopupClose = () => {
@@ -162,5 +178,10 @@ export const usePostureApp = () => {
     handleDownload,
     animationType,
     setAnimationType,
+    isTutorialOpen,
+    tutorialStep,
+    startTutorial,
+    nextTutorialStep,
+    closeTutorial,
   };
 };

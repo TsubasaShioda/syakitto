@@ -18,6 +18,8 @@ import AdvancedNotificationSettings from "@/app/components/AdvancedNotificationS
 import { NotificationPermissionFlowModal } from "@/app/components/NotificationPermissionFlowModal";
 import ShortcutHelp from "@/app/components/ShortcutHelp";
 import ShortcutButton from "@/app/components/ShortcutButton";
+import Tutorial from './components/Tutorial';
+import './components/Tutorial.css';
 
 const SlouchInfo = () => (
   <div className="bg-[#a8d5ba]/10 rounded-3xl p-6 border border-[#a8d5ba]/30">
@@ -76,7 +78,17 @@ export default function Home() {
     setIsCameraViewVisible,
     animationType,
     setAnimationType,
+    isTutorialOpen,
+    tutorialStep,
+    startTutorial,
+    nextTutorialStep,
+    closeTutorial,
   } = usePostureApp();
+
+  const handleCloseWelcomeAndStartTutorial = () => {
+    handleWelcomePopupClose();
+    startTutorial();
+  };
 
   const handleSlouchInfoOpen = () => {
     setInfoModalContent({ title: "猫背検知について", content: <SlouchInfo /> });
@@ -172,7 +184,7 @@ export default function Home() {
               <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-6 shadow-sm border border-[#f4d06f]/40 text-center">
                 <h3 className="font-semibold text-lg text-gray-800 mb-2">姿勢判定を開始します</h3>
                 <p className="text-sm text-gray-600">
-                  まずはじめに、下の「良い姿勢を記録」ボタンを押して、あなたの正しい姿勢をカメラに記録してください。
+                  まずはあなたの正しい姿勢をカメラに記録してください。
                 </p>
               </div>
             )}
@@ -222,7 +234,8 @@ export default function Home() {
         </div>
       </div>
 
-      <WelcomePopup isOpen={isWelcomeOpen} onClose={handleWelcomePopupClose} />
+      <WelcomePopup isOpen={isWelcomeOpen} onClose={handleCloseWelcomeAndStartTutorial} />
+      {isTutorialOpen && <Tutorial step={tutorialStep} onNext={nextTutorialStep} onClose={closeTutorial} />}
       <NotificationSettingsPopup isOpen={isNotificationSettingsOpen} onClose={handleNotificationSettingsPopupClose} />
 
       {infoModalContent && (

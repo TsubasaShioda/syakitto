@@ -1,0 +1,61 @@
+.tutorial-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9998;
+  pointer-events: all; /* Block clicks on elements behind */
+  background-color: transparent; /* The shadow comes from the highlight */
+}
+
+.tutorial-highlight {
+  position: absolute;
+  border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5); /* Make it a bit lighter */
+  pointer-events: none; /* Let clicks pass through the highlight div */
+  z-index: 9999;
+}
+
+.tutorial-message {
+  position: absolute;
+  color: white;
+  text-align: center;
+  z-index: 10000;
+  /* width is now controlled by Tutorial.tsx */
+  pointer-events: none; /* Message should not be clickable */
+}
+
+.tutorial-message h2 {
+  font-size: 2rem; /* Even larger for heading */
+  font-weight: bold;
+  margin-bottom: 20px; /* More spacing */
+  white-space: pre-wrap;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+.tutorial-message p {
+  font-size: 1.4rem; /* Even larger */
+  font-weight: 500; /* Medium bold or semi-bold */
+  margin-bottom: 15px; /* More spacing */
+  white-space: pre-wrap; /* Allow newlines from string */
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5); /* Add shadow for readability */
+}
+
+.tutorial-arrow {
+    animation: bounce 1.5s infinite;
+    z-index: 10000;
+    transform: translateX(-50%);
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0) translateX(-50%);
+    }
+    40% {
+        transform: translateY(10px) translateX(-50%);
+    }
+    60% {
+        transform: translateY(5px) translateX(-50%);
+    }
+}
