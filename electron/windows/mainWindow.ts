@@ -9,7 +9,7 @@ export function createMainWindow(): BrowserWindow {
       preload: path.join(__dirname, '../preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
-      webSecurity: false,
+      webSecurity: true,
       backgroundThrottling: false, // バックグラウンド時も姿勢検出を継続するため無効化
     },
     title: 'syakitto',
