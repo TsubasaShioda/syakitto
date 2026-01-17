@@ -10,7 +10,7 @@ export default function TrayPage() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const settings = await window.trayAPI.getSettings();
+        const settings = await window.electron.getSettings();
         setNotificationsEnabled(settings.notification.all);
       } catch (error) {
         console.error("Failed to fetch settings:", error);
@@ -31,7 +31,7 @@ export default function TrayPage() {
     const newEnabled = !notificationsEnabled;
     setNotificationsEnabled(newEnabled);
     try {
-      window.trayAPI.toggleNotifications(newEnabled);
+      window.electron.toggleNotifications(newEnabled);
     } catch (error) {
       console.error("Failed to toggle notifications:", error);
       setNotificationsEnabled(!newEnabled);
@@ -39,7 +39,7 @@ export default function TrayPage() {
   }, [notificationsEnabled]);
 
   const handleQuit = () => {
-    window.trayAPI.quitApp();
+    window.electron.quitApp();
   };
 
   return (

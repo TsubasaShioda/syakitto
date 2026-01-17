@@ -1,9 +1,9 @@
 import React from 'react';
-import { Settings } from '@/app/settings';
+import { Settings } from '@/electron-api.d';
 
 interface NotificationSettingsProps {
     settings: Settings;
-    setSettings: React.Dispatch<React.SetStateAction<Settings>>;
+    setSettings: (settings: Partial<Settings>) => void;
     notificationSound: string;
     setNotificationSound: (sound: string) => void;
     SOUND_OPTIONS: { value: string; label: string }[];
@@ -52,7 +52,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
           )}
           <div className="bg-[#f4d06f]/10 rounded-3xl p-4 border border-[#f4d06f]/30">
           <label htmlFor="cooldownTime" className="block text-sm font-medium text-gray-700 mb-2">
-              通知の間隔: <span className="font-bold text-[#d4a04f]">{settings.cooldownTime}秒</span>
+              通知の間隔: <span className="font-bold text-[#d4a04f]">{settings.threshold.cooldownTime}秒</span>
           </label>
           <input
               type="range"
@@ -60,8 +60,8 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
               min="5"
               max="180"
               step="5"
-              value={settings.cooldownTime}
-              onChange={(e) => setSettings(s => ({ ...s, cooldownTime: Number(e.target.value) }))}
+              value={settings.threshold.cooldownTime}
+              onChange={(e) => setSettings({ threshold: { ...settings.threshold, cooldownTime: Number(e.target.value) } })}
               className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#f4d06f]"
           />
           </div>

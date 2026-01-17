@@ -9,7 +9,6 @@ import ActionButtons from "@/app/components/ActionButtons";
 import NotificationSelector from "@/app/components/NotificationSelector";
 import WelcomePopup from "@/app/components/WelcomePopup";
 import DownloadModal from "@/app/components/DownloadModal";
-import NotificationSettingsPopup from "@/app/components/NotificationSettingsPopup";
 import { usePostureApp } from "@/app/usePostureApp";
 import PomodoroTimer from "@/app/components/PomodoroTimer";
 import PostureSettings from "@/app/components/PostureSettings";
@@ -57,8 +56,6 @@ export default function Home() {
     isElectron,
     isWelcomeOpen,
     handleWelcomePopupClose,
-    isNotificationSettingsOpen,
-    handleNotificationSettingsPopupClose,
     isShortcutHelpOpen,
     setIsShortcutHelpOpen,
     isPostureSettingsOpen,
@@ -234,9 +231,7 @@ export default function Home() {
         </div>
       </div>
 
-      <WelcomePopup isOpen={isWelcomeOpen} onClose={handleCloseWelcomeAndStartTutorial} />
-      {isTutorialOpen && <Tutorial step={tutorialStep} onNext={nextTutorialStep} onClose={closeTutorial} />}
-      <NotificationSettingsPopup isOpen={isNotificationSettingsOpen} onClose={handleNotificationSettingsPopupClose} />
+      <WelcomePopup isOpen={isWelcomeOpen} onClose={handleWelcomePopupClose} />
 
       {infoModalContent && (
         <InfoModal isOpen={!!infoModalContent} onClose={() => setInfoModalContent(null)} title={infoModalContent.title}>
