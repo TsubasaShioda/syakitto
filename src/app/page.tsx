@@ -16,7 +16,7 @@ import ActionButtons from "@/app/components/ActionButtons";
 import NotificationSelector from "@/app/components/NotificationSelector";
 import WelcomePopup from "@/app/components/WelcomePopup";
 import DownloadModal from "@/app/components/DownloadModal";
-import { usePostureApp } from "@/app/usePostureApp";
+import { usePostureApp } from "@/app/usePostureApp"; // usePostureAppからerrorを受け取る
 import PomodoroTimer from "@/app/components/PomodoroTimer";
 import PostureSettings from "@/app/components/PostureSettings";
 import InfoBanner from "@/app/components/InfoBanner";
@@ -42,6 +42,22 @@ const SlouchInfo = () => (
   </div>
 );
 
+// エラー表示用のバナーコンポーネントを追加
+const ErrorBanner = ({ message, onClose }: { message: string; onClose: () => void }) => (
+  <div className="fixed top-0 left-0 right-0 z-[100] bg-red-500/90 backdrop-blur-sm text-white px-6 py-3 shadow-lg flex justify-between items-center animate-slide-down">
+    <div className="flex items-center gap-3">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+      </svg>
+      <span className="font-medium">{message}</span>
+    </div>
+    <button onClick={onClose} className="p-1 hover:bg-white/20 rounded-full transition-colors">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+);
 
 export default function Home() {
   const [infoModalContent, setInfoModalContent] = useState<{ title: string; content: React.ReactNode } | null>(null);
@@ -89,6 +105,8 @@ export default function Home() {
     startTutorial,
     nextTutorialStep,
     closeTutorial,
+    error,      // エラー状態
+    setError,   // エラーリセット用
   } = usePostureApp();
 
   const handleCloseWelcomeAndStartTutorial = () => {
@@ -169,6 +187,9 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen flex flex-col bg-[#f7f2ee]">
+      {/* ▼▼▼ エラーバナーの表示処理を追加 ▼▼▼ */}
+      {error && <ErrorBanner message={error} onClose={() => setError(null)} />}
+      
       <InfoBanner />
       <div className="flex-grow flex flex-col p-6">
         <header className="mb-6 text-center">

@@ -60,7 +60,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
               min="5"
               max="180"
               step="5"
-              value={settings.threshold.cooldownTime}
+              value={settings.threshold.cooldownTime || 0}
               onChange={(e) => setSettings({ threshold: { ...settings.threshold, cooldownTime: Number(e.target.value) } })}
               className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#f4d06f]"
           />

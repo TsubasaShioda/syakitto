@@ -59,6 +59,7 @@ export const usePostureApp = () => {
   
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // For hydration safety and tutorial logic
@@ -142,6 +143,7 @@ export const usePostureApp = () => {
     videoRef,
     isPaused,
     isEnabled: isSlouchDetectionEnabled,
+    onError: setError,
   });
 
   const setSlouchDetectionEnabledWithReset = useCallback((enabled: boolean) => {
@@ -251,5 +253,7 @@ export const usePostureApp = () => {
     startTutorial,
     nextTutorialStep,
     closeTutorial,
+    error,
+    setError,
   };
 };
