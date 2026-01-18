@@ -44,7 +44,11 @@ const initialSettings: Settings = {
   },
 };
 
-export const usePostureApp = () => {
+interface UsePostureAppProps {
+  onNotificationBlocked?: () => void;
+}
+
+export const usePostureApp = ({ onNotificationBlocked = () => {} }: UsePostureAppProps = {}) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [isSlouchDetectionEnabled, setIsSlouchDetectionEnabled] = useState(true);
@@ -176,6 +180,7 @@ export const usePostureApp = () => {
     notificationType: settings.notification.type,
     notificationSound: settings.notification.soundFile,
     animationType,
+    onNotificationBlocked,
   });
   
   const SOUND_OPTIONS = [
