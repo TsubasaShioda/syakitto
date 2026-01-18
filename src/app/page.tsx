@@ -68,6 +68,12 @@ export default function Home() {
   const [showOsInstructionsInTestFlow, setOsInstructionsInTestFlow] = useState(false);
   const [previousNotificationType, setPreviousNotificationType] = useState<string>('');
 
+  const handleNotificationBlocked = () => {
+    setPreviousNotificationType(''); // On cancel, don't restore the notification type
+    setIsRecheckingPermission(false);
+    setIsAdvancedNotificationModalOpen(true);
+  };
+
   const {
     videoRef,
     isPaused,
@@ -107,7 +113,7 @@ export default function Home() {
     closeTutorial,
     error,      // エラー状態
     setError,   // エラーリセット用
-  } = usePostureApp();
+  } = usePostureApp({ onNotificationBlocked: handleNotificationBlocked });
 
   const handleCloseWelcomeAndStartTutorial = () => {
     handleWelcomePopupClose();
