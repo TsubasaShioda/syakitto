@@ -1,5 +1,7 @@
 "use client";
 
+import React, { useRef } from 'react'; // useRefをインポート
+
 interface DownloadModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -7,13 +9,28 @@ interface DownloadModalProps {
 }
 
 const DownloadModal = ({ isOpen, onClose, onDownload }: DownloadModalProps) => {
+  const modalContentRef = useRef<HTMLDivElement>(null); // コンテンツ領域への参照
+
   if (!isOpen) {
     return null;
   }
 
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // クリックされた要素がモーダルのコンテンツ領域の外側であれば閉じる
+    if (modalContentRef.current && !modalContentRef.current.contains(e.target as Node)) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="absolute inset-0 bg-[#2d3436]/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
-      <div className="w-full max-w-2xl bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-8 relative border border-[#c9b8a8]/40 max-h-[90vh] overflow-y-auto">
+    <div
+      className="absolute inset-0 bg-[#2d3436]/60 backdrop-blur-md flex items-center justify-center p-4 z-50"
+      onClick={handleOverlayClick} // オーバーレイクリックハンドラを追加
+    >
+      <div
+        className="w-full max-w-2xl bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-8 relative border border-[#c9b8a8]/40 max-h-[90vh] overflow-y-auto"
+        ref={modalContentRef} // コンテンツ領域に参照を設定
+      >
         <button
           onClick={onClose}
           className="absolute top-4 right-4 w-10 h-10 bg-[#c9b8a8]/30 hover:bg-[#c9b8a8]/50 text-gray-700 rounded-2xl flex items-center justify-center transition-all duration-200 hover:scale-110"

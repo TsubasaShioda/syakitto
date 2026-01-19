@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Righteous } from 'next/font/google';
 
@@ -26,6 +26,8 @@ import ShortcutHelp from "@/app/components/ShortcutHelp";
 import ShortcutButton from "@/app/components/ShortcutButton";
 import Tutorial from './components/Tutorial';
 import './components/Tutorial.css';
+import DownloadPrompt from './components/DownloadPrompt';
+import ShortcutPrompt from './components/ShortcutPrompt';
 
 const SlouchInfo = () => (
   <div className="bg-[#a8d5ba]/10 rounded-3xl p-6 border border-[#a8d5ba]/30">
@@ -62,6 +64,8 @@ const ErrorBanner = ({ message, onClose }: { message: string; onClose: () => voi
 export default function Home() {
   const [infoModalContent, setInfoModalContent] = useState<{ title: string; content: React.ReactNode } | null>(null);
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+  const [showDownloadPrompt, setShowDownloadPrompt] = useState(false);
+  const [showShortcutPrompt, setShowShortcutPrompt] = useState(false);
   const [notificationFlowStep, setNotificationFlowStep] = useState<'inactive' | 'test_notification' | 'confirm_delivery'>('inactive');
   const [isAdvancedNotificationModalOpen, setIsAdvancedNotificationModalOpen] = useState(false);
   const [isRecheckingPermission, setIsRecheckingPermission] = useState(false);
@@ -85,8 +89,6 @@ export default function Home() {
     isElectron,
     isWelcomeOpen,
     handleWelcomePopupClose,
-    isNotificationSettingsOpen,
-    handleNotificationSettingsPopupClose,
     isShortcutHelpOpen,
     setIsShortcutHelpOpen,
     isPostureSettingsOpen,
@@ -114,6 +116,35 @@ export default function Home() {
     error,      // エラー状態
     setError,   // エラーリセット用
   } = usePostureApp({ onNotificationBlocked: handleNotificationBlocked });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && localStorage) {
+      const LAUNCH_COUNT_KEY = 'appLaunchCount';
+      let launchCount = parseInt(localStorage.getItem(LAUNCH_COUNT_KEY) || '0', 10);
+      launchCount += 1;
+      localStorage.setItem(LAUNCH_COUNT_KEY, launchCount.toString());
+
+      // --- ダウンロード案内のロジック ---
+      if (!isElectron) {
+        const isPowerOfTwo = (n: number) => n > 0 && (n & (n - 1)) === 0;
+        if (isPowerOfTwo(launchCount) && launchCount > 1) {
+          setShowDownloadPrompt(true);
+        }
+      }
+
+      // --- ショートカット案内のロジック ---
+      const isPowerOfThree = (n: number): boolean => {
+        if (n <= 0) return false;
+        while (n % 3 === 0) {
+          n /= 3;
+        }
+        return n === 1;
+      };
+      if (isPowerOfThree(launchCount) && launchCount > 1) {
+        setShowShortcutPrompt(true);
+      }
+    }
+  }, [isElectron, setShowDownloadPrompt, setShowShortcutPrompt]);
 
   const handleCloseWelcomeAndStartTutorial = () => {
     handleWelcomePopupClose();
@@ -319,9 +350,19 @@ export default function Home() {
         isOpen={isShortcutHelpOpen}
         onClose={() => setIsShortcutHelpOpen(false)}
       />
-      <ShortcutButton onClick={() => setIsShortcutHelpOpen(true)} />
+      <ShortcutButton onClick={() => setIsShortcutHelpOpen(true)}>
+        {showShortcutPrompt && (
+          <ShortcutPrompt onClose={() => setShowShortcutPrompt(false)} />
+        )}
+      </ShortcutButton>
 
-      <ActionButtons onDownload={handleDownloadButtonClick} isElectron={isElectron} />
+      <ActionButtons onDownload={handleDownloadButtonClick} isElectron={isElectron}>
+        {showDownloadPrompt && (
+          <DownloadPrompt
+            onClose={() => setShowDownloadPrompt(false)}
+          />
+        )}
+      </ActionButtons>
     </main>
   );
 }
