@@ -12,7 +12,7 @@ const initialSettings: Settings = {
     visual: true,
     visualType: 'cat_hand',
     pomodoro: true,
-    type: 'desktop',
+    type: 'voice',
   },
   threshold: {
     slouch: 60,
