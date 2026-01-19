@@ -28,6 +28,7 @@ import Tutorial from './components/Tutorial';
 import './components/Tutorial.css';
 import DownloadPrompt from './components/DownloadPrompt';
 import ShortcutPrompt from './components/ShortcutPrompt';
+import CameraPermissionModal from './components/CameraPermissionModal';
 
 const SlouchInfo = () => (
   <div className="bg-[#a8d5ba]/10 rounded-3xl p-6 border border-[#a8d5ba]/30">
@@ -66,6 +67,7 @@ export default function Home() {
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
   const [showDownloadPrompt, setShowDownloadPrompt] = useState(false);
   const [showShortcutPrompt, setShowShortcutPrompt] = useState(false);
+  const [isCameraPermissionModalOpen, setIsCameraPermissionModalOpen] = useState(false);
   const [notificationFlowStep, setNotificationFlowStep] = useState<'inactive' | 'test_notification' | 'confirm_delivery'>('inactive');
   const [isAdvancedNotificationModalOpen, setIsAdvancedNotificationModalOpen] = useState(false);
   const [isRecheckingPermission, setIsRecheckingPermission] = useState(false);
@@ -115,7 +117,12 @@ export default function Home() {
     closeTutorial,
     error,      // エラー状態
     setError,   // エラーリセット用
-  } = usePostureApp({ onNotificationBlocked: handleNotificationBlocked });
+    cameraPermissionState,
+  } = usePostureApp({ 
+    onNotificationBlocked: handleNotificationBlocked,
+    isCameraPermissionModalOpen,
+    setIsCameraPermissionModalOpen,
+  });
 
   useEffect(() => {
     if (typeof window !== 'undefined' && localStorage) {
@@ -294,7 +301,7 @@ export default function Home() {
             <CameraView
               videoRef={videoRef}
               isPaused={isPaused}
-              isCameraViewVisible={isCameraViewVisible}
+              isCameraViewVisible={isCameraViewVisible && cameraPermissionState === 'granted'}
               onToggleCameraView={() => setIsCameraViewVisible(!isCameraViewVisible)}
             />
             <ControlButtons
@@ -363,6 +370,14 @@ export default function Home() {
           />
         )}
       </ActionButtons>
+
+      <CameraPermissionModal 
+        isOpen={isCameraPermissionModalOpen}
+        onClose={() => {
+          setIsCameraPermissionModalOpen(false);
+          setSlouchDetectionEnabled(false);
+        }}
+      />
     </main>
   );
 }
