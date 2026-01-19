@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Righteous } from 'next/font/google';
 
@@ -26,6 +26,7 @@ import ShortcutHelp from "@/app/components/ShortcutHelp";
 import ShortcutButton from "@/app/components/ShortcutButton";
 import Tutorial from './components/Tutorial';
 import './components/Tutorial.css';
+import DownloadPrompt from './components/DownloadPrompt';
 
 const SlouchInfo = () => (
   <div className="bg-[#a8d5ba]/10 rounded-3xl p-6 border border-[#a8d5ba]/30">
@@ -62,6 +63,7 @@ const ErrorBanner = ({ message, onClose }: { message: string; onClose: () => voi
 export default function Home() {
   const [infoModalContent, setInfoModalContent] = useState<{ title: string; content: React.ReactNode } | null>(null);
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+  const [showDownloadPrompt, setShowDownloadPrompt] = useState(false);
   const [notificationFlowStep, setNotificationFlowStep] = useState<'inactive' | 'test_notification' | 'confirm_delivery'>('inactive');
   const [isAdvancedNotificationModalOpen, setIsAdvancedNotificationModalOpen] = useState(false);
   const [isRecheckingPermission, setIsRecheckingPermission] = useState(false);
@@ -114,6 +116,21 @@ export default function Home() {
     error,      // エラー状態
     setError,   // エラーリセット用
   } = usePostureApp({ onNotificationBlocked: handleNotificationBlocked });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && localStorage && !isElectron) {
+      const LAUNCH_COUNT_KEY = 'appLaunchCount';
+      const isPowerOfTwo = (n: number) => n > 0 && (n & (n - 1)) === 0;
+
+      let launchCount = parseInt(localStorage.getItem(LAUNCH_COUNT_KEY) || '0', 10);
+      launchCount += 1;
+      localStorage.setItem(LAUNCH_COUNT_KEY, launchCount.toString());
+
+      if (isPowerOfTwo(launchCount) && launchCount > 1) {
+        setShowDownloadPrompt(true);
+      }
+    }
+  }, [isElectron, setShowDownloadPrompt]); // isElectronのステータスが変わったとき（＝初期判明時）にも評価
 
   const handleCloseWelcomeAndStartTutorial = () => {
     handleWelcomePopupClose();
@@ -321,7 +338,13 @@ export default function Home() {
       />
       <ShortcutButton onClick={() => setIsShortcutHelpOpen(true)} />
 
-      <ActionButtons onDownload={handleDownloadButtonClick} isElectron={isElectron} />
+      <ActionButtons onDownload={handleDownloadButtonClick} isElectron={isElectron}>
+        {showDownloadPrompt && (
+          <DownloadPrompt
+            onClose={() => setShowDownloadPrompt(false)}
+          />
+        )}
+      </ActionButtons>
     </main>
   );
 }

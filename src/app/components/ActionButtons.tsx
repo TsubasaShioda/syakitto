@@ -1,13 +1,16 @@
 "use client";
 
+import React from 'react';
+
 interface ActionButtonsProps {
   onDownload: () => void;
   isElectron: boolean;
+  children?: React.ReactNode;
 }
 
-const ActionButtons = ({ onDownload, isElectron }: ActionButtonsProps) => {
+const ActionButtons = ({ onDownload, isElectron, children }: ActionButtonsProps) => {
   return (
-    <div className="fixed top-6 right-6 flex flex-col items-end gap-3">
+    <div className="fixed top-6 right-6 flex flex-col items-end gap-3 z-10">
       {!isElectron && (
         <div className="relative flex items-center">
           <button
@@ -22,6 +25,7 @@ const ActionButtons = ({ onDownload, isElectron }: ActionButtonsProps) => {
           <span className="absolute right-16 w-auto whitespace-nowrap p-2 px-3 bg-white text-[#5a8f7b] text-sm font-bold rounded-md shadow-lg opacity-0 peer-hover:opacity-100 transition-opacity duration-300">
             インストーラー
           </span>
+          {children}
         </div>
       )}
     </div>
