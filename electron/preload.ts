@@ -55,6 +55,16 @@ contextBridge.exposeInMainWorld('electron', {
   updateTimerWindow: (data: { timeLeft: number; isActive: boolean; sessionType: string }) =>
     ipcRenderer.send('update-timer-window', data),
   closeTimerWindow: () => ipcRenderer.send('close-timer-window'),
+
+  // タイマーウィンドウからの操作イベントを受け取る
+  onToggleTimerFromWindow: (callback: () => void) => {
+    ipcRenderer.removeAllListeners('toggle-timer-from-window');
+    ipcRenderer.on('toggle-timer-from-window', callback);
+  },
+  onResetTimerFromWindow: (callback: () => void) => {
+    ipcRenderer.removeAllListeners('reset-timer-from-window');
+    ipcRenderer.on('reset-timer-from-window', callback);
+  },
 });
 
 // タイマーウィンドウ用のAPI
@@ -63,6 +73,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('update-timer', (_event, data) => callback(data));
   },
   closeTimerWindow: () => ipcRenderer.send('close-timer-window'),
+  toggleTimer: () => ipcRenderer.send('toggle-timer'),
+  resetTimer: () => ipcRenderer.send('reset-timer'),
 });
 
 // メニューバートレイ用のAPI

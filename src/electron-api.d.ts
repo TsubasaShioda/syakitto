@@ -4,6 +4,7 @@ export interface PomodoroSettings {
   shortBreak: number;
   longBreak: number;
   sessions: number;
+  autoRestartAfterCycle?: boolean;
 }
 
 export interface NotificationSettings {
@@ -75,11 +76,15 @@ export interface ElectronAPI {
   closeTimerWindow: () => void;
   toggleNotifications: (enabled: boolean) => void;
   quitApp: () => void;
+  onToggleTimerFromWindow: (callback: () => void) => void;
+  onResetTimerFromWindow: (callback: () => void) => void;
 }
 
 export interface ElectronTimerAPI {
   onUpdateTimer: (callback: (data: { timeLeft: number; isActive: boolean; sessionType: string }) => void) => void;
   closeTimerWindow: () => void;
+  toggleTimer: () => void;
+  resetTimer: () => void;
 }
 
 export interface ElectronTrayAPI {

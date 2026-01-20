@@ -12,7 +12,7 @@ const initialSettings: Settings = {
     visual: true,
     visualType: 'cat_hand',
     pomodoro: true,
-    type: 'desktop',
+    type: 'voice',
   },
   threshold: {
     slouch: 60,
@@ -44,7 +44,17 @@ const initialSettings: Settings = {
   },
 };
 
-export const usePostureApp = () => {
+interface UsePostureAppProps {
+  onNotificationBlocked?: () => void;
+  isCameraPermissionModalOpen: boolean;
+  setIsCameraPermissionModalOpen: (isOpen: boolean) => void;
+}
+
+export const usePostureApp = ({ 
+  onNotificationBlocked = () => {},
+  isCameraPermissionModalOpen,
+  setIsCameraPermissionModalOpen,
+}: UsePostureAppProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [isSlouchDetectionEnabled, setIsSlouchDetectionEnabled] = useState(true);
@@ -56,9 +66,11 @@ export const usePostureApp = () => {
   const [isNotificationSettingsOpen, setIsNotificationSettingsOpenState] = useState(false);
   const [isShortcutHelpOpen, setIsShortcutHelpOpen] = useState(false);
   const [isPostureSettingsOpen, setIsPostureSettingsOpen] = useState(false);
+  const [cameraPermissionState, setCameraPermissionState] = useState<PermissionState>('prompt');
   
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // For hydration safety and tutorial logic
@@ -142,6 +154,7 @@ export const usePostureApp = () => {
     videoRef,
     isPaused,
     isEnabled: isSlouchDetectionEnabled,
+    onError: setError,
   });
 
   const setSlouchDetectionEnabledWithReset = useCallback((enabled: boolean) => {
@@ -174,7 +187,49 @@ export const usePostureApp = () => {
     notificationType: settings.notification.type,
     notificationSound: settings.notification.soundFile,
     animationType,
+    onNotificationBlocked,
   });
+
+  useEffect(() => {
+    if (!isSlouchDetectionEnabled || typeof navigator.permissions?.query !== 'function') {
+      return;
+    }
+
+    let permissionStatus: PermissionStatus;
+
+    const checkCameraPermission = async () => {
+      try {
+        permissionStatus = await navigator.permissions.query({ name: 'camera' as PermissionName });
+        setCameraPermissionState(permissionStatus.state);
+        
+        if (permissionStatus.state !== 'granted') {
+          setIsCameraPermissionModalOpen(true);
+        } else {
+          setIsCameraPermissionModalOpen(false);
+        }
+        
+        permissionStatus.onchange = () => {
+           setCameraPermissionState(permissionStatus.state);
+           if (permissionStatus.state === 'granted') {
+              setIsCameraPermissionModalOpen(false);
+           } else {
+              setIsCameraPermissionModalOpen(true);
+           }
+        };
+
+      } catch (error) {
+        console.error("Camera permission query failed:", error);
+      }
+    };
+
+    checkCameraPermission();
+
+    return () => {
+      if (permissionStatus) {
+        permissionStatus.onchange = null;
+      }
+    };
+  }, [isSlouchDetectionEnabled, setIsCameraPermissionModalOpen]);
   
   const SOUND_OPTIONS = [
     { value: 'Syakiin01.mp3', label: 'シャキーン' },
@@ -184,6 +239,10 @@ export const usePostureApp = () => {
   ];
 
   const handleCalibrate = async () => {
+    if (cameraPermissionState !== 'granted') {
+      setIsCameraPermissionModalOpen(true);
+      return;
+    }
     setIsCalibrating(true);
     await calibrate();
     setCalibrationTimestamp(new Date());
@@ -251,5 +310,8 @@ export const usePostureApp = () => {
     startTutorial,
     nextTutorialStep,
     closeTutorial,
+    error,
+    setError,
+    cameraPermissionState,
   };
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Righteous } from 'next/font/google';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -17,7 +17,7 @@ import ActionButtons from "@/app/components/ActionButtons";
 import NotificationSelector from "@/app/components/NotificationSelector";
 import WelcomePopup from "@/app/components/WelcomePopup";
 import DownloadModal from "@/app/components/DownloadModal";
-import { usePostureApp } from "@/app/usePostureApp";
+import { usePostureApp } from "@/app/usePostureApp"; // usePostureAppからerrorを受け取る
 import PomodoroTimer from "@/app/components/PomodoroTimer";
 import PostureSettings from "@/app/components/PostureSettings";
 import InfoBanner from "@/app/components/InfoBanner";
@@ -27,6 +27,9 @@ import ShortcutHelp from "@/app/components/ShortcutHelp";
 import ShortcutButton from "@/app/components/ShortcutButton";
 import Tutorial from './components/Tutorial';
 import './components/Tutorial.css';
+import DownloadPrompt from './components/DownloadPrompt';
+import ShortcutPrompt from './components/ShortcutPrompt';
+import CameraPermissionModal from './components/CameraPermissionModal';
 
 const SlouchInfo = () => (
   <div className="bg-[#a8d5ba]/10 rounded-3xl p-6 border border-[#a8d5ba]/30">
@@ -43,15 +46,40 @@ const SlouchInfo = () => (
   </div>
 );
 
+// エラー表示用のバナーコンポーネントを追加
+const ErrorBanner = ({ message, onClose }: { message: string; onClose: () => void }) => (
+  <div className="fixed top-0 left-0 right-0 z-[100] bg-red-500/90 backdrop-blur-sm text-white px-6 py-3 shadow-lg flex justify-between items-center animate-slide-down">
+    <div className="flex items-center gap-3">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+      </svg>
+      <span className="font-medium">{message}</span>
+    </div>
+    <button onClick={onClose} className="p-1 hover:bg-white/20 rounded-full transition-colors">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+);
 
 export default function Home() {
   const [infoModalContent, setInfoModalContent] = useState<{ title: string; content: React.ReactNode } | null>(null);
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+  const [showDownloadPrompt, setShowDownloadPrompt] = useState(false);
+  const [showShortcutPrompt, setShowShortcutPrompt] = useState(false);
+  const [isCameraPermissionModalOpen, setIsCameraPermissionModalOpen] = useState(false);
   const [notificationFlowStep, setNotificationFlowStep] = useState<'inactive' | 'test_notification' | 'confirm_delivery'>('inactive');
   const [isAdvancedNotificationModalOpen, setIsAdvancedNotificationModalOpen] = useState(false);
   const [isRecheckingPermission, setIsRecheckingPermission] = useState(false);
   const [showOsInstructionsInTestFlow, setOsInstructionsInTestFlow] = useState(false);
   const [previousNotificationType, setPreviousNotificationType] = useState<string>('');
+
+  const handleNotificationBlocked = () => {
+    setPreviousNotificationType(''); // On cancel, don't restore the notification type
+    setIsRecheckingPermission(false);
+    setIsAdvancedNotificationModalOpen(true);
+  };
 
   const {
     videoRef,
@@ -64,8 +92,6 @@ export default function Home() {
     isElectron,
     isWelcomeOpen,
     handleWelcomePopupClose,
-    isNotificationSettingsOpen,
-    handleNotificationSettingsPopupClose,
     isShortcutHelpOpen,
     setIsShortcutHelpOpen,
     isPostureSettingsOpen,
@@ -90,7 +116,43 @@ export default function Home() {
     startTutorial,
     nextTutorialStep,
     closeTutorial,
-  } = usePostureApp();
+    error,      // エラー状態
+    setError,   // エラーリセット用
+    cameraPermissionState,
+  } = usePostureApp({ 
+    onNotificationBlocked: handleNotificationBlocked,
+    isCameraPermissionModalOpen,
+    setIsCameraPermissionModalOpen,
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && localStorage) {
+      const LAUNCH_COUNT_KEY = 'appLaunchCount';
+      let launchCount = parseInt(localStorage.getItem(LAUNCH_COUNT_KEY) || '0', 10);
+      launchCount += 1;
+      localStorage.setItem(LAUNCH_COUNT_KEY, launchCount.toString());
+
+      // --- ダウンロード案内のロジック ---
+      if (!isElectron) {
+        const isPowerOfTwo = (n: number) => n > 0 && (n & (n - 1)) === 0;
+        if (isPowerOfTwo(launchCount) && launchCount > 1) {
+          setShowDownloadPrompt(true);
+        }
+      }
+
+      // --- ショートカット案内のロジック ---
+      const isPowerOfThree = (n: number): boolean => {
+        if (n <= 0) return false;
+        while (n % 3 === 0) {
+          n /= 3;
+        }
+        return n === 1;
+      };
+      if (isPowerOfThree(launchCount) && launchCount > 1) {
+        setShowShortcutPrompt(true);
+      }
+    }
+  }, [isElectron, setShowDownloadPrompt, setShowShortcutPrompt]);
 
   const handleCloseWelcomeAndStartTutorial = () => {
     handleWelcomePopupClose();
@@ -235,6 +297,9 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen flex flex-col bg-[#f7f2ee]">
+      {/* ▼▼▼ エラーバナーの表示処理を追加 ▼▼▼ */}
+      {error && <ErrorBanner message={error} onClose={() => setError(null)} />}
+      
       <InfoBanner />
       <div className="flex-grow flex flex-col p-6">
         <header className="mb-6 text-center">
@@ -302,7 +367,7 @@ export default function Home() {
             <CameraView
               videoRef={videoRef}
               isPaused={isPaused}
-              isCameraViewVisible={isCameraViewVisible}
+              isCameraViewVisible={isCameraViewVisible && cameraPermissionState === 'granted'}
               onToggleCameraView={() => setIsCameraViewVisible(!isCameraViewVisible)}
             />
             <ControlButtons
@@ -358,9 +423,27 @@ export default function Home() {
         isOpen={isShortcutHelpOpen}
         onClose={() => setIsShortcutHelpOpen(false)}
       />
-      <ShortcutButton onClick={() => setIsShortcutHelpOpen(true)} />
+      <ShortcutButton onClick={() => setIsShortcutHelpOpen(true)}>
+        {showShortcutPrompt && (
+          <ShortcutPrompt onClose={() => setShowShortcutPrompt(false)} />
+        )}
+      </ShortcutButton>
 
-      <ActionButtons onDownload={handleDownloadButtonClick} isElectron={isElectron} />
+      <ActionButtons onDownload={handleDownloadButtonClick} isElectron={isElectron}>
+        {showDownloadPrompt && (
+          <DownloadPrompt
+            onClose={() => setShowDownloadPrompt(false)}
+          />
+        )}
+      </ActionButtons>
+
+      <CameraPermissionModal 
+        isOpen={isCameraPermissionModalOpen}
+        onClose={() => {
+          setIsCameraPermissionModalOpen(false);
+          setSlouchDetectionEnabled(false);
+        }}
+      />
     </main>
   );
 }

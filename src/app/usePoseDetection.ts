@@ -9,6 +9,7 @@ interface UsePoseDetectionProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
   isPaused: boolean;
   isEnabled: boolean;
+  onError: (message: string) => void;
 }
 
 // このフックが返す値の型定義
@@ -26,7 +27,7 @@ const euclideanDist = (p1: { x: number; y: number }, p2: { x: number; y: number 
   return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
 };
 
-export const usePoseDetection = ({ videoRef, isPaused, isEnabled }: UsePoseDetectionProps): UsePoseDetectionReturn => {
+export const usePoseDetection = ({ videoRef, isPaused, isEnabled, onError }: UsePoseDetectionProps): UsePoseDetectionReturn => {
   const [poseDetector, setPoseDetector] = useState<poseDetection.PoseDetector | null>(null);
   const [faceDetector, setFaceDetector] = useState<faceLandmarksDetection.FaceLandmarksDetector | null>(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
@@ -65,10 +66,11 @@ export const usePoseDetection = ({ videoRef, isPaused, isEnabled }: UsePoseDetec
         setFaceDetector(faceDetector);
       } catch (error) {
         console.error("Error during model initialization:", error);
+        onError("機械学習モデルの読み込みに失敗しました。リロードしてください。");
       }
     };
     initModels();
-  }, []);
+  }, [onError]);
 
   // カメラ停止関数
   const stopCamera = useCallback(() => {
@@ -101,6 +103,7 @@ export const usePoseDetection = ({ videoRef, isPaused, isEnabled }: UsePoseDetec
         video.onplaying = () => setIsCameraReady(true);
       } catch (error) {
         console.error("Error accessing camera:", error);
+        onError("カメラにアクセスできませんでした。権限を確認してください。");
       }
     };
     setupCamera();
@@ -109,7 +112,7 @@ export const usePoseDetection = ({ videoRef, isPaused, isEnabled }: UsePoseDetec
       stopCamera();
     };
   // poseDetectorとfaceDetectorへの依存を削除
-  }, [videoRef, stopCamera]);
+  }, [videoRef, stopCamera, onError]);
 
   // --- キャリブレーション ---
   const calibrate = async () => {
@@ -130,9 +133,12 @@ export const usePoseDetection = ({ videoRef, isPaused, isEnabled }: UsePoseDetec
           const faceSize = euclideanDist(leftEye, rightEye);
           setCalibratedFaceSize(faceSize);
         }
+      } else {
+        onError("キャリブレーションに失敗しました。姿勢を検出できませんでした。");
       }
     } catch (e) {
       console.warn("Calibration failed:", e);
+      onError("キャリブレーションに失敗しました。姿勢を検出できませんでした。");
     }
   };
 
@@ -222,6 +228,10 @@ export const usePoseDetection = ({ videoRef, isPaused, isEnabled }: UsePoseDetec
       }
     } catch (e) {
       console.error('[Posture Detection] Error during analysis:', e);
+      // ▼▼▼ エラー通知を追加 ▼▼▼
+      // ループ内で連続発生する可能性があるので、ここは慎重に。
+      // 今回はコンソールエラーのみにしておきます（または頻度制限付きでonErrorを呼ぶ）
+      // もし一度のエラーで止めて良いならここに onError(e.message) を入れます。
     }
   }, [isPaused, poseDetector, faceDetector, isCameraReady, videoRef, calculateSlouchScore]);
 

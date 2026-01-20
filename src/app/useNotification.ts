@@ -9,6 +9,7 @@ interface UseNotificationProps {
   notificationType: string;
   notificationSound: string;
   animationType: string;
+  onNotificationBlocked: () => void;
 }
 
 export const useNotification = ({ 
@@ -17,7 +18,8 @@ export const useNotification = ({
   settings, 
   notificationType, 
   notificationSound, 
-  animationType 
+  animationType,
+  onNotificationBlocked
 }: UseNotificationProps) => {
   const notificationTimer = useRef<NodeJS.Timeout | null>(null);
   const [lastNotificationTime, setLastNotificationTime] = useState(0);
@@ -86,6 +88,9 @@ export const useNotification = ({
               silent: true,
               icon: '/icons/syakitto_w_trans.png'
             });
+          } else { // 'denied' or 'default'
+            onNotificationBlocked();
+            return;
           }
           break;
         case 'voice':
@@ -100,7 +105,7 @@ export const useNotification = ({
           break;
       }
     }
-  }, [notificationType, notificationSound, animationType]);
+  }, [notificationType, notificationSound, animationType, onNotificationBlocked]);
 
   // --- 猫背通知トリガー ---
   useEffect(() => {
