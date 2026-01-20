@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { usePoseDetection } from "./usePoseDetection";
-import { useNotification } from "./useNotification";
+import { useNotification }
+ from "./useNotification";
 import { Settings } from "@/electron-api.d";
 
 const initialSettings: Settings = {
@@ -73,12 +74,13 @@ export const usePostureApp = ({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // For hydration safety and tutorial logic
-    if (!localStorage.getItem('hasSeenWelcomePopup')) {
+    // ハイドレーションセーフティとチュートリアルロジック (私の修正)
+    const hasSeen = localStorage.getItem('hasSeenWelcomePopup');
+    if (!hasSeen) {
       setIsWelcomeOpenState(true);
     }
 
-    // For electron settings
+    // Electron設定の読み込み (mainからの変更と統合)
     const checkIsElectron = async () => {
       const electron = window.electron;
       if (electron?.isElectron) {
@@ -88,7 +90,7 @@ export const usePostureApp = ({
       }
     };
     checkIsElectron();
-  }, []);
+  }, []); // 空の依存配列で、マウント時に一度だけ実行
 
   const startTutorial = () => {
     setIsTutorialOpen(true);
