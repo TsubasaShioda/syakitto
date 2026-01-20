@@ -74,8 +74,6 @@ export interface ElectronAPI {
   showTimerWindow: () => void;
   updateTimerWindow: (data: { timeLeft: number; isActive: boolean; sessionType: string }) => void;
   closeTimerWindow: () => void;
-  toggleNotifications: (enabled: boolean) => void;
-  quitApp: () => void;
   onToggleTimerFromWindow: (callback: () => void) => void;
   onResetTimerFromWindow: (callback: () => void) => void;
 }
@@ -90,6 +88,9 @@ export interface ElectronTimerAPI {
 export interface ElectronTrayAPI {
   // スコア更新を受け取る関数（戻り値は解除用の関数）
   onUpdatePostureScore: (callback: (score: number) => void) => () => void;
+  toggleNotifications: (enabled: boolean) => void;
+  quitApp: () => void;
+  updateNotificationType: (type: string) => void;
 }
 
 declare global {

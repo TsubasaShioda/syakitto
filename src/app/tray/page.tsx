@@ -31,7 +31,7 @@ export default function TrayPage() {
     const newEnabled = !notificationsEnabled;
     setNotificationsEnabled(newEnabled);
     try {
-      window.electron.toggleNotifications(newEnabled);
+      window.trayAPI.toggleNotifications(newEnabled);
     } catch (error) {
       console.error("Failed to toggle notifications:", error);
       setNotificationsEnabled(!newEnabled);
@@ -39,7 +39,7 @@ export default function TrayPage() {
   }, [notificationsEnabled]);
 
   const handleQuit = () => {
-    window.electron.quitApp();
+    window.trayAPI.quitApp();
   };
 
   return (
