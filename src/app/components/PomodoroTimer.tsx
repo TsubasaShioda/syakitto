@@ -9,13 +9,18 @@ interface TimerSettings {
   pomodoroShortBreak: number;
   pomodoroLongBreak: number;
   pomodoroCycles: number;
+  autoRestartAfterCycle: boolean; // サイクル完了後に自動で再開するか
 }
+
+// 開発モードかどうかを判定（環境変数で制御）
+const isDevelopmentMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
 
 const DEFAULT_TIMER_SETTINGS: TimerSettings = {
   pomodoroWork: 25,
   pomodoroShortBreak: 5,
   pomodoroLongBreak: 15,
   pomodoroCycles: 4,
+  autoRestartAfterCycle: true, // デフォルトは自動再開
 };
 
 type SessionType = '作業' | '短い休憩' | '長い休憩';
@@ -25,9 +30,9 @@ const PomodoroTimer = () => {
   const [timerSettings, setTimerSettings] = useState(DEFAULT_TIMER_SETTINGS);
   const [tempTimerSettings, setTempTimerSettings] = useState(DEFAULT_TIMER_SETTINGS);
   
-  const { pomodoroWork, pomodoroShortBreak, pomodoroLongBreak, pomodoroCycles } = timerSettings;
+  const { pomodoroWork, pomodoroShortBreak, pomodoroLongBreak, pomodoroCycles, autoRestartAfterCycle } = timerSettings;
 
-  const [timeLeft, setTimeLeft] = useState(pomodoroWork * 60);
+  const [timeLeft, setTimeLeft] = useState(isDevelopmentMode ? pomodoroWork : pomodoroWork * 60);
   const [isActive, setIsActive] = useState(false);
   const [sessionType, setSessionType] = useState<SessionType>('作業');
   const [pomodoroCount, setPomodoroCount] = useState(0);
@@ -40,6 +45,21 @@ const PomodoroTimer = () => {
   }, []);
 
   // Update timer only when settings are saved or session type changes
+  useEffect(() => {
+    if (isActive) return;
+    const multiplier = isDevelopmentMode ? 1 : 60; // 開発モードは秒、通常モードは分を秒に変換
+    switch (sessionType) {
+      case '作業':
+        setTimeLeft(pomodoroWork * multiplier);
+        break;
+      case '短い休憩':
+        setTimeLeft(pomodoroShortBreak * multiplier);
+        break;
+      case '長い休憩':
+        setTimeLeft(pomodoroLongBreak * multiplier);
+        break;
+    }
+  }, [pomodoroWork, pomodoroShortBreak, pomodoroLongBreak, sessionType]);
 
 
 
@@ -66,21 +86,22 @@ const PomodoroTimer = () => {
     }
   }, [notificationType]);
 
-  const switchSession = useCallback((type: SessionType, shouldNotify: boolean) => {
-    setIsActive(false);
+  const switchSession = useCallback((type: SessionType, shouldNotify: boolean, autoStart: boolean = false) => {
+    setIsActive(autoStart);
     setSessionType(type);
+    const multiplier = isDevelopmentMode ? 1 : 60; // 開発モードは秒、通常モードは分を秒に変換
     let notificationMessage = '';
     switch (type) {
       case '作業':
-        setTimeLeft(pomodoroWork * 60);
+        setTimeLeft(pomodoroWork * multiplier);
         notificationMessage = '作業を始めましょう！';
         break;
       case '短い休憩':
-        setTimeLeft(pomodoroShortBreak * 60);
+        setTimeLeft(pomodoroShortBreak * multiplier);
         notificationMessage = '短い休憩を取りましょう！';
         break;
       case '長い休憩':
-        setTimeLeft(pomodoroLongBreak * 60);
+        setTimeLeft(pomodoroLongBreak * multiplier);
         notificationMessage = '長い休憩を始めましょう！';
         break;
     }
@@ -95,13 +116,21 @@ const PomodoroTimer = () => {
       const newPomodoroCount = sessionType === '作業' ? pomodoroCount + 1 : pomodoroCount;
       if (sessionType === '作業') setPomodoroCount(newPomodoroCount);
 
-      const nextSession = sessionType === '作業'
-        ? (newPomodoroCount > 0 && newPomodoroCount % pomodoroCycles === 0 ? '長い休憩' : '短い休憩')
-        : '作業';
-      switchSession(nextSession, true);
+      // サイクル完了後の処理
+      if (sessionType === '長い休憩' && !autoRestartAfterCycle) {
+        // 長い休憩が終わり、自動再開がオフの場合は停止
+        sendNotification('全サイクルが完了しました！お疲れ様でした。');
+        switchSession('作業', false, false);
+      } else {
+        // 通常の遷移（自動的に次のセッションを開始）
+        const nextSession = sessionType === '作業'
+          ? (newPomodoroCount > 0 && newPomodoroCount % pomodoroCycles === 0 ? '長い休憩' : '短い休憩')
+          : '作業';
+        switchSession(nextSession, true, true);
+      }
     }
     return () => { if (interval) clearInterval(interval); };
-  }, [isActive, timeLeft, sessionType, pomodoroCount, switchSession, pomodoroCycles]);
+  }, [isActive, timeLeft, sessionType, pomodoroCount, switchSession, pomodoroCycles, autoRestartAfterCycle, sendNotification]);
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -110,12 +139,20 @@ const PomodoroTimer = () => {
   };
 
   const toggleTimer = useCallback(() => setIsActive(!isActive), [isActive]);
-  const resetTimer = useCallback(() => switchSession(sessionType, false), [sessionType, switchSession]);
+  const resetTimer = useCallback(() => switchSession(sessionType, false, false), [sessionType, switchSession]);
 
   // タイマーウィンドウを開く
   const showTimerWindow = () => {
     if (typeof window !== 'undefined' && window.electron?.showTimerWindow) {
       window.electron.showTimerWindow();
+      // ウィンドウを開いたら即座に現在の状態を送信
+      if (window.electron?.updateTimerWindow) {
+        window.electron.updateTimerWindow({
+          timeLeft,
+          isActive,
+          sessionType,
+        });
+      }
     }
   };
 
@@ -130,6 +167,16 @@ const PomodoroTimer = () => {
     }
   }, [timeLeft, isActive, sessionType]);
 
+  // タイマーウィンドウからの操作イベントを受け取る
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.electron?.onToggleTimerFromWindow) {
+      window.electron.onToggleTimerFromWindow(toggleTimer);
+    }
+    if (typeof window !== 'undefined' && window.electron?.onResetTimerFromWindow) {
+      window.electron.onResetTimerFromWindow(resetTimer);
+    }
+  }, [toggleTimer, resetTimer]);
+
   const openSettings = () => {
     setTempTimerSettings(timerSettings);
     setIsSettingsOpen(true);
@@ -141,8 +188,11 @@ const PomodoroTimer = () => {
   };
 
   const handleSettingsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setTempTimerSettings(prev => ({ ...prev, [name]: Number(value) }));
+    const { name, value, type, checked } = e.target;
+    setTempTimerSettings(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : Number(value)
+    }));
   };
 
   // タイマー関連のショートカットキー処理
@@ -245,21 +295,78 @@ const PomodoroTimer = () => {
       </div>
       <InfoModal isOpen={isSettingsOpen} onClose={closeSettings} title="ポモドーロタイマー設定">
         <div className="space-y-4">
+            {isDevelopmentMode && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                <p className="text-xs text-yellow-800 font-medium">開発モード: 秒単位で設定できます</p>
+              </div>
+            )}
             <div>
-              <label htmlFor="pomodoroWork" className="block text-sm font-medium text-gray-700 mb-2">作業時間: <span className="font-bold text-[#5a8f7b]">{tempTimerSettings.pomodoroWork}分</span></label>
-              <input id="pomodoroWork" name="pomodoroWork" type="range" min="5" max="60" value={tempTimerSettings.pomodoroWork} onChange={handleSettingsChange} className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#a8d5ba] mt-1" />
+              <label htmlFor="pomodoroWork" className="block text-sm font-medium text-gray-700 mb-2">
+                作業時間: <span className="font-bold text-[#5a8f7b]">{tempTimerSettings.pomodoroWork}{isDevelopmentMode ? '秒' : '分'}</span>
+              </label>
+              <input
+                id="pomodoroWork"
+                name="pomodoroWork"
+                type="range"
+                min={isDevelopmentMode ? "1" : "5"}
+                max={isDevelopmentMode ? "120" : "60"}
+                value={tempTimerSettings.pomodoroWork}
+                onChange={handleSettingsChange}
+                className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#a8d5ba] mt-1"
+              />
             </div>
             <div>
-              <label htmlFor="pomodoroShortBreak" className="block text-sm font-medium text-gray-700 mb-2">短い休憩: <span className="font-bold text-[#5a8f7b]">{tempTimerSettings.pomodoroShortBreak}分</span></label>
-              <input id="pomodoroShortBreak" name="pomodoroShortBreak" type="range" min="1" max="30" value={tempTimerSettings.pomodoroShortBreak} onChange={handleSettingsChange} className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#a8d5ba] mt-1" />
+              <label htmlFor="pomodoroShortBreak" className="block text-sm font-medium text-gray-700 mb-2">
+                短い休憩: <span className="font-bold text-[#5a8f7b]">{tempTimerSettings.pomodoroShortBreak}{isDevelopmentMode ? '秒' : '分'}</span>
+              </label>
+              <input
+                id="pomodoroShortBreak"
+                name="pomodoroShortBreak"
+                type="range"
+                min={isDevelopmentMode ? "1" : "1"}
+                max={isDevelopmentMode ? "60" : "30"}
+                value={tempTimerSettings.pomodoroShortBreak}
+                onChange={handleSettingsChange}
+                className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#a8d5ba] mt-1"
+              />
             </div>
             <div>
-              <label htmlFor="pomodoroLongBreak" className="block text-sm font-medium text-gray-700 mb-2">長い休憩: <span className="font-bold text-[#5a8f7b]">{tempTimerSettings.pomodoroLongBreak}分</span></label>
-              <input id="pomodoroLongBreak" name="pomodoroLongBreak" type="range" min="5" max="60" value={tempTimerSettings.pomodoroLongBreak} onChange={handleSettingsChange} className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#a8d5ba] mt-1" />
+              <label htmlFor="pomodoroLongBreak" className="block text-sm font-medium text-gray-700 mb-2">
+                長い休憩: <span className="font-bold text-[#5a8f7b]">{tempTimerSettings.pomodoroLongBreak}{isDevelopmentMode ? '秒' : '分'}</span>
+              </label>
+              <input
+                id="pomodoroLongBreak"
+                name="pomodoroLongBreak"
+                type="range"
+                min={isDevelopmentMode ? "1" : "5"}
+                max={isDevelopmentMode ? "120" : "60"}
+                value={tempTimerSettings.pomodoroLongBreak}
+                onChange={handleSettingsChange}
+                className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#a8d5ba] mt-1"
+              />
             </div>
             <div>
               <label htmlFor="pomodoroCycles" className="block text-sm font-medium text-gray-700 mb-2">サイクル数: <span className="font-bold text-[#5a8f7b]">{tempTimerSettings.pomodoroCycles}回</span></label>
               <input id="pomodoroCycles" name="pomodoroCycles" type="range" min="2" max="10" value={tempTimerSettings.pomodoroCycles} onChange={handleSettingsChange} className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#a8d5ba] mt-1" />
+            </div>
+            <div className="border-t border-gray-200 pt-4 mt-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label htmlFor="autoRestartAfterCycle" className="text-sm font-medium text-gray-700">サイクル完了後も自動継続</label>
+                  <p className="text-xs text-gray-500 mt-1">オフにすると長い休憩後に停止します</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    id="autoRestartAfterCycle"
+                    name="autoRestartAfterCycle"
+                    type="checkbox"
+                    checked={tempTimerSettings.autoRestartAfterCycle}
+                    onChange={handleSettingsChange}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#a8d5ba]/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#a8d5ba]"></div>
+                </label>
+              </div>
             </div>
         </div>
       </InfoModal>

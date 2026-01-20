@@ -194,7 +194,7 @@ app.whenReady().then(() => {
     const { width } = screen.getPrimaryDisplay().workAreaSize;
     timerWindow = new BrowserWindow({
       width: 200,
-      height: 64,
+      height: 110,
       x: width - 220,
       y: 20,
       transparent: true,
@@ -231,6 +231,19 @@ app.whenReady().then(() => {
   ipcMain.on('close-timer-window', () => {
     if (timerWindow && !timerWindow.isDestroyed()) {
       timerWindow.close();
+    }
+  });
+
+  // タイマーウィンドウからのタイマー操作をメインウィンドウに転送
+  ipcMain.on('toggle-timer', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('toggle-timer-from-window');
+    }
+  });
+
+  ipcMain.on('reset-timer', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('reset-timer-from-window');
     }
   });
 
