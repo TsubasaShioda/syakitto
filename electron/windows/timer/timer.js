@@ -1,14 +1,20 @@
 // タイマー表示を更新
 window.electronAPI?.onUpdateTimer((data) => {
-  const { timeLeft, isActive } = data;
+  const { timeLeft, isActive, sessionType } = data;
 
   // 時間を分:秒形式に変換
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
   const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
-  // DOM更新（時間のみ）
+  // DOM更新（時間）
   document.getElementById('timeDisplay').textContent = timeString;
+
+  // セッションタイプを更新
+  const sessionTypeElement = document.getElementById('sessionType');
+  if (sessionTypeElement && sessionType) {
+    sessionTypeElement.textContent = sessionType;
+  }
 
   // ボタンのテキストを更新
   const toggleBtn = document.getElementById('toggleBtn');

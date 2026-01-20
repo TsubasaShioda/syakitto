@@ -4,6 +4,7 @@ export interface PomodoroSettings {
   shortBreak: number;
   longBreak: number;
   sessions: number;
+  autoRestartAfterCycle?: boolean;
 }
 
 export interface NotificationSettings {

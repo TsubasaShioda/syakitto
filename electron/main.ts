@@ -194,7 +194,7 @@ app.whenReady().then(() => {
     const { width } = screen.getPrimaryDisplay().workAreaSize;
     timerWindow = new BrowserWindow({
       width: 200,
-      height: 100,
+      height: 110,
       x: width - 220,
       y: 20,
       transparent: true,

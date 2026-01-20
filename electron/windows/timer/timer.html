@@ -31,19 +31,28 @@
       background:#a8d5ba;
       backdrop-filter: blur(10px);
       border-radius: 10px;
-      padding: 16px 16px 8px 16px;
+      padding: 12px 16px 8px 16px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
       border: 1px solid rgba(255, 255, 255, 0.1);
       text-align: center;
       position: relative;
       width: 200px;
-      height: 100px;
+      height: 110px;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
       opacity: 0.9;
+    }
+
+    .session-type {
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.85);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: -4px;
     }
 
     .time-display {
@@ -130,7 +139,8 @@
 <body>
   <div class="timer-window">
     <button class="close-btn" id="closeBtn"></button>
-    <div class="time-display" id="timeDisplay">25:00</div>
+    <div class="session-type" id="sessionType">作業</div>
+    <div class="time-display" id="timeDisplay">--:--</div>
     <div class="button-container">
       <button class="control-btn" id="toggleBtn">開始</button>
       <button class="control-btn" id="resetBtn">終了</button>
