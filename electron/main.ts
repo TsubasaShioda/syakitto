@@ -74,11 +74,65 @@ app.whenReady().then(() => {
   app.name = 'syakitto';
   if (process.platform === 'darwin' && app.dock) app.dock.show();
 
+  const menuTemplate: Electron.MenuItemConstructorOptions[] = [
+    {
+      label: app.name,
+      submenu: [
+        { role: 'about' },
+        { type: 'separator' },
+        { role: 'services' },
+        { type: 'separator' },
+        { role: 'hide' },
+        { role: 'hideOthers' },
+        { role: 'unhide' },
+        { type: 'separator' },
+        { role: 'quit' }
+      ]
+    },
+    {
+      label: '編集',
+      submenu: [
+        { role: 'undo', label: '元に戻す' },
+        { role: 'redo', label: 'やり直す' },
+        { type: 'separator' },
+        { role: 'cut', label: '切り取り' },
+        { role: 'copy', label: 'コピー' },
+        { role: 'paste', label: '貼り付け' },
+        { role: 'selectAll', label: 'すべて選択' }
+      ]
+    },
+    {
+      label: '表示',
+      submenu: [
+        { role: 'reload', label: 'リロード' },
+        { role: 'forceReload', label: '強制的にリロード' },
+        { role: 'toggleDevTools', label: '開発者ツール' },
+        { type: 'separator' },
+        { role: 'resetZoom', label: '実際のサイズ' },
+        { role: 'zoomIn', label: '拡大' },
+        { role: 'zoomOut', label: '縮小' },
+        { type: 'separator' },
+        { role: 'togglefullscreen', label: 'フルスクリーン' }
+      ]
+    },
+    {
+      role: 'window',
+      label: 'ウィンドウ',
+      submenu: [
+        { role: 'minimize', label: '最小化' },
+        { role: 'close', label: '閉じる' }
+      ]
+    }
+  ];
+  
+  const menu = Menu.buildFromTemplate(menuTemplate);
+  Menu.setApplicationMenu(menu);
+
   mainWindow = createMainWindow();
   mainWindow.show();
   createTrayWindow();
-
-
+  
+  
   // --- Trayアイコンの設定 (PNGテンプレート版) ---
   try {
     const imagePath = app.isPackaged
@@ -264,14 +318,15 @@ app.whenReady().then(() => {
       skipTaskbar: true,
       focusable: false,
       hasShadow: false,
-      acceptFirstMouse: false,
+      // acceptFirstMouse: false,
       minimizable: false,
       maximizable: false,
       closable: true,
       resizable: false,
-      ...(process.platform === 'darwin' && {
-        type: 'panel',
-      }),
+      movable: false, // ウィンドウを移動不可に
+      // ...(process.platform === 'darwin' && {
+      //   type: 'panel',
+      // }),
       webPreferences: {
         preload: path.join(__dirname, 'preload.js'),
         devTools: false,
@@ -312,11 +367,12 @@ app.whenReady().then(() => {
       skipTaskbar: true,
       focusable: false,
       hasShadow: false,
-      acceptFirstMouse: false,
+      // acceptFirstMouse: false,
       minimizable: false,
       maximizable: false,
       closable: true,
       resizable: false,
+      movable: false, // ウィンドウを移動不可に
       webPreferences: {
         preload: path.join(__dirname, 'preload.js'),
         devTools: false,
