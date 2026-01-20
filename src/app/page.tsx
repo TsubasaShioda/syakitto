@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Righteous } from 'next/font/google';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 const righteous = Righteous({
   weight: '400',
@@ -157,6 +158,71 @@ export default function Home() {
     handleWelcomePopupClose();
     startTutorial();
   };
+
+  // ショートカットキーハンドラー
+  const handleShortcut = useCallback((action: string) => {
+    switch (action) {
+      case 'SHOW_SHORTCUTS':
+        setIsShortcutHelpOpen(true);
+        break;
+      case 'CLOSE_MODAL':
+        // 開いているモーダルを閉じる（優先順位順）
+        if (isShortcutHelpOpen) {
+          setIsShortcutHelpOpen(false);
+        } else if (isPostureSettingsOpen) {
+          setIsPostureSettingsOpen(false);
+        } else if (infoModalContent) {
+          setInfoModalContent(null);
+        } else if (isDownloadModalOpen) {
+          setIsDownloadModalOpen(false);
+        } else if (isAdvancedNotificationModalOpen) {
+          setIsAdvancedNotificationModalOpen(false);
+        } else if (notificationFlowStep !== 'inactive') {
+          setNotificationFlowStep('inactive');
+        }
+        break;
+      case 'TOGGLE_SLOUCH_DETECTION':
+        setSlouchDetectionEnabled(!isSlouchDetectionEnabled);
+        break;
+      case 'TOGGLE_CAMERA':
+        setIsCameraViewVisible(!isCameraViewVisible);
+        break;
+      case 'CALIBRATE':
+        if (!isCalibrating) {
+          calibrate();
+        }
+        break;
+      case 'TOGGLE_PAUSE':
+        setIsPaused(!isPaused);
+        break;
+      case 'OPEN_SETTINGS':
+        setIsPostureSettingsOpen(true);
+        break;
+      // タイマー関連のショートカットは PomodoroTimer.tsx で処理済み
+      default:
+        break;
+    }
+  }, [
+    isShortcutHelpOpen,
+    setIsShortcutHelpOpen,
+    isPostureSettingsOpen,
+    setIsPostureSettingsOpen,
+    infoModalContent,
+    isDownloadModalOpen,
+    isAdvancedNotificationModalOpen,
+    notificationFlowStep,
+    isSlouchDetectionEnabled,
+    setSlouchDetectionEnabled,
+    isCameraViewVisible,
+    setIsCameraViewVisible,
+    isCalibrating,
+    calibrate,
+    isPaused,
+    setIsPaused,
+  ]);
+
+  // ショートカットキーを有効化
+  useKeyboardShortcuts(handleShortcut);
 
   const handleSlouchInfoOpen = () => {
     setInfoModalContent({ title: "猫背検知について", content: <SlouchInfo /> });
