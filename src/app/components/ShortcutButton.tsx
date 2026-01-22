@@ -13,7 +13,7 @@ const ShortcutButton = ({ onClick, children }: Props) => {
       <div className="relative flex items-center">
         <button
           onClick={onClick}
-          className="w-12 h-12 bg-[#2d3436] hover:bg-[#636e72] text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-110"
+          className="w-12 h-12 bg-white hover:bg-gray-100 text-[#2d3436] rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-110 border border-gray-200"
           aria-label="ショートカットキー一覧を表示"
           title="ショートカットキー一覧 (Ctrl+K / ⌘K)"
         >

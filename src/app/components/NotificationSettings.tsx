@@ -85,7 +85,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
               <div className="text-center pt-2">
                   <button 
                       onClick={onOpenAdvancedSettings} // Use new prop
-                      className="bg-[#a8d5ba] text-white text-sm font-semibold py-2 px-4 rounded-xl hover:bg-[#5a8f7b] transition-colors shadow-md"
+                      className="bg-[#5a8f7b] text-white text-sm font-semibold py-2 px-4 rounded-xl hover:bg-[#5a8f7b] transition-colors shadow-md"
                   >
                       通知の設定方法とテスト
                   </button>

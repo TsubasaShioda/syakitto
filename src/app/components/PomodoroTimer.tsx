@@ -59,7 +59,7 @@ const PomodoroTimer = () => {
         setTimeLeft(pomodoroLongBreak * multiplier);
         break;
     }
-  }, [pomodoroWork, pomodoroShortBreak, pomodoroLongBreak, sessionType]);
+  }, [pomodoroWork, pomodoroShortBreak, pomodoroLongBreak, sessionType, isActive]);
 
 
 
@@ -236,8 +236,8 @@ const PomodoroTimer = () => {
 
   return (
     <>
-      <div className="relative bg-white/60 backdrop-blur-sm p-6 rounded-3xl shadow-sm border border-[#c9b8a8]/30 text-gray-700 text-center w-full">
-        <button onClick={openSettings} className="absolute top-4 left-4 w-8 h-8 bg-[#c9b8a8]/30 hover:bg-[#c9b8a8]/50 text-gray-700 rounded-xl flex items-center justify-center transition-all duration-200 hover:scale-110">
+      <div className="relative bg-white/60 backdrop-blur-sm p-6 rounded-3xl shadow-sm border border-gray-200 text-gray-700 text-center w-full">
+        <button onClick={openSettings} className="absolute top-4 left-4 w-8 h-8 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl flex items-center justify-center transition-all duration-200 hover:scale-110">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
         </button>
 
@@ -252,22 +252,22 @@ const PomodoroTimer = () => {
           )}
         </div>
         <div className="flex justify-center space-x-2 mb-4">
-          <button onClick={() => switchSession('作業', false)} className={`px-3 py-1 text-sm rounded-full transition-colors ${sessionType === '作業' ? 'bg-[#a8d5ba] text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>作業</button>
-          <button onClick={() => switchSession('短い休憩', false)} className={`px-3 py-1 text-sm rounded-full transition-colors ${sessionType === '短い休憩' ? 'bg-[#a8d5ba] text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>短い休憩</button>
-          <button onClick={() => switchSession('長い休憩', false)} className={`px-3 py-1 text-sm rounded-full transition-colors ${sessionType === '長い休憩' ? 'bg-[#a8d5ba] text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>長い休憩</button>
+          <button onClick={() => switchSession('作業', false)} className={`px-3 py-1 text-sm rounded-full transition-colors ${sessionType === '作業' ? 'bg-[#5a8f7b] text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>作業</button>
+          <button onClick={() => switchSession('短い休憩', false)} className={`px-3 py-1 text-sm rounded-full transition-colors ${sessionType === '短い休憩' ? 'bg-[#5a8f7b] text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>短い休憩</button>
+          <button onClick={() => switchSession('長い休憩', false)} className={`px-3 py-1 text-sm rounded-full transition-colors ${sessionType === '長い休憩' ? 'bg-[#5a8f7b] text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>長い休憩</button>
         </div>
         <div className="text-6xl font-mono mb-4 text-[#5a8f7b]">{formatTime(timeLeft)}</div>
         <div className="flex flex-col gap-3 mb-4 w-full">
           <div className="flex justify-center gap-3">
-            <button onClick={toggleTimer} className="flex-1 px-4 py-2 bg-[#a8d5ba] text-white rounded-2xl hover:bg-[#93c9a8] transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 font-semibold flex items-center justify-center gap-2 text-sm">
+            <button onClick={toggleTimer} className="flex-1 px-4 py-2 bg-[#5a8f7b] text-white rounded-2xl hover:bg-[#93c9a8] transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 font-semibold flex items-center justify-center gap-2 text-sm">
               {isActive ? (
                 <>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6"><path fillRule="evenodd" d="M6.75 5.25a.75.75 0 0 1 .75-.75H9a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H7.5a.75.75 0 0 1-.75-.75V5.25Zm7.5 0A.75.75 0 0 1 15 4.5h1.5a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H15a.75.75 0 0 1-.75-.75V5.25Z" clipRule="evenodd" /></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-white"><path fillRule="evenodd" fill="white" d="M6.75 5.25a.75.75 0 0 1 .75-.75H9a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H7.5a.75.75 0 0 1-.75-.75V5.25Zm7.5 0A.75.75 0 0 1 15 4.5h1.5a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H15a.75.75 0 0 1-.75-.75V5.25Z" clipRule="evenodd" /></svg>
                   <span className="whitespace-nowrap">一時停止</span>
                 </>
               ) : (
                 <>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6"><path fillRule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clipRule="evenodd" /></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-white"><path fillRule="evenodd" fill="white" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clipRule="evenodd" /></svg>
                   <span className="whitespace-nowrap">開始</span>
                 </>
               )}
@@ -278,7 +278,7 @@ const PomodoroTimer = () => {
             </button>
           </div>
           {isElectron && (
-            <button onClick={showTimerWindow} className="w-full px-6 py-2 bg-[#c9b8a8] text-white rounded-2xl hover:bg-[#b8a798] transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 font-semibold flex items-center justify-center gap-2">
+            <button onClick={showTimerWindow} className="w-full px-6 py-2 bg-gray-400 text-gray-800 rounded-2xl hover:bg-gray-500 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 font-semibold flex items-center justify-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6"><path fillRule="evenodd" d="M2.25 5.25a3 3 0 0 1 3-3h13.5a3 3 0 0 1 3 3V15a3 3 0 0 1-3 3h-3v.257c0 .597.237 1.17.659 1.591l.621.622a.75.75 0 0 1-.53 1.28h-9a.75.75 0 0 1-.53-1.28l.621-.622a2.25 2.25 0 0 0 .659-1.59V18h-3a3 3 0 0 1-3-3V5.25Zm1.5 0v7.5a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5v-7.5a1.5 1.5 0 0 0-1.5-1.5H5.25a1.5 1.5 0 0 0-1.5 1.5Z" clipRule="evenodd" /></svg>
               ウィンドウ表示
             </button>
@@ -287,9 +287,9 @@ const PomodoroTimer = () => {
         <div className="text-sm">
           <p className="mb-2 font-medium">通知方法:</p>
           <div className="flex justify-center space-x-2">
-            <button onClick={() => setNotificationType('desktop')} className={`px-3 py-1 text-sm rounded-full transition-colors ${notificationType === 'desktop' ? 'bg-[#a8d5ba] text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>デスクトップ</button>
-            <button onClick={() => setNotificationType('voice')} className={`px-3 py-1 text-sm rounded-full transition-colors ${notificationType === 'voice' ? 'bg-[#a8d5ba] text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>音声</button>
-            <button onClick={() => setNotificationType('none')} className={`px-3 py-1 text-sm rounded-full transition-colors ${notificationType === 'none' ? 'bg-[#a8d5ba] text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>なし</button>
+            <button onClick={() => setNotificationType('desktop')} className={`px-3 py-1 text-sm rounded-full transition-colors ${notificationType === 'desktop' ? 'bg-[#5a8f7b] text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>デスクトップ</button>
+            <button onClick={() => setNotificationType('voice')} className={`px-3 py-1 text-sm rounded-full transition-colors ${notificationType === 'voice' ? 'bg-[#5a8f7b] text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>音声</button>
+            <button onClick={() => setNotificationType('none')} className={`px-3 py-1 text-sm rounded-full transition-colors ${notificationType === 'none' ? 'bg-[#5a8f7b] text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>なし</button>
           </div>
         </div>
       </div>
@@ -312,7 +312,7 @@ const PomodoroTimer = () => {
                 max={isDevelopmentMode ? "120" : "60"}
                 value={tempTimerSettings.pomodoroWork}
                 onChange={handleSettingsChange}
-                className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#a8d5ba] mt-1"
+                className="w-full h-2 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-[#a8d5ba] mt-1"
               />
             </div>
             <div>
@@ -327,7 +327,7 @@ const PomodoroTimer = () => {
                 max={isDevelopmentMode ? "60" : "30"}
                 value={tempTimerSettings.pomodoroShortBreak}
                 onChange={handleSettingsChange}
-                className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#a8d5ba] mt-1"
+                className="w-full h-2 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-[#a8d5ba] mt-1"
               />
             </div>
             <div>
@@ -342,12 +342,12 @@ const PomodoroTimer = () => {
                 max={isDevelopmentMode ? "120" : "60"}
                 value={tempTimerSettings.pomodoroLongBreak}
                 onChange={handleSettingsChange}
-                className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#a8d5ba] mt-1"
+                className="w-full h-2 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-[#a8d5ba] mt-1"
               />
             </div>
             <div>
               <label htmlFor="pomodoroCycles" className="block text-sm font-medium text-gray-700 mb-2">サイクル数: <span className="font-bold text-[#5a8f7b]">{tempTimerSettings.pomodoroCycles}回</span></label>
-              <input id="pomodoroCycles" name="pomodoroCycles" type="range" min="2" max="10" value={tempTimerSettings.pomodoroCycles} onChange={handleSettingsChange} className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#a8d5ba] mt-1" />
+              <input id="pomodoroCycles" name="pomodoroCycles" type="range" min="2" max="10" value={tempTimerSettings.pomodoroCycles} onChange={handleSettingsChange} className="w-full h-2 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-[#a8d5ba] mt-1" />
             </div>
             <div className="border-t border-gray-200 pt-4 mt-4">
               <div className="flex items-center justify-between">

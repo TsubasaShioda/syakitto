@@ -36,10 +36,10 @@ const WelcomePopup = ({ isOpen, onClose }: WelcomePopupProps) => {
 
   return (
     <div className="absolute inset-0 bg-[#2d3436]/60 backdrop-blur-md flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="w-full max-w-lg bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-8 relative border border-[#c9b8a8]/40" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-8 relative border border-gray-200" onClick={(e) => e.stopPropagation()}>
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-10 h-10 bg-[#c9b8a8]/30 hover:bg-[#c9b8a8]/50 text-gray-700 rounded-2xl flex items-center justify-center transition-all duration-200 hover:scale-110"
+          className="absolute top-4 right-4 w-10 h-10 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl flex items-center justify-center transition-all duration-200 hover:scale-110"
           aria-label="閉じる"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-5 h-5">
@@ -64,7 +64,7 @@ const WelcomePopup = ({ isOpen, onClose }: WelcomePopupProps) => {
                     <button
                     key={index}
                     onClick={() => setPage(index)}
-                    className={`w-3 h-3 rounded-full transition-colors ${page === index ? 'bg-[#5a8f7b]' : 'bg-[#c9b8a8]/50 hover:bg-[#5a8f7b]/50'}`}
+                    className={`w-3 h-3 rounded-full transition-colors ${page === index ? 'bg-[#5a8f7b]' : 'bg-gray-200 hover:bg-[#5a8f7b]/50'}`}
                     />
                 ))}
             </div>
@@ -80,7 +80,6 @@ const WelcomePopup = ({ isOpen, onClose }: WelcomePopupProps) => {
                 )}
                 {page < pages.length - 1 && (
                     <button
-                        onClick={() => setPage(page + 1)}
                         className="bg-[#5a8f7b] text-white px-6 py-2 rounded-xl hover:bg-[#4a7f6b] transition-colors"
                     >
                         次へ

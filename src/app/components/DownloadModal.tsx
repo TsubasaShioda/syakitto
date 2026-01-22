@@ -28,12 +28,12 @@ const DownloadModal = ({ isOpen, onClose, onDownload }: DownloadModalProps) => {
       onClick={handleOverlayClick} // オーバーレイクリックハンドラを追加
     >
       <div
-        className="w-full max-w-2xl bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-8 relative border border-[#c9b8a8]/40 max-h-[90vh] overflow-y-auto"
+        className="w-full max-w-2xl bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-8 relative border border-gray-200 max-h-[90vh] overflow-y-auto"
         ref={modalContentRef} // コンテンツ領域に参照を設定
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-10 h-10 bg-[#c9b8a8]/30 hover:bg-[#c9b8a8]/50 text-gray-700 rounded-2xl flex items-center justify-center transition-all duration-200 hover:scale-110"
+          className="absolute top-4 right-4 w-10 h-10 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl flex items-center justify-center transition-all duration-200 hover:scale-110"
           aria-label="閉じる"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-5 h-5">
@@ -74,7 +74,7 @@ const DownloadModal = ({ isOpen, onClose, onDownload }: DownloadModalProps) => {
               上記の方法でも「ファイルが壊れています」というエラーが表示される場合や、起動できない場合は、以下のコマンドをターミナルで実行してみてください。
               ほとんどの場合、`sudo`は不要ですが、アクセス権の問題が発生した場合は、コマンドの前に`sudo `を追加して再試行してください。
             </p>
-            <code className="block bg-gray-800 text-white p-3 rounded-lg my-3 text-sm">
+            <code className="block bg-gray-100 text-gray-800 p-3 rounded-lg my-3 text-sm">
               xattr -d com.apple.quarantine /Applications/syakitto.app
             </code>
             <p className="text-gray-700 leading-relaxed mt-3">

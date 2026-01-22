@@ -121,7 +121,6 @@ export default function Home() {
     cameraPermissionState,
   } = usePostureApp({ 
     onNotificationBlocked: handleNotificationBlocked,
-    isCameraPermissionModalOpen,
     setIsCameraPermissionModalOpen,
   });
 
@@ -296,7 +295,7 @@ export default function Home() {
   };
 
   return (
-    <main className="relative min-h-screen flex flex-col bg-[#f7f2ee]">
+    <main className="relative min-h-screen flex flex-col">
       {/* ▼▼▼ エラーバナーの表示処理を追加 ▼▼▼ */}
       {error && <ErrorBanner message={error} onClose={() => setError(null)} />}
       

@@ -6,7 +6,7 @@ interface ShortcutPromptProps {
 
 const ShortcutPrompt: React.FC<ShortcutPromptProps> = ({ onClose }) => {
   return (
-    <div className="absolute bottom-0 right-16 w-64 bg-gray-800 text-white rounded-lg shadow-xl p-4 animate-fade-in-up z-20">
+    <div className="absolute bottom-0 right-16 w-64 bg-white text-gray-800 rounded-lg shadow-xl p-4 animate-fade-in-up z-20 border border-gray-200">
       {/* 突起 (arrow) のためのスタイル */}
       <style jsx>{`
         div::after {
@@ -19,16 +19,16 @@ const ShortcutPrompt: React.FC<ShortcutPromptProps> = ({ onClose }) => {
           height: 0;
           border-top: 8px solid transparent;
           border-bottom: 8px solid transparent;
-          border-left: 8px solid #1f2937; /* Tailwindのbg-gray-800の色 */
+          border-left: 8px solid #ffffff; /* bg-white */
         }
       `}</style>
       <div className="flex justify-between items-start">
         <p className="text-sm leading-snug mr-2">
-          ヒント: <kbd className="px-2 py-0.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">⌘</kbd> + <kbd className="px-2 py-0.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">/</kbd> でショートカット一覧を表示できます。
+          ヒント: <kbd className="px-2 py-0.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">⌘</kbd> + <kbd className="px-2 py-0.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">K</kbd> でショートカット一覧を表示できます。
         </p>
         <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors flex-shrink-0"
+            className="text-gray-500 hover:text-gray-800 transition-colors flex-shrink-0"
             aria-label="閉じる"
         >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

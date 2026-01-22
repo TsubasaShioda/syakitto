@@ -46,13 +46,11 @@ const initialSettings: Settings = {
 
 interface UsePostureAppProps {
   onNotificationBlocked?: () => void;
-  isCameraPermissionModalOpen: boolean;
   setIsCameraPermissionModalOpen: (isOpen: boolean) => void;
 }
 
 export const usePostureApp = ({ 
   onNotificationBlocked = () => {},
-  isCameraPermissionModalOpen,
   setIsCameraPermissionModalOpen,
 }: UsePostureAppProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);

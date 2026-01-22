@@ -116,7 +116,7 @@ const NotificationSelector = ({
                   p-2 rounded-xl transition-colors flex-shrink-0
                   ${
                     notificationType === option.value
-                      ? "bg-[#a8d5ba] text-white"
+                      ? "bg-[#5a8f7b] text-white"
                       : "bg-[#c9b8a8]/20 text-gray-600"
                   }
                 `}
