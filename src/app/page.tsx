@@ -1,13 +1,6 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { Righteous } from 'next/font/google';
-
-const righteous = Righteous({
-  weight: '400',
-  subsets: ['latin'],
-});
 import InfoModal from "@/app/components/InfoModal";
 import ScoreDisplay from "@/app/components/ScoreDisplay";
 import CameraView from "@/app/components/CameraView";
@@ -16,7 +9,7 @@ import ActionButtons from "@/app/components/ActionButtons";
 import NotificationSelector from "@/app/components/NotificationSelector";
 import WelcomePopup from "@/app/components/WelcomePopup";
 import DownloadModal from "@/app/components/DownloadModal";
-import { usePostureApp } from "@/app/usePostureApp"; // usePostureAppからerrorを受け取る
+import { usePostureApp } from "@/app/usePostureApp";
 import PomodoroTimer from "@/app/components/PomodoroTimer";
 import PostureSettings from "@/app/components/PostureSettings";
 import InfoBanner from "@/app/components/InfoBanner";
@@ -238,14 +231,14 @@ export default function Home() {
       <div className="flex-grow flex flex-col p-6">
         <header className="mb-6 text-center">
           <div className="flex items-center justify-center gap-3 mb-2">
-            <Image
-              src="/images/syakitto_logo.png"
+            <img
+              src="./images/syakitto_logo.png"
               alt="syakitto logo"
               width={48}
               height={48}
               className="rounded-lg"
             />
-            <h1 className={`text-4xl font-bold bg-gradient-to-r from-[#3b82f6] to-[#10b981] bg-clip-text text-transparent ${righteous.className}`}>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-[#3b82f6] to-[#10b981] bg-clip-text text-transparent">
               syakitto
             </h1>
           </div>
@@ -359,7 +352,9 @@ export default function Home() {
       />
       <ShortcutButton onClick={() => setIsShortcutHelpOpen(true)}>
         {showShortcutPrompt && (
-          <ShortcutPrompt onClose={() => setShowShortcutPrompt(false)} />
+          <DownloadPrompt
+            onClose={() => setShowShortcutPrompt(false)}
+          />
         )}
       </ShortcutButton>
 
