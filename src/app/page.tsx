@@ -125,6 +125,12 @@ export default function Home() {
   });
 
   useEffect(() => {
+    if (isShortcutHelpOpen) {
+      localStorage.setItem('hasSeenShortcutHelp', 'true');
+    }
+  }, [isShortcutHelpOpen]);
+
+  useEffect(() => {
     if (typeof window !== 'undefined' && localStorage) {
       const LAUNCH_COUNT_KEY = 'appLaunchCount';
       let launchCount = parseInt(localStorage.getItem(LAUNCH_COUNT_KEY) || '0', 10);
@@ -147,7 +153,7 @@ export default function Home() {
         }
         return n === 1;
       };
-      if (isPowerOfThree(launchCount) && launchCount > 1) {
+      if (isPowerOfThree(launchCount) && launchCount > 1 && !localStorage.getItem('hasSeenShortcutHelp')) {
         setShowShortcutPrompt(true);
       }
     }
