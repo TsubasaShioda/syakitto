@@ -24,7 +24,7 @@ const ShortcutPrompt: React.FC<ShortcutPromptProps> = ({ onClose }) => {
       `}</style>
       <div className="flex justify-between items-start">
         <p className="text-sm leading-snug mr-2">
-          ヒント: <kbd className="px-2 py-0.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">⌘</kbd> + <kbd className="px-2 py-0.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">/</kbd> でショートカット一覧を表示できます。
+          ヒント: <kbd className="px-2 py-0.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">⌘</kbd> + <kbd className="px-2 py-0.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">K</kbd> でショートカット一覧を表示できます。
         </p>
         <button
             onClick={onClose}
