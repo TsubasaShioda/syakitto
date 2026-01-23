@@ -107,7 +107,7 @@ export const NotificationPermissionFlowModal = ({
             )}
             <p className="text-gray-700 leading-relaxed mb-6">{showOsInstructions ? '設定を再度確認したら、もう一度テストしてみましょう。' : 'ありがとうございます！通知がPCに正しく表示されるか、テスト通知を送信して確認しましょう。'}</p>
             <div className="flex justify-center">
-              <button onClick={onTest} className="bg-[#5a8f7b] text-white font-bold py-3 px-8 rounded-2xl text-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+              <button onClick={onTest} className="bg-[#5a8f7b] text-white font-bold py-3 px-8 rounded-2xl text-lg transition-all duration-300 transform hover:scale-105 shadow-lg text-outline">
                 テスト通知を送信
               </button>
             </div>
@@ -121,7 +121,7 @@ export const NotificationPermissionFlowModal = ({
               <button onClick={onConfirmNo} className="text-gray-600 px-8 py-3 rounded-2xl hover:bg-gray-200 transition-colors text-lg font-semibold border border-gray-300">
                 いいえ、見えません
               </button>
-              <button onClick={onConfirmYes} className="bg-[#5a8f7b] text-white px-8 py-3 rounded-2xl hover:bg-[#4a7f6b] transition-colors text-lg font-semibold">
+              <button onClick={onConfirmYes} className="bg-[#5a8f7b] text-white px-8 py-3 rounded-2xl hover:bg-[#4a7f6b] transition-colors text-lg font-semibold text-outline">
                 はい、見えました
               </button>
             </div>

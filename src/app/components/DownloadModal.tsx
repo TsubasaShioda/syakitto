@@ -84,7 +84,7 @@ const DownloadModal = ({ isOpen, onClose, onDownload }: DownloadModalProps) => {
           <div className="flex justify-center mt-8">
             <button
               onClick={onDownload}
-              className="bg-[#5a8f7b] hover:bg-[#4d7a68] text-white font-bold py-3 px-8 rounded-2xl text-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+              className="bg-[#5a8f7b] hover:bg-[#4d7a68] text-white font-bold py-3 px-8 rounded-2xl text-lg transition-all duration-300 transform hover:scale-105 shadow-lg text-outline"
             >
               ダウンロード
             </button>

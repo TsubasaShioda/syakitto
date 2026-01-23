@@ -121,7 +121,6 @@ export default function Home() {
     cameraPermissionState,
   } = usePostureApp({ 
     onNotificationBlocked: handleNotificationBlocked,
-    isCameraPermissionModalOpen,
     setIsCameraPermissionModalOpen,
   });
 

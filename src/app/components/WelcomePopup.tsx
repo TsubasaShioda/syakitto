@@ -81,7 +81,7 @@ const WelcomePopup = ({ isOpen, onClose }: WelcomePopupProps) => {
                 {page < pages.length - 1 && (
                     <button
                         onClick={() => setPage(page + 1)}
-                        className="bg-[#5a8f7b] text-white px-6 py-2 rounded-xl hover:bg-[#4a7f6b] transition-colors"
+                        className="bg-[#5a8f7b] text-white px-6 py-2 rounded-xl hover:bg-[#4a7f6b] transition-colors text-outline"
                     >
                         次へ
                     </button>
@@ -89,7 +89,7 @@ const WelcomePopup = ({ isOpen, onClose }: WelcomePopupProps) => {
                 {page === pages.length - 1 && (
                     <button
                         onClick={onClose}
-                        className="bg-[#5a8f7b] text-white px-6 py-2 rounded-xl hover:bg-[#4a7f6b] transition-colors"
+                        className="bg-[#5a8f7b] text-white px-6 py-2 rounded-xl hover:bg-[#4a7f6b] transition-colors text-outline"
                     >
                         はじめる
                     </button>
