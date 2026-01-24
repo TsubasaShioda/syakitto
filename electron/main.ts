@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Notification, Tray, Menu, nativeImage, screen } from 'electron';
+import { app, BrowserWindow, ipcMain, Notification, Tray, Menu, nativeImage, screen, protocol } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import { createMainWindow } from './windows/mainWindow';
@@ -6,6 +6,36 @@ import { createMainWindow } from './windows/mainWindow';
 const isDev = process.env.NODE_ENV === 'development';
 const URL = isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '../renderer/index.html')}`;
 
+// MIMEタイプを取得するヘルパー関数
+function getMimeType(filePath: string): string {
+  const ext = path.extname(filePath).toLowerCase();
+  const mimeTypes: Record<string, string> = {
+    '.html': 'text/html',
+    '.js': 'text/javascript',
+    '.css': 'text/css',
+    '.json': 'application/json',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.svg': 'image/svg+xml',
+    '.woff': 'font/woff',
+    '.woff2': 'font/woff2',
+    '.ttf': 'font/ttf',
+    '.ico': 'image/x-icon',
+    '.mp3': 'audio/mpeg',
+    '.wav': 'audio/wav',
+    '.txt': 'text/plain',
+  };
+  return mimeTypes[ext] || 'application/octet-stream';
+}
+
+// 本番環境でのカスタムプロトコル登録（file://での絶対パス問題を解決）
+if (!isDev) {
+  protocol.registerSchemesAsPrivileged([
+    { scheme: 'app', privileges: { secure: true, standard: true, supportFetchAPI: true } }
+  ]);
+}
 
 // --- File Logger Placeholder ---
 let logToFile: (message: string) => void = () => {};
@@ -45,7 +75,7 @@ const createTrayWindow = () => {
     trayWindow.setVibrancy('fullscreen-ui');
   }
 
-  const trayUrl = isDev ? 'http://localhost:3000/tray' : `file://${path.join(__dirname, '../renderer/tray/index.html')}`;
+  const trayUrl = isDev ? 'http://localhost:3000/tray' : 'app://./tray.html';
   trayWindow.loadURL(trayUrl);
 
 
@@ -57,6 +87,27 @@ const createTrayWindow = () => {
 
 // アプリケーション準備完了時の処理
 app.whenReady().then(() => {
+  // 本番環境でカスタムプロトコルを登録（Next.jsの静的ファイルを正しくサーブ）
+  if (!isDev) {
+    const outPath = path.join(__dirname, '../../out');
+
+    protocol.handle('app', (request) => {
+      let url = request.url.replace('app://', '');
+      // URLのホスト部分を除去（app://./path → path）
+      url = url.replace(/^\.?\/?/, '');
+
+      // ルートへのアクセスはindex.htmlを返す
+      if (url === '' || url === '/') {
+        url = 'index.html';
+      }
+
+      const filePath = path.join(outPath, url);
+      return new Response(fs.readFileSync(filePath), {
+        headers: { 'Content-Type': getMimeType(filePath) }
+      });
+    });
+  }
+
   // --- Logger Initialization ---
   const logPath = path.join(app.getPath('userData'), 'session.log');
   logToFile = (message: string) => {
