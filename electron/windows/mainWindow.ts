@@ -1,6 +1,5 @@
 import { BrowserWindow, shell, app } from 'electron';
 import * as path from 'path';
-import * as url from 'url';
 
 export function createMainWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
@@ -21,14 +20,8 @@ export function createMainWindow(): BrowserWindow {
     mainWindow.loadURL('http://localhost:3000');
     mainWindow.webContents.openDevTools();
   } else {
-    const indexPath = path.join(__dirname, '../../../out/index.html');
-    mainWindow.loadURL(
-      url.format({
-        pathname: indexPath,
-        protocol: 'file:',
-        slashes: true,
-      }),
-    );
+    // カスタムプロトコル app:// を使用（絶対パス問題を解決）
+    mainWindow.loadURL('app://./index.html');
   }
 
   // 外部リンクはブラウザで開く

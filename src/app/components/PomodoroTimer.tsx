@@ -45,6 +45,7 @@ const PomodoroTimer = () => {
   }, []);
 
   // Update timer only when settings are saved or session type changes
+  // Note: isActive is intentionally excluded from deps to prevent reset on pause
   useEffect(() => {
     if (isActive) return;
     const multiplier = isDevelopmentMode ? 1 : 60; // 開発モードは秒、通常モードは分を秒に変換
@@ -59,7 +60,8 @@ const PomodoroTimer = () => {
         setTimeLeft(pomodoroLongBreak * multiplier);
         break;
     }
-  }, [pomodoroWork, pomodoroShortBreak, pomodoroLongBreak, sessionType, isActive]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pomodoroWork, pomodoroShortBreak, pomodoroLongBreak, sessionType]);
 
 
 
