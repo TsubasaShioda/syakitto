@@ -24,7 +24,7 @@ const DownloadModal = ({ isOpen, onClose, onDownload }: DownloadModalProps) => {
 
   return (
     <div
-      className="absolute inset-0 bg-[#2d3436]/60 backdrop-blur-md flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 bg-[#2d3436]/60 backdrop-blur-md flex items-center justify-center p-4 z-50"
       onClick={handleOverlayClick} // オーバーレイクリックハンドラを追加
     >
       <div
