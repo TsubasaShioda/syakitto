@@ -407,10 +407,11 @@ export default function HomeContent() {
         onClose={handleCancelNotificationFlow}
         showCompletionButton={true}
         onCompletionClick={handleSettingsCompletionClick}
-        showBrowserInstructions={true}
-        showOsInstructions={false}
+        showBrowserInstructions={!isElectron}
+        showOsInstructions={isElectron}
         additionalMessage={isRecheckingPermission ? "通知がまだ許可されていません。ブラウザの設定を再度確認してください。" : undefined}
-        title="ブラウザの通知設定を確認してください"
+        title={isElectron ? "syakittoの通知設定を確認してください" : "ブラウザの通知設定を確認してください"}
+        isElectron={isElectron}
       />
 
       <DownloadModal isOpen={isDownloadModalOpen} onClose={() => setIsDownloadModalOpen(false)} onDownload={handleDownload} />
