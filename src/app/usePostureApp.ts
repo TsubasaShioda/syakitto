@@ -234,6 +234,7 @@ export const usePostureApp = ({
     { value: 'knock01.mp3', label: 'ノック' },
     { value: 'monster-snore01.mp3', label: 'いびき' },
     { value: 'page06.mp3', label: 'ページをめくる音' },
+    { value: 'cat_sweet_voice1.mp3', label: '猫の鳴き声' },
   ];
 
   const handleCalibrate = async () => {

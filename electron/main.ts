@@ -555,11 +555,11 @@ const defaultSettings = {
     all: true,
     sound: true,
     soundVolume: 0.5,
-    soundFile: 'Syakiin01.mp3',
+    soundFile: 'monster-snore01.mp3',
     visual: true,
     visualType: 'cat_hand', // 'cat_hand', 'dimmer', 'noise'
     pomodoro: true, // ポモドーロタイマーの通知
-    type: 'desktop', // 'desktop', 'voice', 'animation', 'none'
+    type: 'voice',
   },
   threshold: {
     slouch: 60, // 判定のしきい値
