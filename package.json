@@ -23,7 +23,8 @@
     "files": [
       "dist/electron/**/*",
       "out/**/*",
-      "package.json"
+      "package.json",
+      "public/**/*"
     ],
     "asar": false,
     "directories": {
