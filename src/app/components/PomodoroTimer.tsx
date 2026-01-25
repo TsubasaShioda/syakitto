@@ -68,7 +68,7 @@ const PomodoroTimer = () => {
   const sendNotification = useCallback((message: string) => {
     if (notificationType === 'desktop') {
       if (typeof window !== 'undefined' && window.electron?.showNotification) {
-        window.electron.showNotification({ title: "ポモドーロタイマー", body: message, silent: true });
+        window.electron.showNotification({ title: "ポモドーロタイマー", body: message, silent: true, icon: '/icons/syakitto_w_trans.png' });
       } else { // Web browser environment
         // パーミッションがdefaultの場合のみ要求し、その後通知
         if (Notification.permission === 'default') {
