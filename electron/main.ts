@@ -132,9 +132,7 @@ app.whenReady().then(() => {
 
   // --- Trayアイコンの設定 (PNGテンプレート版) ---
   try {
-    const imagePath = app.isPackaged
-      ? path.join(process.resourcesPath, 'public', 'images', 'pictograms')
-      : path.join(__dirname, '..', '..', 'public', 'images', 'pictograms');
+    const imagePath = path.join(__dirname, '..', '..', 'public', 'images', 'pictograms');
     logToFile(`[DEBUG] Icon base path: ${imagePath}`);
 
     const percentages = [0, 25, 50, 75, 100];
