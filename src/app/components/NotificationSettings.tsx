@@ -14,8 +14,6 @@ interface NotificationSettingsProps {
 }
 
 const NotificationSettings: React.FC<NotificationSettingsProps> = ({ 
-    settings, 
-    setSettings,
     notificationSound,
     setNotificationSound,
     SOUND_OPTIONS,
@@ -50,21 +48,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({
               </select>
           </div>
           )}
-          <div className="bg-[#f4d06f]/10 rounded-3xl p-4 border border-[#f4d06f]/30">
-          <label htmlFor="cooldownTime" className="block text-sm font-medium text-gray-700 mb-2">
-              通知の間隔: <span className="font-bold text-[#d4a04f]">{settings.threshold.cooldownTime}秒</span>
-          </label>
-          <input
-              type="range"
-              id="cooldownTime"
-              min="5"
-              max="180"
-              step="5"
-              value={settings.threshold.cooldownTime || 0}
-              onChange={(e) => setSettings({ threshold: { ...settings.threshold, cooldownTime: Number(e.target.value) } })}
-              className="w-full h-2 bg-[#c9b8a8]/30 rounded-lg appearance-none cursor-pointer accent-[#f4d06f]"
-          />
-          </div>
+
           {notificationType === 'voice' && (
           <div className="bg-[#b8c9b8]/10 rounded-3xl p-4 border border-[#b8c9b8]/30">
               <label htmlFor="notificationSound" className="block text-sm font-medium text-gray-700 mb-2">通知音</label>
