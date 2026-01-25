@@ -564,9 +564,9 @@ const defaultSettings = {
   threshold: {
     slouch: 60, // 判定のしきい値
     duration: 10, // しきい値越えを何秒許容するか
-    reNotificationMode: 'cooldown',
+    reNotificationMode: 'continuous',
     cooldownTime: 5,
-    continuousInterval: 10,
+    continuousInterval: 5,
   },
   drowsiness: {
     earThreshold: 0.2,
