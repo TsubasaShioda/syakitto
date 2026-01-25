@@ -555,7 +555,7 @@ const defaultSettings = {
     all: true,
     sound: true,
     soundVolume: 0.5,
-    soundFile: 'monster-snore01.mp3',
+    soundFile: 'cat_sweet_voice1.mp3', // 変更
     visual: true,
     visualType: 'cat_hand', // 'cat_hand', 'dimmer', 'noise'
     pomodoro: true, // ポモドーロタイマーの通知

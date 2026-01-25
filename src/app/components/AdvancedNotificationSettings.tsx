@@ -34,6 +34,19 @@ const getBrowserInfo = (): BrowserInfo => {
   return { os, browser };
 };
 
+interface AdvancedNotificationSettingsProps {
+  isOpen: boolean;
+  onClose: () => void;
+  preamble?: React.ReactNode;
+  title?: string;
+  additionalMessage?: string;
+  showCompletionButton?: boolean;
+  onCompletionClick?: () => void;
+  showBrowserInstructions?: boolean;
+  showOsInstructions?: boolean;
+  isElectron?: boolean; // ★ 追加
+}
+
 const AdvancedNotificationSettings = ({ 
   isOpen, 
   onClose, 
@@ -44,17 +57,8 @@ const AdvancedNotificationSettings = ({
   onCompletionClick,
   showBrowserInstructions = true,
   showOsInstructions = true,
-}: { 
-  isOpen: boolean; 
-  onClose: () => void; 
-  preamble?: React.ReactNode; 
-  title?: string; 
-  additionalMessage?: string;
-  showCompletionButton?: boolean;
-  onCompletionClick?: () => void;
-  showBrowserInstructions?: boolean;
-  showOsInstructions?: boolean;
-}) => {
+  isElectron = false, // ★ 追加 & デフォルト値設定
+}: AdvancedNotificationSettingsProps) => {
   const [browserInfo, setBrowserInfo] = useState<BrowserInfo | null>(null);
 
   useEffect(() => {
@@ -75,13 +79,14 @@ const AdvancedNotificationSettings = ({
         )}
         {preamble}
         
-        {showBrowserInstructions && (
+        {/* Electron環境ではブラウザ指示は表示しない */}
+        {!isElectron && showBrowserInstructions && (
             <p className='text-base'>
               まず、お使いのブラウザでこのサイトからの通知が許可されているか確認してください。
             </p>
         )}
 
-        {showBrowserInstructions && browser === 'Chrome' && (
+        {!isElectron && showBrowserInstructions && browser === 'Chrome' && (
           <div className="bg-[#b8c9b8]/20 p-4 rounded-xl border border-[#b8c9b8]/40">
             <h4 className="font-bold text-lg mb-2 text-[#5a8f7b]">Chromeでの設定手順:</h4>
             <ol className="list-decimal list-inside space-y-1">
@@ -94,7 +99,7 @@ const AdvancedNotificationSettings = ({
           </div>
         )}
 
-        {showBrowserInstructions && browser === 'Safari' && os === 'macOS' && (
+        {!isElectron && showBrowserInstructions && browser === 'Safari' && os === 'macOS' && (
           <div className="bg-[#b8c9b8]/20 p-4 rounded-xl border border-[#b8c9b8]/40">
             <h4 className="font-bold text-lg mb-2 text-[#5a8f7b]">Safariでの設定手順 (macOS):</h4>
             <ol className="list-decimal list-inside space-y-1">
@@ -106,7 +111,7 @@ const AdvancedNotificationSettings = ({
           </div>
         )}
         
-        {showBrowserInstructions && browser === 'Firefox' && (
+        {!isElectron && showBrowserInstructions && browser === 'Firefox' && (
            <div className="bg-[#b8c9b8]/20 p-4 rounded-xl border border-[#b8c9b8]/40">
              <h4 className="font-bold text-lg mb-2 text-[#5a8f7b]">Firefoxでの設定手順:</h4>
              <ol className="list-decimal list-inside space-y-1">
@@ -119,7 +124,7 @@ const AdvancedNotificationSettings = ({
            </div>
         )}
         
-        {showBrowserInstructions && browser === 'Edge' && (
+        {!isElectron && showBrowserInstructions && browser === 'Edge' && (
             <div className="bg-[#b8c9b8]/20 p-4 rounded-xl border border-[#b8c9b8]/40">
                 <h4 className="font-bold text-lg mb-2 text-[#5a8f7b]">Edgeでの設定手順:</h4>
                 <ol className="list-decimal list-inside space-y-1">
@@ -131,32 +136,33 @@ const AdvancedNotificationSettings = ({
             </div>
         )}
 
-        {showOsInstructions && os === 'macOS' && (
+        {(isElectron || showOsInstructions) && os === 'macOS' && (
           <div className="bg-[#a8d5ba]/20 p-4 rounded-xl border border-[#a8d5ba]/40 mt-4">
             <h4 className="font-bold text-lg mb-2 text-[#5a8f7b]">macOSの通知設定</h4>
-            <p>ブラウザの設定が完了しても通知が届かない場合は、macOS自体の設定を確認してください。</p>
+            <p><strong>syakitto</strong> アプリからの通知を受け取るには、macOSのシステム設定で通知を許可する必要があります。</p>
             <ol className="list-decimal list-inside space-y-1 mt-2">
               <li>「システム設定」を開きます。</li>
               <li>「通知」を選択します。</li>
-              <li>アプリケーションの一覧からお使いのブラウザ（{browser}）を選択します。</li>
+              <li>アプリケーションの一覧から「syakitto」を選択します。</li>
               <li>「通知を許可」がオンになっていること、および通知スタイルが「バナー」または「通知」に設定されていることを確認します。</li>
             </ol>
           </div>
         )}
 
-        {showOsInstructions && os === 'Windows' && (
+        {(isElectron || showOsInstructions) && os === 'Windows' && (
           <div className="bg-[#a8d5ba]/20 p-4 rounded-xl border border-[#a8d5ba]/40 mt-4">
             <h4 className="font-bold text-lg mb-2 text-[#5a8f7b]">Windowsの通知設定</h4>
-            <p>ブラウザの設定が完了しても通知が届かない場合は、Windowsの通知設定と「集中モード」を確認してください。</p>
+            <p><strong>syakitto</strong> アプリからの通知を受け取るには、Windowsの通知設定で通知を許可する必要があります。</p>
             <ol className="list-decimal list-inside space-y-1 mt-2">
               <li>「スタート」メニューから「設定」を開きます。</li>
-              <li>「システム」 &gt; 「通知」に移動し、ブラウザからの通知がオンになっていることを確認します。</li>
+              <li>「システム」 &gt; 「通知」に移動し、「syakitto」からの通知がオンになっていることを確認します。</li>
               <li>「システム」 &gt; 「集中モード」に移動し、「オフ」を選択します。</li>
             </ol>
           </div>
         )}
 
-        {(showBrowserInstructions || showOsInstructions) && (
+        {/* Electron環境ではWebサイトがブラウザ設定を開けない旨のメッセージは不要 */}
+        {(!isElectron && (showBrowserInstructions || showOsInstructions)) && (
           <div className="text-xs text-gray-500 pt-4">
             <p>セキュリティ上の理由から、Webサイトが直接ブラウザの設定画面を開くことはできません。お手数ですが、上記の手順で手動で設定を変更してください。</p>
           </div>
