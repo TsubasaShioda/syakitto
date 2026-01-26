@@ -1,23 +1,15 @@
-"use client";
-
 import { useState, useEffect, useCallback } from 'react';
-import Image from 'next/image';
-import { Righteous } from 'next/font/google';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
-const righteous = Righteous({
-  weight: '400',
-  subsets: ['latin'],
-});
 import InfoModal from "@/app/components/InfoModal";
-import ScoreDisplay from "@/app/components/ScoreDisplay";
+import { ScoreDisplay } from "@/app/components/ScoreDisplay";
 import CameraView from "@/app/components/CameraView";
 import ControlButtons from "@/app/components/ControlButtons";
 import ActionButtons from "@/app/components/ActionButtons";
 import NotificationSelector from "@/app/components/NotificationSelector";
 import WelcomePopup from "@/app/components/WelcomePopup";
 import DownloadModal from "@/app/components/DownloadModal";
-import { usePostureApp } from "@/app/usePostureApp"; // usePostureAppからerrorを受け取る
+import { usePostureApp } from "@/app/usePostureApp";
 import PomodoroTimer from "@/app/components/PomodoroTimer";
 import PostureSettings from "@/app/components/PostureSettings";
 import InfoBanner from "@/app/components/InfoBanner";
@@ -30,38 +22,10 @@ import './components/Tutorial.css';
 import DownloadPrompt from './components/DownloadPrompt';
 import ShortcutPrompt from './components/ShortcutPrompt';
 import CameraPermissionModal from './components/CameraPermissionModal';
-
-const SlouchInfo = () => (
-  <div className="bg-[#a8d5ba]/10 rounded-3xl p-6 border border-[#a8d5ba]/30">
-    <p className="text-gray-700 leading-relaxed mb-3">
-      Syakittoは、肩と耳の位置、そして顔の大きさを検知することで猫背を判断します。
-      耳が肩よりも画面に近づいていくと猫背スコアが上昇し、顔の大きさも考慮することで、カメラとの距離が変わっても正確に猫背を検知できるようになりました。
-    </p>
-    <p className="text-gray-700 leading-relaxed">
-      設定では、「猫背と判断するスコア」と「この秒数続いたら通知」の2つの項目を調整できます。
-      「猫背と判断するスコア」は、猫背とみなすスコアの閾値です。この数値を超えると猫背と判断されます。
-      「この秒数続いたら通知」は、猫背スコアが閾値を超えた状態が指定した秒数継続した場合に通知を行うかの設定です。
-      これらの数値を調整することで、ご自身の作業環境や姿勢に合わせて検知の厳しさを変更できます。
-    </p>
-  </div>
-);
-
-// エラー表示用のバナーコンポーネントを追加
-const ErrorBanner = ({ message, onClose }: { message: string; onClose: () => void }) => (
-  <div className="fixed top-0 left-0 right-0 z-[100] bg-red-500/90 backdrop-blur-sm text-white px-6 py-3 shadow-lg flex justify-between items-center animate-slide-down">
-    <div className="flex items-center gap-3">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-      </svg>
-      <span className="font-medium">{message}</span>
-    </div>
-    <button onClick={onClose} className="p-1 hover:bg-white/20 rounded-full transition-colors">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-      </svg>
-    </button>
-  </div>
-);
+import ErrorBanner from './components/ErrorBanner';
+import SlouchInfo from './components/SlouchInfo';
+import Header from './components/Header';
+import PrivacyInfo from './components/PrivacyInfo';
 
 export default function HomeContent() {
   const [infoModalContent, setInfoModalContent] = useState<{ title: string; content: React.ReactNode } | null>(null);
@@ -307,21 +271,7 @@ export default function HomeContent() {
 
       <InfoBanner />
       <div className="flex-grow flex flex-col p-6">
-        <header className="mb-6 text-center">
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <Image
-              src="/images/syakitto_logo.png"
-              alt="syakitto logo"
-              width={48}
-              height={48}
-              className="rounded-lg"
-            />
-            <h1 className={`text-4xl font-bold bg-gradient-to-r from-[#3b82f6] to-[#10b981] bg-clip-text text-transparent ${righteous.className}`}>
-              syakitto
-            </h1>
-          </div>
-          <p className="text-gray-600 text-sm">リアルタイム姿勢チェッカー - あなたの健康をサポート</p>
-        </header>
+        <Header />
 
         <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6">
           <div className="md:col-start-2 lg:col-span-3 lg:col-start-10 lg:row-start-1 overflow-y-auto space-y-6">
