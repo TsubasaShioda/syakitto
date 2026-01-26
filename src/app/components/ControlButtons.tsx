@@ -1,5 +1,7 @@
 "use client";
 
+
+
 interface ControlButtonsProps {
   isPaused: boolean;
   onTogglePause: () => void;
@@ -7,6 +9,7 @@ interface ControlButtonsProps {
   isCalibrated: boolean;
   onCalibrate: () => Promise<void>;
   calibrationTimestamp: Date | null;
+  onPrivacyInfoClick: () => void; // onPrivacyInfoClickを追加
 }
 
 const ControlButtons = ({
@@ -16,6 +19,7 @@ const ControlButtons = ({
   isCalibrated,
   onCalibrate,
   calibrationTimestamp,
+  onPrivacyInfoClick, // onPrivacyInfoClickを追加
 }: ControlButtonsProps) => {
   return (
     <div className="w-full">
@@ -74,6 +78,13 @@ const ControlButtons = ({
             <span className="text-sm text-[#5a8f7b] font-medium">
               良い姿勢を記録済み ({calibrationTimestamp.toLocaleTimeString()})
             </span>
+            <button
+              onClick={onPrivacyInfoClick}
+              className="ml-2 px-3 py-1 bg-gray-200 text-gray-700 text-xs rounded-full hover:bg-gray-300 transition-colors duration-200 flex items-center justify-center whitespace-nowrap"
+              aria-label="映像の利用について"
+            >
+              映像の利用について
+            </button>
           </div>
         ) : (
           <div className="inline-flex items-center gap-2 px-6 py-3 bg-[#f4d06f]/20 border border-[#f4d06f]/40 rounded-full">
@@ -81,6 +92,13 @@ const ControlButtons = ({
               <path fillRule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75Zm0 8.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clipRule="evenodd" />
             </svg>
             <span className="text-sm text-[#d4a04f] font-medium">良い姿勢が記録されていません</span>
+            <button
+              onClick={onPrivacyInfoClick}
+              className="ml-2 px-3 py-1 bg-gray-200 text-gray-700 text-xs rounded-full hover:bg-gray-300 transition-colors duration-200 flex items-center justify-center whitespace-nowrap"
+              aria-label="映像の利用について"
+            >
+              映像の利用について
+            </button>
           </div>
         )}
       </div>

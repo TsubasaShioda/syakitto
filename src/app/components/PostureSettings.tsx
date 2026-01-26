@@ -10,11 +10,10 @@ interface PostureSettingsProps {
 const PostureSettings: React.FC<PostureSettingsProps> = ({ settings, setSettings }) => {
   return (
     <div className="w-full">
-      <h3 className="text-lg font-semibold text-[#5a8f7b] mb-4">猫背検知設定</h3>
       <div className="space-y-4">
         <div>
           <label htmlFor="threshold" className="block text-sm font-medium text-gray-700 mb-2">
-            猫背と判断するスコア: <span className="font-bold text-[#5a8f7b]">{settings.threshold.slouch}%</span>
+            猫背判定のしきい値: <span className="font-bold text-[#5a8f7b]">{settings.threshold.slouch}%</span>
           </label>
           <input
             type="range"
@@ -28,7 +27,7 @@ const PostureSettings: React.FC<PostureSettingsProps> = ({ settings, setSettings
         </div>
         <div>
           <label htmlFor="delay" className="block text-sm font-medium text-gray-700 mb-2">
-            この秒数続いたら通知: <span className="font-bold text-[#5a8f7b]">{settings.threshold.duration}秒</span>
+            通知までの秒数: <span className="font-bold text-[#5a8f7b]">{settings.threshold.duration}秒</span>
           </label>
           <input
             type="range"

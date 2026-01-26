@@ -11,7 +11,7 @@ interface ScoreDisplayProps {
   onSettingsClick: () => void;
 }
 
-const ScoreDisplay = ({
+export const ScoreDisplay = ({
   slouchScore,
   isSlouchDetectionEnabled,
   onToggleSlouch,
