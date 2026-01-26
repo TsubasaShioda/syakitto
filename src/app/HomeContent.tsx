@@ -324,6 +324,7 @@ export default function HomeContent() {
               isCalibrated={isCalibrated}
               onCalibrate={calibrate}
               calibrationTimestamp={calibrationTimestamp}
+              onPrivacyInfoClick={() => setInfoModalContent({ title: "映像の利用について", content: <PrivacyInfo /> })}
             />
           </div>
         </div>
