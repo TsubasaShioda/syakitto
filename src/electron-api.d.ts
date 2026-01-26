@@ -61,6 +61,7 @@ export interface ElectronAPI {
   showAnimationNotification: () => void;
   showCatHandNotification: () => void;
   showNoiseNotification: () => void;
+  showSwitchNotification: (switchType: 'on' | 'off') => void;
   requestDimmerUpdate: (score: number) => void;
   minimizeWindow?: () => void;
   maximizeWindow?: () => void;
@@ -80,6 +81,7 @@ export interface ElectronAPI {
 
 export interface ElectronTimerAPI {
   onUpdateTimer: (callback: (data: { timeLeft: number; isActive: boolean; sessionType: string }) => void) => void;
+  onSwitchType: (callback: (imagePath: string) => void) => void;
   closeTimerWindow: () => void;
   toggleTimer: () => void;
   resetTimer: () => void;

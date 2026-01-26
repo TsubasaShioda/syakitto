@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import InfoModal from './InfoModal';
+import { Settings } from '@/electron-api.d'; // Settings 型をインポート
 
 // Settings are now local to the component
 interface TimerSettings {
@@ -24,9 +25,12 @@ const DEFAULT_TIMER_SETTINGS: TimerSettings = {
 };
 
 type SessionType = '作業' | '短い休憩' | '長い休憩';
-type NotificationType = 'desktop' | 'voice' | 'none';
 
-const PomodoroTimer = () => {
+interface PomodoroTimerProps {
+  settings: Settings; // propsとしてsettingsを受け取る
+}
+
+const PomodoroTimer = ({ settings }: PomodoroTimerProps) => {
   const [timerSettings, setTimerSettings] = useState(DEFAULT_TIMER_SETTINGS);
   const [tempTimerSettings, setTempTimerSettings] = useState(DEFAULT_TIMER_SETTINGS);
   
@@ -36,7 +40,6 @@ const PomodoroTimer = () => {
   const [isActive, setIsActive] = useState(false);
   const [sessionType, setSessionType] = useState<SessionType>('作業');
   const [pomodoroCount, setPomodoroCount] = useState(0);
-  const [notificationType, setNotificationType] = useState<NotificationType>('desktop');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isElectron, setIsElectron] = useState(false);
 
@@ -65,12 +68,23 @@ const PomodoroTimer = () => {
 
 
 
-  const sendNotification = useCallback((message: string) => {
-    if (notificationType === 'desktop') {
-      if (typeof window !== 'undefined' && window.electron?.showNotification) {
+  const sendNotification = useCallback((message: string, isSwitch: boolean = false, switchType: 'on' | 'off' = 'on') => {
+    const notificationMethod = settings.notification.type;
+
+    if (notificationMethod === 'none') return;
+
+    if (isElectron) {
+      if (notificationMethod === 'animation' && isSwitch) {
+        window.electron.showSwitchNotification(switchType);
+      } else if (notificationMethod === 'desktop') {
         window.electron.showNotification({ title: "ポモドーロタイマー", body: message, silent: true, icon: '/icons/syakitto_w_trans.png' });
-      } else { // Web browser environment
-        // パーミッションがdefaultの場合のみ要求し、その後通知
+      } else if (notificationMethod === 'voice') {
+        const utterance = new SpeechSynthesisUtterance(message);
+        utterance.lang = "ja-JP";
+        speechSynthesis.speak(utterance);
+      }
+    } else { // Web browser environment
+      if (notificationMethod === 'desktop') {
         if (Notification.permission === 'default') {
           Notification.requestPermission().then(permission => {
             if (permission === 'granted') {
@@ -80,35 +94,42 @@ const PomodoroTimer = () => {
         } else if (Notification.permission === 'granted') {
           new Notification("ポモドーロタイマー", { body: message, silent: true });
         }
+      } else if (notificationMethod === 'voice') {
+        const utterance = new SpeechSynthesisUtterance(message);
+        utterance.lang = "ja-JP";
+        speechSynthesis.speak(utterance);
       }
-    } else if (notificationType === 'voice') {
-      const utterance = new SpeechSynthesisUtterance(message);
-      utterance.lang = "ja-JP";
-      speechSynthesis.speak(utterance);
     }
-  }, [notificationType]);
+  }, [settings.notification.type, isElectron]);
 
   const switchSession = useCallback((type: SessionType, shouldNotify: boolean, autoStart: boolean = false) => {
     setIsActive(autoStart);
     setSessionType(type);
-    const multiplier = isDevelopmentMode ? 1 : 60; // 開発モードは秒、通常モードは分を秒に変換
+    const multiplier = isDevelopmentMode ? 1 : 60;
     let notificationMessage = '';
+    let switchType: 'on' | 'off' = 'on';
+
     switch (type) {
       case '作業':
         setTimeLeft(pomodoroWork * multiplier);
         notificationMessage = '作業を始めましょう！';
+        switchType = 'on';
         break;
       case '短い休憩':
         setTimeLeft(pomodoroShortBreak * multiplier);
         notificationMessage = '短い休憩を取りましょう！';
+        switchType = 'off';
         break;
       case '長い休憩':
         setTimeLeft(pomodoroLongBreak * multiplier);
         notificationMessage = '長い休憩を始めましょう！';
+        switchType = 'off';
         break;
     }
-    if (shouldNotify) sendNotification(notificationMessage);
-  }, [sendNotification, pomodoroWork, pomodoroShortBreak, pomodoroLongBreak]);
+    if (shouldNotify) {
+      sendNotification(notificationMessage, true, switchType);
+    }
+  }, [sendNotification, pomodoroWork, pomodoroShortBreak, pomodoroLongBreak, isDevelopmentMode]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -285,14 +306,6 @@ const PomodoroTimer = () => {
               ウィンドウ表示
             </button>
           )}
-        </div>
-        <div className="text-sm">
-          <p className="mb-2 font-medium">通知方法:</p>
-          <div className="flex justify-center space-x-2">
-            <button onClick={() => setNotificationType('desktop')} className={`px-3 py-1 text-sm rounded-full transition-colors ${notificationType === 'desktop' ? 'bg-[#a8d5ba] text-white text-outline' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>デスクトップ</button>
-            <button onClick={() => setNotificationType('voice')} className={`px-3 py-1 text-sm rounded-full transition-colors ${notificationType === 'voice' ? 'bg-[#a8d5ba] text-white text-outline' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>音声</button>
-            <button onClick={() => setNotificationType('none')} className={`px-3 py-1 text-sm rounded-full transition-colors ${notificationType === 'none' ? 'bg-[#a8d5ba] text-white text-outline' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>なし</button>
-          </div>
         </div>
       </div>
       <InfoModal isOpen={isSettingsOpen} onClose={closeSettings} title="ポモドーロタイマー設定">

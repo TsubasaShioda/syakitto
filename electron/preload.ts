@@ -25,6 +25,7 @@ contextBridge.exposeInMainWorld('electron', {
   showCatHandNotification: () => ipcRenderer.send('show-cat-hand-notification'),
   showNoiseNotification: () => ipcRenderer.send('show-noise-notification'),
   requestDimmerUpdate: (score: number) => ipcRenderer.send('request-dimmer-update', score),
+  showSwitchNotification: (switchType: 'on' | 'off') => ipcRenderer.send('show-switch-notification', switchType),
   closeWindow: () => ipcRenderer.send('close-window'),
 
   // アプリ終了前のクリーンアップ通知を受け取る
@@ -71,6 +72,9 @@ contextBridge.exposeInMainWorld('electron', {
 contextBridge.exposeInMainWorld('electronAPI', {
   onUpdateTimer: (callback: (data: { timeLeft: number; isActive: boolean; sessionType: string }) => void) => {
     ipcRenderer.on('update-timer', (_event, data) => callback(data));
+  },
+  onSwitchType: (callback: (imagePath: string) => void) => {
+    ipcRenderer.on('switch-type', (_event, imagePath) => callback(imagePath));
   },
   closeTimerWindow: () => ipcRenderer.send('close-timer-window'),
   toggleTimer: () => ipcRenderer.send('toggle-timer'),

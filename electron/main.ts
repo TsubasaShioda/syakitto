@@ -420,6 +420,55 @@ app.whenReady().then(() => {
     }, 2000); // 2秒後に閉じる
   });
 
+  // スイッチ通知用のIPCイベントハンドラ
+  ipcMain.on('show-switch-notification', (event, switchType: 'on' | 'off') => {
+    const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+
+    const switchWindow = new BrowserWindow({
+      width: 280,
+      height: 280,
+      x: width - 280,
+      y: 10,
+      transparent: true,
+      frame: false,
+      alwaysOnTop: true,
+      skipTaskbar: true,
+      focusable: false,
+      hasShadow: false,
+      acceptFirstMouse: false,
+      minimizable: false,
+      maximizable: false,
+      closable: true,
+      resizable: false,
+      webPreferences: {
+        preload: path.join(__dirname, 'preload.js'),
+        devTools: isDev,
+      },
+    });
+
+    const switchPath = path.join(__dirname, 'windows', 'switch', 'switch.html');
+    switchWindow.loadFile(switchPath);
+
+    // 画像のパスを解決
+    const imageName = switchType === 'on' ? 'on_switch.png' : 'off_switch.png';
+    const imagePath = isDev
+      ? path.join(__dirname, '..', '..', 'public', 'images', imageName)
+      : path.join(process.resourcesPath, 'app', 'out', 'images', imageName);
+
+
+    // ウィンドウの準備ができたら画像パスを送信
+    switchWindow.webContents.on('did-finish-load', () => {
+      // file://プロトコルを付けてパスを送信
+      switchWindow.webContents.send('switch-type', `file://${imagePath}`);
+    });
+
+    setTimeout(() => {
+      if (!switchWindow.isDestroyed()) {
+        switchWindow.destroy();
+      }
+    }, 4500);
+  });
+
   // 画面を薄暗くするアニメーション用のIPCイベントハンドラ
   ipcMain.on('request-dimmer-update', (_event, score: number) => {
     const SHOW_THRESHOLD = 40; // 表示を開始するスコア

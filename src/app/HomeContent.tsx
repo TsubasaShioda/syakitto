@@ -291,7 +291,7 @@ export default function HomeContent() {
                 </p>
               </div>
             )}
-            <PomodoroTimer />
+            <PomodoroTimer settings={settings} />
           </div>
 
           <div className="md:col-start-1 md:row-start-1 lg:col-span-3 lg:col-start-1 lg:row-start-1 space-y-6 overflow-y-auto">
