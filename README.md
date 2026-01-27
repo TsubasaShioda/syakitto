@@ -6,10 +6,6 @@
 
 <h3 align="center">リアルタイム姿勢チェッカーで、健康的なデスクワークをサポート</h3>
 
-<p align="center">
-  <img src="./public/images/good_posture.png" alt="syakitto Screenshot" width="600">
-</p>
-
 `syakitto`は、Webカメラを使ってあなたの姿勢をリアルタイムでチェックし、猫背を検知してお知らせするデスクトップアプリケーションです。長時間のデスクワークによる姿勢の乱れを防ぎ、健康的な毎日をサポートします。
 
 ## 主な機能
