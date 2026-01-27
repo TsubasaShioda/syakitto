@@ -58,7 +58,18 @@
 
 最新版のアプリケーションは、以下のリンクからダウンロードできます。
 
-- [**最新版をダウンロード**](https://github.com/TsubasaShioda/syakitto/releases)
+- [**最新版をダウンロード (v1.0.0)**](https://github.com/TsubasaShioda/syakitto/releases)
+
+### macOSでのダウンロードに関する注意点
+
+macOSをご利用の場合、ダウンロードしたアプリケーションが正常に起動しない場合があります。これはmacOSのセキュリティ機能（Gatekeeper）によるものです。以下のコマンドをターミナルで実行することで、問題を解決できる場合があります。
+
+```bash
+xattr -d com.apple.quarantine /Applications/syakitto.app
+```
+
+`syakitto.app` の部分は、アプリケーションをインストールしたパスに合わせて変更してください。
+例: ダウンロードフォルダに存在する場合は `/Users/あなたのユーザー名/Downloads/syakitto.app`
 
 <br>
 

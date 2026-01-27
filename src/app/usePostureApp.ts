@@ -250,7 +250,7 @@ export const usePostureApp = ({
 
   const handleDownload = () => {
     if (window.confirm('macOS版インストーラーをダウンロードしますか？')) {
-      window.location.href = 'https://github.com/TsubasaShioda/syakitto/releases/download/v0.3.0/syakitto-0.3.0-arm64.dmg';
+      window.location.href = 'https://github.com/TsubasaShioda/syakitto/releases/download/v1.0.0/syakitto-1.0.0-arm64.dmg';
     }
   };
 
