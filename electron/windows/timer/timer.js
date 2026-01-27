@@ -16,6 +16,13 @@ window.electronAPI?.onUpdateTimer((data) => {
     sessionTypeElement.textContent = sessionType;
   }
 
+  // 休憩時は背景色を赤系に変更（作業を止めて休憩を促す）
+  const timerWindow = document.querySelector('.timer-window');
+  if (timerWindow && sessionType) {
+    const isBreakTime = sessionType === '短い休憩' || sessionType === '長い休憩';
+    timerWindow.style.background = isBreakTime ? '#e57373' : '#a8d5ba';
+  }
+
   // ボタンのテキストを更新
   const toggleBtn = document.getElementById('toggleBtn');
   if (toggleBtn) {
