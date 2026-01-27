@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from 'react';
-import { shortcuts, ShortcutKey } from '../config/shortcuts';
+import { shortcuts, ShortcutKey } from '@/app/config/shortcuts';
 
 type ShortcutHandler = (action: string) => void;
 

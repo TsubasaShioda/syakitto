@@ -1,6 +1,6 @@
 "use client";
-import ToggleSwitch from "./ToggleSwitch";
-import InfoButton from "./InfoButton";
+import ToggleSwitch from '@/app/components/ui/buttons/ToggleSwitch';
+import InfoButton from '@/app/components/ui/buttons/InfoButton';
 
 
 interface ScoreDisplayProps {

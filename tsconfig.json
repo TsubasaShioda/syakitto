@@ -32,7 +32,7 @@
     "**/*.ts",
     "**/*.tsx",
     "next-env.d.ts",
-    "src/electron-api.d.ts",
+    "src/types/electron-api.d.ts",
     "src/react-override.d.ts",
     ".next/types/**/*.ts"
   ],

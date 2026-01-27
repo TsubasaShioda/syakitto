@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import InfoModal from './InfoModal';
+import InfoModal from '@/app/components/ui/modals/InfoModal';
 
 interface BrowserInfo {
   os: 'macOS' | 'Windows' | 'Other';

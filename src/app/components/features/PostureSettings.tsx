@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Settings } from '@/electron-api.d';
+import { Settings } from '@/types/electron-api.d';
 
 interface PostureSettingsProps {
   settings: Settings;

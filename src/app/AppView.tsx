@@ -1,33 +1,33 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
-import InfoModal from "@/app/components/InfoModal";
-import { ScoreDisplay } from "@/app/components/ScoreDisplay";
-import CameraView from "@/app/components/CameraView";
-import ControlButtons from "@/app/components/ControlButtons";
-import ActionButtons from "@/app/components/ActionButtons";
-import NotificationSelector from "@/app/components/NotificationSelector";
-import WelcomePopup from "@/app/components/WelcomePopup";
-import DownloadModal from "@/app/components/DownloadModal";
-import { usePostureApp } from "@/app/usePostureApp";
-import PomodoroTimer from "@/app/components/PomodoroTimer";
-import PostureSettings from "@/app/components/PostureSettings";
-import InfoBanner from "@/app/components/InfoBanner";
-import AdvancedNotificationSettings from "@/app/components/AdvancedNotificationSettings";
-import { NotificationPermissionFlowModal } from "@/app/components/NotificationPermissionFlowModal";
-import ShortcutHelp from "@/app/components/ShortcutHelp";
-import ShortcutButton from "@/app/components/ShortcutButton";
-import Tutorial from './components/Tutorial';
-import './components/Tutorial.css';
-import DownloadPrompt from './components/DownloadPrompt';
-import ShortcutPrompt from './components/ShortcutPrompt';
-import CameraPermissionModal from './components/CameraPermissionModal';
-import ErrorBanner from './components/ErrorBanner';
-import SlouchInfo from './components/SlouchInfo';
-import Header from './components/Header';
-import PrivacyInfo from './components/PrivacyInfo';
+import InfoModal from "@/app/components/ui/modals/InfoModal";
+import { ScoreDisplay } from "@/app/components/features/ScoreDisplay";
+import CameraView from "@/app/components/features/CameraView";
+import ControlButtons from "@/app/components/ui/buttons/ControlButtons";
+import ActionButtons from "@/app/components/ui/buttons/ActionButtons";
+import NotificationSelector from "@/app/components/features/NotificationSelector";
+import WelcomePopup from "@/app/components/ui/modals/WelcomePopup";
+import DownloadModal from "@/app/components/ui/modals/DownloadModal";
+import { useAppOrchestrator } from '@/hooks/useAppOrchestrator';
+import PomodoroTimer from "@/app/components/features/PomodoroTimer";
+import PostureSettings from "@/app/components/features/PostureSettings";
+import InfoBanner from "@/app/components/ui/banners/InfoBanner";
+import AdvancedNotificationSettings from "@/app/components/features/AdvancedNotificationSettings";
+import { NotificationPermissionFlowModal } from "@/app/components/ui/modals/NotificationPermissionFlowModal";
+import ShortcutHelp from "@/app/components/ui/modals/ShortcutHelp";
+import ShortcutButton from "@/app/components/ui/buttons/ShortcutButton";
+import Tutorial from '@/app/components/features/Tutorial';
+import '@/app/components/features/Tutorial.css';
+import DownloadPrompt from '@/app/components/ui/prompts/DownloadPrompt';
+import ShortcutPrompt from '@/app/components/ui/prompts/ShortcutPrompt';
+import CameraPermissionModal from '@/app/components/ui/modals/CameraPermissionModal';
+import ErrorBanner from '@/app/components/ui/banners/ErrorBanner';
+import SlouchInfo from '@/app/components/features/SlouchInfo';
+import Header from '@/app/components/ui/Header';
+import PrivacyInfo from '@/app/components/features/PrivacyInfo';
 
-export default function HomeContent() {
+export default function AppView() {
   const [infoModalContent, setInfoModalContent] = useState<{ title: string; content: React.ReactNode } | null>(null);
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
   const [showDownloadPrompt, setShowDownloadPrompt] = useState(false);
@@ -83,7 +83,7 @@ export default function HomeContent() {
     error,      // エラー状態
     setError,   // エラーリセット用
     cameraPermissionState,
-  } = usePostureApp({
+  } = useAppOrchestrator({
     onNotificationBlocked: handleNotificationBlocked,
     setIsCameraPermissionModalOpen,
   });

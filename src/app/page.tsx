@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 
 // TensorFlowなどブラウザ専用ライブラリを含むコンポーネントを
 // クライアントサイドのみでロード（SSR/静的エクスポート時のエラー回避）
-const HomeContent = dynamic(() => import('./HomeContent'), {
+const AppView = dynamic(() => import('./AppView'), {
   ssr: false,
   loading: () => (
     <main className="min-h-screen flex items-center justify-center bg-[#f7f2ee]">
@@ -17,5 +17,5 @@ const HomeContent = dynamic(() => import('./HomeContent'), {
 });
 
 export default function Home() {
-  return <HomeContent />;
+  return <AppView />;
 }

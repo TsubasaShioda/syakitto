@@ -1,6 +1,6 @@
 "use client";
 import { RefObject } from 'react';
-import ToggleSwitch from './ToggleSwitch';
+import ToggleSwitch from '@/app/components/ui/buttons/ToggleSwitch';
 
 interface CameraViewProps {
   videoRef: RefObject<HTMLVideoElement | null>;

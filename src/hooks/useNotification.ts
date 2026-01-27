@@ -1,6 +1,6 @@
 // useNotification.ts
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Settings } from '@/electron-api.d';
+import { Settings } from '@/types/electron-api.d';
 
 interface UseNotificationProps {
   slouchScore: number;

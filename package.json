@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "electron:build": "tsc -p tsconfig.electron.json && cpy \"electron/windows/**/*.{html,css,js}\" \"dist/electron/windows\" --parents && cpy \"public/images/unnamed-removebg-preview.png\" \"dist/electron/windows/cat_hand\" --flat && cpy \"public/images/bad_posture.png\" \"dist/electron/windows/toggle\" --flat && cpy \"public/images/good_posture.png\" \"dist/electron/windows/toggle\" --flat",
+    "electron:build": "tsc -p tsconfig.electron.json && cpy \"electron/overlays/**/*.{html,css,js}\" \"dist/electron/overlays\" --parents && cpy \"public/images/unnamed-removebg-preview.png\" \"dist/electron/overlays/cat_hand\" --flat && cpy \"public/images/bad_posture.png\" \"dist/electron/overlays/toggle\" --flat && cpy \"public/images/good_posture.png\" \"dist/electron/overlays/toggle\" --flat",
     "electron:start": "npm run electron:build && cross-env NODE_ENV=development electron .",
     "electron:dev": "concurrently \"cross-env BUILD_TARGET=electron npm run dev\" \"wait-on http://localhost:3000 && npm run electron:start\"",
     "electron:package": "rimraf dist && rimraf release && cross-env BUILD_TARGET=electron npm run build && npm run electron:build && electron-builder",

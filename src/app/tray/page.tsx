@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import ToggleSwitch from "../components/ToggleSwitch";
+import ToggleSwitch from '@/app/components/ui/buttons/ToggleSwitch';
 
 export default function TrayPage() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);

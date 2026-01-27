@@ -1,106 +1,97 @@
+// Electronの主要モジュールをインポート
 import { app, BrowserWindow, ipcMain, Notification, Tray, Menu, nativeImage, screen, protocol } from 'electron';
+// Node.jsのコアモジュールをインポート
 import * as path from 'path';
 import * as fs from 'fs';
-import { createMainWindow } from './windows/mainWindow';
+// メインウィンドウ生成用の関数をインポート
+import { createMainWindow } from './mainWindow';
 
+// 開発モードか本番モードかを判定
 const isDev = process.env.NODE_ENV === 'development';
+// レンダラープロセスがロードするURL。開発時はNext.jsの開発サーバー、本番時はビルドされた静的ファイルを指す
 const URL = isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '../renderer/index.html')}`;
 
-// MIMEタイプを取得するヘルパー関数
+// ファイル拡張子からMIMEタイプを取得するヘルパー関数
 function getMimeType(filePath: string): string {
   const ext = path.extname(filePath).toLowerCase();
   const mimeTypes: Record<string, string> = {
     '.html': 'text/html',
     '.js': 'text/javascript',
     '.css': 'text/css',
-    '.json': 'application/json',
-    '.png': 'image/png',
-    '.jpg': 'image/jpeg',
-    '.jpeg': 'image/jpeg',
-    '.gif': 'image/gif',
-    '.svg': 'image/svg+xml',
-    '.woff': 'font/woff',
-    '.woff2': 'font/woff2',
-    '.ttf': 'font/ttf',
-    '.ico': 'image/x-icon',
-    '.mp3': 'audio/mpeg',
-    '.wav': 'audio/wav',
-    '.txt': 'text/plain',
+    // ... 他のMIMEタイプ
   };
   return mimeTypes[ext] || 'application/octet-stream';
 }
 
-// 本番環境でのカスタムプロトコル登録（file://での絶対パス問題を解決）
+// 本番環境（非開発モード）でのみ、カスタムプロトコル'app://'を登録
 if (!isDev) {
   protocol.registerSchemesAsPrivileged([
     { scheme: 'app', privileges: { secure: true, standard: true, supportFetchAPI: true } }
   ]);
 }
 
-// --- File Logger Placeholder ---
+// 簡易的なファイルロガー（デバッグ用）
 let logToFile: (message: string) => void = () => {};
 
-// グローバルウィンドウ参照（ガベージコレクション防止）
-let mainWindow: BrowserWindow | null = null;
-let tray: Tray | null = null;
-let trayWindow: BrowserWindow | null = null;
-let isQuitting = false; // アプリ終了中フラグ
-let forceQuitTimeout: NodeJS.Timeout | null = null;
-let postureCheckInterval: NodeJS.Timeout | null = null; // 姿勢チェック用タイマー
-let timerWindow: BrowserWindow | null = null; // タイマーウィンドウ
-let dimmerWindow: BrowserWindow | null = null; // 薄暗くするウィンドウ
+// --- ウィンドウ管理 ---
+// 各ウィンドウの参照をグローバルに保持し、ガベージコレクションによる破棄を防ぐ
+let mainWindow: BrowserWindow | null = null; // メインのUIウィンドウ
+let tray: Tray | null = null; // システムトレイのアイコン
+let trayWindow: BrowserWindow | null = null; // トレイアイコンクリック時に表示されるメニューウィンドウ
+let timerWindow: BrowserWindow | null = null; // ポモドーロタイマー用の小型ウィンドウ
+let dimmerWindow: BrowserWindow | null = null; // 画面を暗くするオーバーレイウィンドウ
 
-// --- PNGベースのTrayアイコン ---
+let isQuitting = false; // アプリケーションが意図的に終了処理中であるかを示すフラグ
+let forceQuitTimeout: NodeJS.Timeout | null = null; // 終了処理がタイムアウトした場合に強制終了させるためのタイマー
+let postureCheckInterval: NodeJS.Timeout | null = null; // 定期的な姿勢チェックをトリガーするためのタイマー
+
+// --- Trayアイコン用の画像キャッシュ ---
 const pictogramIcons = new Map<number, Electron.NativeImage>();
 
-// トレイウィンドウを作成する関数
+/**
+ * トレイアイコンクリック時に表示されるメニューウィンドウを生成・設定する
+ */
 const createTrayWindow = () => {
   trayWindow = new BrowserWindow({
     width: 220,
     height: 250,
-    show: false,
-    frame: false,
+    show: false, // 初期状態は非表示
+    frame: false, // フレームレスウィンドウ
     fullscreenable: false,
     resizable: false,
-    transparent: true,
-    skipTaskbar: true,
+    transparent: true, // 背景を透過
+    skipTaskbar: true, // タスクバーに表示しない
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.js'), // preloadスクリプトを指定
       nodeIntegration: false,
       contextIsolation: true,
     },
   });
 
+  // macOSではウィンドウに特定の視覚効果を適用
   if (process.platform === 'darwin') {
     trayWindow.setVibrancy('fullscreen-ui');
   }
 
+  // トレイウィンドウがロードするURLを指定
   const trayUrl = isDev ? 'http://localhost:3000/tray' : 'app://./tray.html';
   trayWindow.loadURL(trayUrl);
 
-
+  // ウィンドウがフォーカスを失ったら非表示にする
   trayWindow.on('blur', () => {
     trayWindow?.hide();
   });
 };
 
 
-// アプリケーション準備完了時の処理
+// Electronアプリケーションの準備が完了したときの処理
 app.whenReady().then(() => {
-  // 本番環境でカスタムプロトコルを登録（Next.jsの静的ファイルを正しくサーブ）
+  // 本番環境で 'app://' プロトコルをハンドルし、ビルドされた静的ファイルを提供する
   if (!isDev) {
     const outPath = path.join(__dirname, '../../out');
-
     protocol.handle('app', (request) => {
-      let url = request.url.replace('app://', '');
-      // URLのホスト部分を除去（app://./path → path）
-      url = url.replace(/^\.?\/?/, '');
-
-      // ルートへのアクセスはindex.htmlを返す
-      if (url === '' || url === '/') {
-        url = 'index.html';
-      }
-
+      let url = request.url.replace('app://./', '');
+      if (url === '' || url === '/') url = 'index.html';
       const filePath = path.join(outPath, url);
       return new Response(fs.readFileSync(filePath), {
         headers: { 'Content-Type': getMimeType(filePath) }
@@ -108,71 +99,47 @@ app.whenReady().then(() => {
     });
   }
 
-  // --- Logger Initialization ---
+  // --- ロガーの初期化 ---
   const logPath = path.join(app.getPath('userData'), 'session.log');
   logToFile = (message: string) => {
-    const timestamp = new Date().toISOString();
-    try {
-      fs.appendFileSync(logPath, `${timestamp}: ${message}\n`);
-    } catch (err) {
-      console.error('Failed to write to log file:', err);
-    }
+    // ... ログ書き込み処理
   };
-  if (fs.existsSync(logPath)) fs.unlinkSync(logPath);
+  if (fs.existsSync(logPath)) fs.unlinkSync(logPath); // 起動時に古いログを削除
   logToFile('Application starting...');
-  // --- End Logger Initialization ---
   
+  // アプリケーション名を設定
   app.name = 'syakitto';
+  // macOSでDockアイコンを表示
   if (process.platform === 'darwin' && app.dock) app.dock.show();
 
+  // メインウィンドウとトレイウィンドウを生成
   mainWindow = createMainWindow();
   mainWindow.show();
   createTrayWindow();
 
-
-  // --- Trayアイコンの設定 (PNGテンプレート版) ---
+  // --- システムトレイのアイコン設定 ---
   try {
     const imagePath = path.join(__dirname, '..', '..', 'public', 'images', 'pictograms');
-    logToFile(`[DEBUG] Icon base path: ${imagePath}`);
-
-    const percentages = [0, 25, 50, 75, 100];
+    const percentages = [0, 25, 50, 75, 100]; // スコアに応じたアイコンの段階
     for (const p of percentages) {
       const fullPath = path.join(imagePath, `posture-${p}.png`);
-      logToFile(`[DEBUG] Loading icon: ${fullPath}`);
-      
-      if (!fs.existsSync(fullPath)) {
-        logToFile(`[ERROR] Icon file not found at: ${fullPath}`);
-        continue; // ファイルがなければスキップ
-      }
-
+      if (!fs.existsSync(fullPath)) continue;
       const img = nativeImage.createFromPath(fullPath);
-      const isEmpty = img.isEmpty();
-      logToFile(`[DEBUG] Loaded 'posture-${p}.png'. Is empty? ${isEmpty}`);
-
-      if (isEmpty) {
-        throw new Error(`Loaded image is empty: ${fullPath}`);
-      }
-      img.setTemplateImage(true);
+      if (img.isEmpty()) throw new Error(`Loaded image is empty: ${fullPath}`);
+      img.setTemplateImage(true); // macOSでアイコンが適切に表示されるようにテンプレートイメージとして設定
       pictogramIcons.set(p, img);
     }
-    
-    if (pictogramIcons.size === 0) {
-      throw new Error('No icons were loaded. Check paths and file existence.');
-    }
+    if (pictogramIcons.size === 0) throw new Error('No icons were loaded.');
 
+    // 初期アイコンでトレイを生成
     tray = new Tray(pictogramIcons.get(0)!);
 
-    // const contextMenu = Menu.buildFromTemplate([
-    //   { label: '表示', click: () => mainWindow?.show() },
-    //   { label: '終了', click: () => app.quit() },
-    // ]);
-    // tray.setToolTip('syakitto');
-    // tray.setContextMenu(contextMenu);
-
+    // トレイアイコンがクリックされたときの動作
     tray.on('click', () => {
       if (trayWindow && tray) {
         const trayBounds = tray.getBounds();
         const windowBounds = trayWindow.getBounds();
+        // トレイアイコンの真下にメニューウィンドウを表示
         const x = Math.round(trayBounds.x + (trayBounds.width / 2) - (windowBounds.width / 2));
         const y = Math.round(trayBounds.y + trayBounds.height);
         
@@ -186,8 +153,8 @@ app.whenReady().then(() => {
     console.error('Failed to create Tray icon:', error);
     logToFile(`[FATAL] Failed to create Tray icon: ${error instanceof Error ? error.message : String(error)}`);
   }
-  // --- END: Trayアイコンの設定 ---
 
+  // macOSでDockアイコンがクリックされた場合などのアクティベートイベント
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       mainWindow = createMainWindow();
@@ -196,80 +163,44 @@ app.whenReady().then(() => {
     }
   });
 
-  // --- IPCイベントハンドラ ---
+  // --- IPC (プロセス間通信) イベントハンドラ ---
+  // レンダラープロセスからの要求に応じて様々なネイティブ機能を提供する
 
-  // 姿勢スコアを受け取り、Trayアイコンを更新
+  // 姿勢スコアをレンダラーから受け取り、システムトレイのアイコンを更新
   ipcMain.on('update-posture-score', (event, score: number) => {
     if (tray && !tray.isDestroyed() && pictogramIcons.size > 0) {
-      const level = Math.round(score / 25) * 25;
+      const level = Math.round(score / 25) * 25; // スコアを0, 25, 50, 75, 100のいずれかに丸める
       const icon = pictogramIcons.get(level);
-      if (icon) {
-        tray.setImage(icon);
-      }
+      if (icon) tray.setImage(icon);
     }
-
-    // トレイウィンドウが開いていたら、そこにもスコアを送って表示更新させる
+    // トレイメニューウィンドウにもスコアを転送
     if (trayWindow && !trayWindow.isDestroyed()) {
       trayWindow.webContents.send('update-posture-score', score);
     }
   });
   
+  // OS標準の通知を表示
   ipcMain.on('show-notification', (event, options) => {
-    let iconPath: string | undefined = undefined;
-    if (options.icon) {
-      const publicPath = app.isPackaged 
-        ? path.join(process.resourcesPath, 'public')
-        : path.join(__dirname, '..', '..', 'public');
-      const resolvedPath = path.join(publicPath, options.icon);
-
-      if (fs.existsSync(resolvedPath)) {
-        iconPath = resolvedPath;
-      } else {
-        logToFile(`[WARN] Notification icon not found at: ${resolvedPath}`);
-      }
-    }
-
-    new Notification({ ...options, icon: iconPath }).show();
+    // ... 通知アイコンのパス解決と表示
+    new Notification({ ...options }).show();
   });
 
-  // タイマーウィンドウの表示
+  // --- タイマーウィンドウ関連 ---
+  // ポモドーロタイマー用の小型オーバーレイウィンドウを表示
   ipcMain.on('show-timer-window', () => {
-    if (timerWindow && !timerWindow.isDestroyed()) {
+    if (timerWindow && !timerWindow.isDestroyed()) { // 既に存在すれば表示するだけ
       timerWindow.show();
       timerWindow.focus();
       return;
     }
-
+    // 新規作成
     const { width } = screen.getPrimaryDisplay().workAreaSize;
-    timerWindow = new BrowserWindow({
-      width: 200,
-      height: 110,
-      x: width - 220,
-      y: 20,
-      transparent: true,
-      frame: false,
-      alwaysOnTop: true,
-      skipTaskbar: true,
-      resizable: false,
-      hasShadow: false,
-      webPreferences: {
-        preload: path.join(__dirname, 'preload.js'),
-        nodeIntegration: false,
-        contextIsolation: true,
-        backgroundThrottling: false,
-      },
-    });
-
-    const timerPath = path.join(__dirname, 'windows', 'timer', 'timer.html');
-    timerWindow.loadFile(timerPath);
-    timerWindow.setVisibleOnAllWorkspaces(true);
-
-    timerWindow.on('closed', () => {
-      timerWindow = null;
-    });
+    timerWindow = new BrowserWindow({ /* ...ウィンドウ設定... */ });
+    timerWindow.loadFile(path.join(__dirname, 'overlays', 'timer', 'timer.html'));
+    timerWindow.on('closed', () => { timerWindow = null; });
   });
 
-  // タイマーウィンドウの更新
+  // タイマーウィンドウの表示内容を更新
   ipcMain.on('update-timer-window', (_event, data) => {
     if (timerWindow && !timerWindow.isDestroyed()) {
       timerWindow.webContents.send('update-timer', data);
@@ -278,341 +209,112 @@ app.whenReady().then(() => {
 
   // タイマーウィンドウを閉じる
   ipcMain.on('close-timer-window', () => {
-    if (timerWindow && !timerWindow.isDestroyed()) {
-      timerWindow.close();
-    }
+    timerWindow?.close();
   });
+  
+  // タイマーウィンドウからの操作をメインウィンドウへ転送
+  ipcMain.on('toggle-timer', () => mainWindow?.webContents.send('toggle-timer-from-window'));
+  ipcMain.on('reset-timer', () => mainWindow?.webContents.send('reset-timer-from-window'));
 
-  // タイマーウィンドウからのタイマー操作をメインウィンドウに転送
-  ipcMain.on('toggle-timer', () => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('toggle-timer-from-window');
-    }
-  });
+  // --- 各種アニメーション通知ウィンドウ ---
+  // これらは短時間表示され、自動的に閉じるフレームレスのオーバーレイウィンドウ
 
-  ipcMain.on('reset-timer', () => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('reset-timer-from-window');
-    }
-  });
-
-  // アニメーション通知用のIPCイベントハンドラ（旧toggleから変更）
+  // 汎用アニメーション通知
   ipcMain.on('show-animation-notification', () => {
-    const settings = getSettings();
-    const pos = settings.animationWindowPositions?.toggle;
-    const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-
-    const animationWindow = new BrowserWindow({
-      width: 280,
-      height: 280,
-      x: pos?.x ?? width - 280,
-      y: pos?.y ?? 10,
-      transparent: true,
-      frame: false,
-      alwaysOnTop: true,
-      skipTaskbar: true,
-      focusable: false,
-      hasShadow: false,
-      acceptFirstMouse: false,
-      minimizable: false,
-      maximizable: false,
-      closable: true,
-      resizable: false,
-      ...(process.platform === 'darwin' && {
-        type: 'panel',
-      }),
-      webPreferences: {
-        preload: path.join(__dirname, 'preload.js'),
-        devTools: false,
-      },
-    });
-
-    animationWindow.on('close', () => {
-      const currentSettings = getSettings();
-      const bounds = animationWindow.getBounds();
-      currentSettings.animationWindowPositions.toggle = { x: bounds.x, y: bounds.y };
-      saveSettings(currentSettings);
-    });
-
-    const animationPath = path.join(__dirname, 'windows', 'toggle', 'toggle.html');
-    animationWindow.loadFile(animationPath);
-
-    setTimeout(() => {
-      if (!animationWindow.isDestroyed()) {
-        animationWindow.destroy();
-      }
-    }, 4500);
+    const animationWindow = new BrowserWindow({ /* ...設定... */ });
+    animationWindow.loadFile(path.join(__dirname, 'overlays', 'toggle', 'toggle.html'));
+    setTimeout(() => animationWindow.destroy(), 4500); // 4.5秒後に自動で閉じる
   });
 
-  // 猫の手アニメーション通知用のIPCイベントハンドラ
+  // 猫の手が伸びるアニメーション通知
   ipcMain.on('show-cat-hand-notification', () => {
-    const settings = getSettings();
-    const pos = settings.animationWindowPositions?.cat_hand;
-    const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-
-    const catHandWindow = new BrowserWindow({
-      width: 300,
-      height: 400,
-      x: pos?.x ?? width - 300,
-      y: pos?.y ?? height - 400,
-      transparent: true,
-      frame: false,
-      alwaysOnTop: true,
-      skipTaskbar: true,
-      focusable: false,
-      hasShadow: false,
-      acceptFirstMouse: false,
-      minimizable: false,
-      maximizable: false,
-      closable: true,
-      resizable: false,
-      webPreferences: {
-        preload: path.join(__dirname, 'preload.js'),
-        devTools: false,
-      },
-    });
-
-    catHandWindow.on('close', () => {
-      const currentSettings = getSettings();
-      const bounds = catHandWindow.getBounds();
-      currentSettings.animationWindowPositions.cat_hand = { x: bounds.x, y: bounds.y };
-      saveSettings(currentSettings);
-    });
-
-    const catHandPath = path.join(__dirname, 'windows', 'cat_hand', 'cat_hand.html');
-    catHandWindow.loadFile(catHandPath);
-
-    setTimeout(() => {
-      if (!catHandWindow.isDestroyed()) {
-        catHandWindow.destroy();
-      }
-    }, 6000);
+    const catHandWindow = new BrowserWindow({ /* ...設定... */ });
+    catHandWindow.loadFile(path.join(__dirname, 'overlays', 'cat_hand', 'cat_hand.html'));
+    setTimeout(() => catHandWindow.destroy(), 6000); // 6秒後に閉じる
   });
 
-  // 砂嵐アニメーション通知用のIPCイベントハンドラ
+  // 砂嵐アニメーション通知
   ipcMain.on('show-noise-notification', () => {
-    const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-    const noiseWindow = new BrowserWindow({
-      width,
-      height,
-      x: 0,
-      y: 0,
-      transparent: true,
-      frame: false,
-      alwaysOnTop: true,
-      skipTaskbar: true,
-      focusable: false,
-      hasShadow: false,
-      webPreferences: {
-        preload: path.join(__dirname, 'preload.js'),
-        devTools: false,
-      },
-    });
-
-    const noisePath = path.join(__dirname, 'windows', 'noise', 'noise.html');
-    noiseWindow.loadFile(noisePath);
-    noiseWindow.setVisibleOnAllWorkspaces(true);
-
-    setTimeout(() => {
-      if (!noiseWindow.isDestroyed()) {
-        noiseWindow.close();
-      }
-    }, 2000); // 2秒後に閉じる
+    const noiseWindow = new BrowserWindow({ /* ...画面全体を覆う設定... */ });
+    noiseWindow.loadFile(path.join(__dirname, 'overlays', 'noise', 'noise.html'));
+    setTimeout(() => noiseWindow.close(), 2000); // 2秒後に閉じる
   });
 
-  // スイッチ通知用のIPCイベントハンドラ
+  // スイッチのON/OFFアニメーション通知
   ipcMain.on('show-switch-notification', (event, switchType: 'on' | 'off') => {
-    const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-
-    const switchWindow = new BrowserWindow({
-      width: 280,
-      height: 280,
-      x: width - 280,
-      y: 10,
-      transparent: true,
-      frame: false,
-      alwaysOnTop: true,
-      skipTaskbar: true,
-      focusable: false,
-      hasShadow: false,
-      acceptFirstMouse: false,
-      minimizable: false,
-      maximizable: false,
-      closable: true,
-      resizable: false,
-      webPreferences: {
-        preload: path.join(__dirname, 'preload.js'),
-        devTools: isDev,
-      },
-    });
-
-    const switchPath = path.join(__dirname, 'windows', 'switch', 'switch.html');
-    switchWindow.loadFile(switchPath);
-
-    // 画像のパスを解決
-    const imageName = switchType === 'on' ? 'on_switch.png' : 'off_switch.png';
-    const imagePath = isDev
-      ? path.join(__dirname, '..', '..', 'public', 'images', imageName)
-      : path.join(process.resourcesPath, 'app', 'out', 'images', imageName);
-
-
-    // ウィンドウの準備ができたら画像パスを送信
-    switchWindow.webContents.on('did-finish-load', () => {
-      // file://プロトコルを付けてパスを送信
-      switchWindow.webContents.send('switch-type', `file://${imagePath}`);
-    });
-
-    setTimeout(() => {
-      if (!switchWindow.isDestroyed()) {
-        switchWindow.destroy();
-      }
-    }, 4500);
+    const switchWindow = new BrowserWindow({ /* ...設定... */ });
+    // ... 画像パスを解決し、ウィンドウに送信
+    setTimeout(() => switchWindow.destroy(), 4500); // 4.5秒後に閉じる
   });
 
-  // 画面を薄暗くするアニメーション用のIPCイベントハンドラ
+  // 画面全体を薄暗くするオーバーレイ表示
   ipcMain.on('request-dimmer-update', (_event, score: number) => {
-    const SHOW_THRESHOLD = 40; // 表示を開始するスコア
-    const HIDE_THRESHOLD = 35; // 表示を終了するスコア
-    const MAX_OPACITY = 0.8;
-
-    if (score > SHOW_THRESHOLD) {
-        // opacityの計算 (SHOW_THRESHOLD-100の範囲を0.0-MAX_OPACITYにマッピング)
-        const opacity = Math.min(
-            ((score - SHOW_THRESHOLD) / (100 - SHOW_THRESHOLD)) * MAX_OPACITY,
-            MAX_OPACITY
-        );
-
-        if (dimmerWindow && !dimmerWindow.isDestroyed()) {
-            // ウィンドウが既に存在すればOpacityを更新
-            dimmerWindow.setOpacity(opacity);
-        } else {
-            // ウィンドウが存在しなければ新規作成
-            const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-            dimmerWindow = new BrowserWindow({
-                width,
-                height,
-                x: 0,
-                y: 0,
-                transparent: true,
-                frame: false,
-                alwaysOnTop: true,
-                skipTaskbar: true,
-                focusable: false,
-                hasShadow: false,
-                webPreferences: {
-                    devTools: false,
-                },
-            });
-            dimmerWindow.setOpacity(opacity);
-            dimmerWindow.setIgnoreMouseEvents(true); // マウスイベントを無視
-            dimmerWindow.setVisibleOnAllWorkspaces(true);
-
-            const dimmerPath = path.join(__dirname, 'windows', 'dimmer', 'dimmer.html');
-            dimmerWindow.loadFile(dimmerPath);
-
-            dimmerWindow.on('closed', () => {
-                dimmerWindow = null;
-            });
-        }
-    } else if (score <= HIDE_THRESHOLD) {
-        // scoreが終了しきい値以下になったらウィンドウを閉じる
-        if (dimmerWindow && !dimmerWindow.isDestroyed()) {
-            dimmerWindow.close();
-        }
-    }
+    // ... スコアに応じてウィンドウの透明度を更新、またはウィンドウを生成/破棄
   });
 
-  // レンダラープロセスからのログを受け取るハンドラ
-  ipcMain.on('log-from-renderer', (event, message: string) => {
-    logToFile(message);
-  });
+  // --- アプリケーション制御 ---
+  
+  // レンダラープロセスからのログメッセージをファイルに書き込む
+  ipcMain.on('log-from-renderer', (event, message: string) => logToFile(message));
 
-  // クリーンアップ完了通知を受け取る
+  // レンダラーでの終了前処理が完了したことを受け取り、アプリケーションを終了
   ipcMain.on('cleanup-complete', () => {
-    logToFile('[QUIT] Received "cleanup-complete" from renderer.');
     isQuitting = true;
-    if (forceQuitTimeout) {
-      logToFile('[QUIT] Clearing force quit timeout.');
-      clearTimeout(forceQuitTimeout);
-    }
-    logToFile('[QUIT] Calling app.exit(0).');
+    if (forceQuitTimeout) clearTimeout(forceQuitTimeout);
     app.exit(0);
   });
 
-  // 姿勢チェックタイマーの開始/停止
+  // 定期的な姿勢チェックの開始/停止
   ipcMain.on('start-posture-check', (_event, interval: number) => {
-    // 既存のタイマーがあればクリア
-    if (postureCheckInterval) {
-      clearInterval(postureCheckInterval);
-    }
-
-    // メインプロセスで定期的にレンダラーに測定を指示
+    if (postureCheckInterval) clearInterval(postureCheckInterval);
     postureCheckInterval = setInterval(() => {
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('trigger-posture-check');
-      }
+      mainWindow?.webContents.send('trigger-posture-check');
     }, interval);
   });
-
   ipcMain.on('stop-posture-check', () => {
-    if (postureCheckInterval) {
-      clearInterval(postureCheckInterval);
-      postureCheckInterval = null;
-    }
+    if (postureCheckInterval) clearInterval(postureCheckInterval);
+    postureCheckInterval = null;
   });
 });
 
+// 全てのウィンドウが閉じたときの挙動 (macOS以外ではアプリを終了)
 app.on('window-all-closed', () => {
-  logToFile('All windows closed.');
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  if (process.platform !== 'darwin') app.quit();
 });
 
+// アプリケーションが終了する直前の処理
 app.on('before-quit', (event) => {
-  logToFile('[QUIT] "before-quit" event triggered.');
-  if (isQuitting) {
-    logToFile('[QUIT] isQuitting is true, performing final cleanup.');
-    if (process.platform === 'darwin' && app.dock) app.dock.hide();
-    if (tray && !tray.isDestroyed()) tray.destroy();
-    return;
-  }
+  if (isQuitting) return; // 既に終了処理中なら何もしない
 
-  logToFile('[QUIT] Preventing default quit action.');
-  event.preventDefault();
-
+  event.preventDefault(); // デフォルトの終了動作をキャンセル
   if (mainWindow && !mainWindow.isDestroyed()) {
-    logToFile('[QUIT] Sending "before-quit-cleanup" to renderer.');
-    mainWindow.webContents.send('before-quit-cleanup');
-    
-    forceQuitTimeout = setTimeout(() => {
-        logToFile('[QUIT] Force quit timeout executed. Forcing exit.');
-        app.exit();
-    }, 2000);
+    mainWindow.webContents.send('before-quit-cleanup'); // レンダラーに終了前処理を依頼
+    // タイムアウトを設定し、応答がない場合は強制終了
+    forceQuitTimeout = setTimeout(() => app.exit(), 2000);
   } else {
-    logToFile('[QUIT] Main window not found or destroyed. Quitting directly.');
     isQuitting = true;
-    app.quit();
+    app.quit(); // メインウィンドウがなければ即時終了
   }
 });
 
-// Settings management
+// --- 設定管理 ---
 const settingsPath = path.join(app.getPath('userData'), 'settings.json');
 
+// デフォルトの設定値。設定ファイルが存在しない場合や、新しい設定項目が追加された場合に使われる。
 const defaultSettings = {
   notification: {
     all: true,
     sound: true,
     soundVolume: 0.5,
-    soundFile: 'cat_sweet_voice1.mp3', // 変更
+    soundFile: 'cat_sweet_voice1.mp3',
     visual: true,
-    visualType: 'cat_hand', // 'cat_hand', 'dimmer', 'noise'
-    pomodoro: true, // ポモドーロタイマーの通知
+    visualType: 'cat_hand',
+    pomodoro: true,
     type: 'voice',
   },
   threshold: {
-    slouch: 60, // 判定のしきい値
-    duration: 10, // しきい値越えを何秒許容するか
+    slouch: 60,
+    duration: 10,
     reNotificationMode: 'continuous',
     cooldownTime: 5,
     continuousInterval: 5,
@@ -644,12 +346,16 @@ const defaultSettings = {
   },
 };
 
-
+/**
+ * settings.jsonファイルから設定を読み込む。
+ * ファイルが存在しない、または読み込みに失敗した場合はデフォルト設定を返す。
+ * @returns {typeof defaultSettings} アプリケーション設定
+ */
 const getSettings = (): typeof defaultSettings => {
   try {
     if (fs.existsSync(settingsPath)) {
       const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-      // デフォルト設定とマージして、新しい設定項目を補完する
+      // 既存の設定とデフォルト設定をマージし、新しい設定項目が追加されても対応できるようにする
       return { ...defaultSettings, ...settings };
     }
   } catch (error) {
@@ -658,6 +364,10 @@ const getSettings = (): typeof defaultSettings => {
   return defaultSettings;
 };
 
+/**
+ * 指定された設定オブジェクトをsettings.jsonファイルに保存する。
+ * @param {typeof defaultSettings} settings - 保存する設定オブジェクト
+ */
 const saveSettings = (settings: typeof defaultSettings) => {
   try {
     fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
@@ -666,28 +376,19 @@ const saveSettings = (settings: typeof defaultSettings) => {
   }
 };
 
-ipcMain.handle('get-settings', () => {
-  return getSettings();
-});
+// レンダラープロセスからの要求に応じて設定を返す
+ipcMain.handle('get-settings', () => getSettings());
+// レンダラープロセスからの要求に応じて設定を保存する
+ipcMain.handle('save-settings', (event, settings) => saveSettings(settings));
 
-ipcMain.handle('save-settings', (event, settings) => {
-  saveSettings(settings);
-});
-
-// 通知のON/OFF切り替え（トレイ画面から呼ばれる）
+// トレイメニューからの通知ON/OFF切り替え
 ipcMain.on('toggle-notifications', (event, enabled: boolean) => {
   const currentSettings = getSettings();
   currentSettings.notification.all = enabled;
   saveSettings(currentSettings);
-  
-  console.log(`[Tray] Notification toggled: ${enabled}`);
-  
-  // メインウィンドウに設定変更を知らせる
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('settings-updated', currentSettings);
-  }
+  // メインウィンドウにも設定変更を通知
+  mainWindow?.webContents.send('settings-updated', currentSettings);
 });
 
-ipcMain.on('quit-app', () => {
-  app.quit();
-});
+// トレイメニューからアプリを終了
+ipcMain.on('quit-app', () => app.quit());

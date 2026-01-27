@@ -2,7 +2,7 @@
 
 import React from 'react';
 import NotificationSettings from './NotificationSettings';
-import { Settings } from '@/electron-api.d';
+import { Settings } from '@/types/electron-api.d';
 
 interface NotificationOption {
   value: string;

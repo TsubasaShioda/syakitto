@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import InfoModal from './InfoModal';
-import { Settings } from '@/electron-api.d'; // Settings 型をインポート
+import InfoModal from '@/app/components/ui/modals/InfoModal';
+import { Settings } from '@/types/electron-api.d'; // Settings 型をインポート
 
 // Settings are now local to the component
 interface TimerSettings {

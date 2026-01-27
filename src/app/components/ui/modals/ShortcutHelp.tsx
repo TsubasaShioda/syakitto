@@ -1,5 +1,5 @@
 "use client";
-import { shortcuts, categoryLabels, ShortcutKey } from '../config/shortcuts';
+import { shortcuts, categoryLabels, ShortcutKey } from '@/app/config/shortcuts';
 
 type Props = {
   isOpen: boolean;
