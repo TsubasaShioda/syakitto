@@ -74,9 +74,8 @@ const PomodoroTimer = ({ settings }: PomodoroTimerProps) => {
     if (notificationMethod === 'none') return;
 
     if (isElectron) {
-      if (notificationMethod === 'animation' && isSwitch) {
-        window.electron.showSwitchNotification(switchType);
-      } else if (notificationMethod === 'desktop') {
+      // ポモドーロタイマーではアニメーション通知を使用しない（タイマーウィンドウの色で判別）
+      if (notificationMethod === 'desktop') {
         window.electron.showNotification({ title: "ポモドーロタイマー", body: message, silent: true, icon: '/icons/syakitto_w_trans.png' });
       } else if (notificationMethod === 'voice') {
         const utterance = new SpeechSynthesisUtterance(message);
