@@ -1,3 +1,20 @@
+/**
+ * @file このファイルは、TensorFlow.jsを利用してリアルタイムの姿勢検出を行うためのカスタムReactフック `usePoseDetection` を定義します。
+ * 機械学習モデルの読み込み、カメラのセットアップ、姿勢のキャリブレーション、そして猫背スコアの計算といった、
+ * 姿勢検出に関するすべてのコアロジックをカプセル化しています。
+ *
+ * 主な責務：
+ * - TensorFlow.jsの`PoseDetection`（MoveNet）モデルと`FaceLandmarksDetection`（MediaPipeFaceMesh）モデルを非同期に読み込む。
+ * - ユーザーのカメラにアクセスし、ビデオストリームをセットアップ・管理する。
+ * - ユーザーの「良い姿勢」を基準としてキャリブレーションする機能を提供する。
+ * - 耳と肩の相対的な位置、および顔の大きさの変化を基に、独自のアルゴリズムで「猫背スコア」を算出する。
+ * - Electron環境とWebブラウザ環境で異なる分析ループの制御を行い、パフォーマンスを最適化する。
+ * - エラーハンドリングと状態のリセット機能を提供する。
+ *
+ * @hook usePoseDetection
+ * @param {UsePoseDetectionProps} props - フックの動作に必要なプロパティ（ビデオ要素への参照、ポーズ状態など）。
+ * @returns {UsePoseDetectionReturn} 姿勢スコア、カメラの状態、および制御関数を含むオブジェクト。
+ */
 import { useState, useEffect, useRef, useCallback } from 'react';
 import * as poseDetection from '@tensorflow-models/pose-detection';
 import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';

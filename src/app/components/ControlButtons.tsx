@@ -1,6 +1,20 @@
+/**
+ * @file このファイルは、アプリケーションの主要な操作ボタン群を定義するReactコンポーネントです。
+ * 姿勢分析の「一時停止/再開」ボタンと、「良い姿勢を記録」（キャリブレーション）ボタンを提供します。
+ * また、キャリブレーションの状態（未記録/記録済み/記録中）に応じて、ボタンのテキストや表示を動的に変更します。
+ *
+ * @component ControlButtons
+ * @param {boolean} isPaused - 一時停止状態かどうか。
+ * @param {() => void} onTogglePause - 一時停止/再開ボタンのクリックハンドラ。
+ * @param {boolean} isCalibrating - キャリブレーション中かどうか。
+ * @param {boolean} isCalibrated - キャリブレーションが完了しているかどうか。
+ * @param {() => Promise<void>} onCalibrate - キャリブレーションボタンのクリックハンドラ。
+ * @param {Date | null} calibrationTimestamp - キャリブレーションが完了した時刻。
+ * @param {() => void} onPrivacyInfoClick - 「映像の利用について」ボタンのクリックハンドラ。
+ *
+ * @returns {JSX.Element} 操作ボタンとキャリブレーション状態の表示を含むコンテナ要素。
+ */
 "use client";
-
-
 
 interface ControlButtonsProps {
   isPaused: boolean;

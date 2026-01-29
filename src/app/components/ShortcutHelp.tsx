@@ -1,3 +1,18 @@
+/**
+ * @file このファイルは、アプリケーションで利用可能なキーボードショートカットの一覧をモーダルダイアログで表示するReactコンポーネントです。
+ *
+ * 主な機能：
+ * - `../config/shortcuts`からショートカット定義をインポートし、一元管理を実現。
+ * - ショートカットをカテゴリー別にグループ化して表示し、可読性を向上。
+ * - ユーザーのOS（Mac/その他）を判別し、適切な修飾キー（⌘/Ctrl）を表示。
+ * - クリックやEscキーでモーダルを閉じることができる、使いやすいUIを提供。
+ *
+ * @component ShortcutHelp
+ * @param {boolean} isOpen - モーダルが開いているかどうか。
+ * @param {() => void} onClose - モーダルを閉じるためのコールバック関数。
+ *
+ * @returns {JSX.Element | null} モーダルが開いている場合は、ショートカット一覧のUIを返します。開いていない場合はnullを返します。
+ */
 "use client";
 import { shortcuts, categoryLabels, ShortcutKey } from '../config/shortcuts';
 

@@ -1,3 +1,13 @@
+/**
+ * @file このファイルは、ブラウザのデスクトップ通知がユーザーによってブロックされている場合に、
+ * その事実をユーザーに知らせるための情報バナーを定義するReactコンポーネントです。
+ * `Notification.permission`が`'denied'`の場合にのみ表示されます。
+ * ユーザーが一度バナーを閉じると、`sessionStorage`にその状態が保存され、
+ * 同じセッション中は再度表示されないようになっており、ユーザー体験を向上させています。
+ *
+ * @component InfoBanner
+ * @returns {JSX.Element | null} 通知がブロックされており、かつユーザーがまだバナーを閉じていない場合に、情報バナーを返します。それ以外の場合はnullを返します。
+ */
 "use client";
 
 import React, { useState } from 'react';

@@ -1,3 +1,15 @@
+/**
+ * @file このファイルは、アプリケーションのホームページ（エントリーポイント）を定義するReactコンポーネントです。
+ *
+ * このコンポーネントの主な役割は、Next.jsの`dynamic`関数を使用して、
+ * アプリケーションの主要なUIとロジックを含む`HomeContent`コンポーネントを動的にインポートすることです。
+ * `ssr: false`オプションを指定することで、`HomeContent`がクライアントサイドでのみレンダリングされるようにし、
+ * サーバーサイドレンダリング（SSR）時にブラウザ専用API（例：TensorFlow.js）に起因するエラーが発生するのを防ぎます。
+ * また、`HomeContent`の読み込み中には、ローディングスピナーを表示します。
+ *
+ * @component Home
+ * @returns {JSX.Element} 動的にロードされた`HomeContent`コンポーネント。
+ */
 "use client";
 
 import dynamic from 'next/dynamic';

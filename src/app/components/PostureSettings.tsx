@@ -1,3 +1,15 @@
+/**
+ * @file このファイルは、姿勢検出に関連する設定項目を定義するReactコンポーネントです。
+ * ユーザーはスライダーを使って以下の2つの値を調整できます。
+ * 1. 猫背判定のしきい値：どの程度姿勢が悪化したら「猫背」と判定するかの感度。
+ * 2. 通知までの秒数：猫背状態が何秒続いたら通知を発するか。
+ *
+ * @component PostureSettings
+ * @param {Settings} settings - 現在のアプリケーション設定オブジェクト。
+ * @param {(settings: Partial<Settings>) => void} setSettings - 設定を更新するためのコールバック関数。
+ *
+ * @returns {JSX.Element} 姿勢設定用のスライダーを含むコンテナ要素。
+ */
 
 import React from 'react';
 import { Settings } from '@/electron-api.d';

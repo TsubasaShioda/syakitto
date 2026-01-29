@@ -1,3 +1,11 @@
+/**
+ * @file このファイルはElectronアプリケーションのメインプロセスです。
+ * アプリケーションの起動から終了までのライフサイクル全体を管理します。
+ * このファイルは、ブラウザウィンドウ（アプリケーションのUI）の作成、
+ * メインプロセスとレンダラプロセス間のプロセス間通信（IPC）の管理、
+ * および通知やトレイアイコンなどのオペレーティングシステムのネイティブ機能との連携を担当します。
+ * さらに、アプリケーションの設定やロギングも管理します。
+ */
 import { app, BrowserWindow, ipcMain, Notification, Tray, Menu, nativeImage, screen, protocol } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';

@@ -1,3 +1,24 @@
+/**
+ * @file このファイルは、ユーザーが選択した通知タイプに応じた詳細設定項目を定義するReactコンポーネントです。
+ * `NotificationSelector`コンポーネントの子として使用されます。
+ *
+ * - 通知タイプが`'animation'`の場合：アニメーションの種類を選択するドロップダウンを表示します。
+ * - 通知タイプが`'voice'`の場合：通知音を選択するドロップダウンを表示します。
+ * - 通知タイプが`'desktop'`の場合：OSやブラウザレベルの詳細設定モーダルを開くためのボタンを表示します。
+ *
+ * @component NotificationSettings
+ * @param {Settings} settings - アプリケーション全体の設定オブジェクト。
+ * @param {(settings: Partial<Settings>) => void} setSettings - 設定を更新するためのコールバック関数。
+ * @param {string} notificationSound - 現在選択されている通知音。
+ * @param {(sound: string) => void} setNotificationSound - 通知音を変更するためのコールバック関数。
+ * @param {{ value: string; label: string }[]} SOUND_OPTIONS - 選択可能な通知音のリスト。
+ * @param {string} notificationType - 現在選択されている通知タイプ。
+ * @param {string} animationType - 現在選択されているアニメーションの種類。
+ * @param {(type: string) => void} setAnimationType - アニメーションの種類を変更するためのコールバック関数。
+ * @param {() => void} onOpenAdvancedSettings - 詳細な通知設定モーダルを開くためのコールバック関数。
+ *
+ * @returns {JSX.Element} 選択された通知タイプに応じた設定UI。
+ */
 import React from 'react';
 import { Settings } from '@/electron-api.d';
 

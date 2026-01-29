@@ -1,3 +1,13 @@
+/**
+ * @file このファイルは、Electronのメインプロセスからレンダラプロセスへ公開されるAPIの型定義（TypeScript Declaration File）です。
+ * `preload.ts`の`contextBridge`を通じて`window`オブジェクトに追加されるカスタムAPIの型を定義し、
+ * レンダラプロセス側でこれらのAPIを安全かつ型チェックを有効にして利用できるようにします。
+ *
+ * 主な責務：
+ * - アプリケーション全体の設定オブジェクト（`Settings`）の構造を定義する。
+ * - メインウィンドウ、タイマーウィンドウ、トレイウィンドウそれぞれに公開されるAPI（`ElectronAPI`, `ElectronTimerAPI`, `ElectronTrayAPI`）のインターフェースを定義する。
+ * - グローバルな`Window`インターフェースを拡張し、カスタムAPIのプロパティを宣言する。
+ */
 
 export interface PomodoroSettings {
   work: number;

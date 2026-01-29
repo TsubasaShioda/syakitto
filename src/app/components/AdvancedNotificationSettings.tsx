@@ -1,3 +1,23 @@
+/**
+ * @file このファイルは、アプリケーションの通知を有効にするための詳細な手順を示すモーダルダイアログを定義するReactコンポーネントです。
+ * ユーザーのオペレーティングシステム（macOS/Windows）とブラウザ（Chrome, Safari, Firefox, Edge）を自動的に検出し、
+ * それぞれの環境に合わせた具体的な設定手順を表示します。
+ * Electron版とWeb版で表示する内容を切り替える機能も備えています。
+ *
+ * @component AdvancedNotificationSettings
+ * @param {boolean} isOpen - モーダルが開いているかどうか。
+ * @param {() => void} onClose - モーダルを閉じるためのコールバック関数。
+ * @param {React.ReactNode} [preamble] - 手順の前に表示される追加のコンテンツ。
+ * @param {string} [title] - モーダルのタイトル。
+ * @param {string} [additionalMessage] - 追加で表示するメッセージ。
+ * @param {boolean} [showCompletionButton] - 「設定完了」ボタンを表示するかどうか。
+ * @param {() => void} [onCompletionClick] - 「設定完了」ボタンのクリックイベントハンドラ。
+ * @param {boolean} [showBrowserInstructions=true] - ブラウザの設定手順を表示するかどうか。
+ * @param {boolean} [showOsInstructions=true] - OSの設定手順を表示するかどうか。
+ * @param {boolean} [isElectron=false] - Electron環境で実行されているかどうか。
+ *
+ * @returns {JSX.Element} ユーザーの環境に応じた通知設定手順を含むモーダルダイアログ。
+ */
 "use client";
 
 import React, { useEffect, useState } from 'react';

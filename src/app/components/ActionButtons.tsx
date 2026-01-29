@@ -1,3 +1,15 @@
+/**
+ * @file このファイルは、アプリケーションの特定のアクションを実行するためのボタングループを定義するReactコンポーネントです。
+ * 現在は、Web版でインストーラーをダウンロードするためのボタンを主に表示します。
+ *
+ * @component ActionButtons
+ * @param {() => void} onDownload - ダウンロードボタンがクリックされたときに実行されるコールバック関数。
+ * @param {boolean} isElectron - アプリケーションがElectron環境で実行されているかどうかを示すフラグ。
+ * @param {React.ReactNode} [children] - 追加のカスタムボタン要素。
+ *
+ * @returns {JSX.Element} ダウンロードボタンやその他のアクションボタンを含むコンテナ要素。
+ * `isElectron`がfalseの場合にのみ、ダウンロードボタンが表示されます。
+ */
 "use client";
 
 import React from 'react';

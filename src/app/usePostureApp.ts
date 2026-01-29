@@ -1,3 +1,21 @@
+/**
+ * @file このファイルは、アプリケーション全体のフロントエンドロジックを統合し、状態を管理するための中心的なカスタムReactフック `usePostureApp` を定義します。
+ * このフックは、他のカスタムフック（`usePoseDetection`, `useNotification`）を組み合わせ、
+ * UIコンポーネント（`HomeContent`）が必要とするすべての状態とハンドラ関数を提供します。
+ *
+ * 主な責務：
+ * - `usePoseDetection`と`useNotification`フックを呼び出し、それらの機能を統合する。
+ * - アプリケーション設定（`Settings`）の初期化、読み込み（Electron）、保存、および状態管理。
+ * - UIの状態（モーダルの開閉、チュートリアルの進行状況など）の管理。
+ * - カメラや通知のパーミッション（許可）状態の確認と、それに応じたUIの制御。
+ * - アプリケーションのライフサイクルイベント（Electronの終了前処理など）のハンドリング。
+ * - ユーザーのアクション（キャリブレーション、ダウンロードなど）に対応するビジネスロジックの実装。
+ * - `HomeContent`コンポーネントに渡すための、巨大な状態と関数のオブジェクトを返す。
+ *
+ * @hook usePostureApp
+ * @param {UsePostureAppProps} props - フックの動作に必要なプロパティ。
+ * @returns {object} アプリケーションの状態と、それを操作するための関数群を含むオブジェクト。
+ */
 import { useRef, useState, useEffect, useCallback } from "react";
 import { usePoseDetection } from "./usePoseDetection";
 import { useNotification } from "./useNotification";

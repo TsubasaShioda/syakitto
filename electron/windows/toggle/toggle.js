@@ -1,3 +1,11 @@
+/**
+ * @file このJavaScriptファイルは、「トグル」タイプのアニメーション通知の動作を制御します。
+ * `bad_posture.png`と`good_posture.png`の2つの画像を約0.7秒ごとに切り替えることで、
+ * ユーザーに姿勢の改善を視覚的に促すアニメーションを実装しています。
+ * 画像の切り替えは、CSSのトランジションと連動したフェードイン・フェードアウト効果を伴います。
+ * メインプロセスによってウィンドウが閉じられる前に、最終的に`bad_posture.png`が表示された状態で
+ * アニメーションが停止するように、4.5秒後にタイマーがクリアされます。
+ */
 // Toggle between two images every ~500ms. Window will be closed by main process after 5s.
 (() => {
   const images = ['./bad_posture.png', './good_posture.png'];

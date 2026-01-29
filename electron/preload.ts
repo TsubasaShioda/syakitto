@@ -1,3 +1,11 @@
+/**
+ * @file このファイルはElectronのプリロードスクリプトです。
+ * Electronのセキュリティモデルに従い、メインプロセスとレンダラプロセスの間の安全な橋渡し役として機能します。
+ * `contextBridge`を使用して、レンダラプロセスのグローバルな`window`オブジェクトに、
+ * 選択されたIPC（プロセス間通信）チャネルや特定のNode.js APIへのアクセスを安全に公開します。
+ * これにより、レンダラプロセスはサンドボックス化された環境で実行されながらも、
+ * 必要に応じてメインプロセスの機能（例：ファイルシステムアクセス、ネイティブ通知）を呼び出すことができます。
+ */
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 import { Settings } from '@/electron-api.d';
 

@@ -1,3 +1,17 @@
+/**
+ * @file このファイルは、ユーザーの姿勢スコアに基づいて通知をトリガーするロジックをカプセル化したカスタムReactフック `useNotification` を定義します。
+ *
+ * 主な責務：
+ * - ユーザーの猫背スコアが設定されたしきい値を超え、かつ指定された時間が経過した際に通知を発行する。
+ * - `cooldown`（一度通知したら一定時間待つ）と`continuous`（猫背である限り定期的に通知する）の2つの再通知モードを管理する。
+ * - ユーザーが選択した通知タイプ（デスクトップ、音声、アニメーション）に応じて、適切な通知方法を呼び出す。
+ * - Electron環境とWebブラウザ環境の両方で動作するように、プラットフォームを意識した通知処理を行う。
+ * - 猫背状態に応じてブラウザのドキュメントタイトルを動的に変更する。
+ *
+ * @hook useNotification
+ * @param {UseNotificationProps} props - フックの動作に必要なプロパティ（姿勢スコア、設定、通知タイプなど）。
+ * @returns {void}
+ */
 // useNotification.ts
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Settings } from '@/electron-api.d';
