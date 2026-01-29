@@ -1,3 +1,14 @@
+/**
+ * @file このファイルは、キーボードショートカットの一覧表示モーダルを開くためのフローティングアクションボタン（FAB）を定義するReactコンポーネントです。
+ * 画面の右下に固定表示されます。
+ * `children` プロパティを通じて、このボタンの近くに追加のUI要素（例：`ShortcutPrompt`）を配置することも可能です。
+ *
+ * @component ShortcutButton
+ * @param {() => void} onClick - ボタンがクリックされたときに実行されるコールバック関数。
+ * @param {React.ReactNode} [children] - ボタンの隣に表示される追加の子要素。
+ *
+ * @returns {JSX.Element} ショートカットヘルプを開くためのボタンUI。
+ */
 "use client";
 
 import React from 'react';

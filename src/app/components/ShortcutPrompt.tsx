@@ -1,3 +1,13 @@
+/**
+ * @file このファイルは、ショートカットキーの一覧を表示するためのキーボードショートカット（⌘+K）を
+ * ユーザーに知らせるための、小さな吹き出し風のヒントを定義するReactコンポーネントです。
+ * `ShortcutButton`の横に表示されることを想定しています。
+ *
+ * @component ShortcutPrompt
+ * @param {() => void} onClose - プロンプトを閉じるためのコールバック関数。
+ *
+ * @returns {JSX.Element} ショートカットキーのヒントを示す吹き出しUI。
+ */
 import React from 'react';
 
 interface ShortcutPromptProps {

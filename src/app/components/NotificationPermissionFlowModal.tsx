@@ -1,3 +1,21 @@
+/**
+ * @file このファイルは、ユーザーが通知を正しく受け取れるかを確認するための、ステップ形式のモーダルダイアログを定義するReactコンポーネントです。
+ * `step` プロパティによって表示内容が切り替わります。
+ * 1. `test_notification` ステップ: ユーザーにテスト通知の送信を促します。必要に応じて、OSやブラウザの通知設定を確認する手順も表示します。
+ * 2. `confirm_delivery` ステップ: テスト通知が届いたかどうかをユーザーに確認します。
+ * このフローを通じて、通知機能が正しく設定されていることを確認し、問題があれば追加のガイダンスを提供することを目的としています。
+ *
+ * @component NotificationPermissionFlowModal
+ * @param {'test_notification' | 'confirm_delivery'} step - モーダルの現在のステップ。
+ * @param {boolean} isOpen - モーダルが開いているかどうか。
+ * @param {() => void} onClose - モーダルを閉じるためのコールバック関数。
+ * @param {() => void} onTest - 「テスト通知を送信」ボタンのクリックハンドラ。
+ * @param {() => void} onConfirmYes - 「はい、見えました」ボタンのクリックハンドラ。
+ * @param {() => void} onConfirmNo - 「いいえ、見えません」ボタンのクリックハンドラ。
+ * @param {boolean} showOsInstructions - OS固有の設定手順を表示するかどうか。
+ *
+ * @returns {JSX.Element} 現在のステップに応じた内容を表示するモーダルダイアログ。
+ */
 "use client";
 
 import React, { useState } from 'react';

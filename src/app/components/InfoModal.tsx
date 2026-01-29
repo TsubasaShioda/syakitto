@@ -1,3 +1,17 @@
+/**
+ * @file このファイルは、アプリケーション全体で再利用可能な汎用的な情報モーダルダイアログを定義するReactコンポーネントです。
+ * モーダルの基本的な骨格（背景のオーバーレイ、コンテンツエリア、タイトル、閉じるボタン）を提供し、
+ * 表示したい具体的な内容は`children`プロパティ経由で受け取ります。
+ * これにより、アプリケーション全体で一貫したデザインのモーダルを簡単に実装できます。
+ *
+ * @component InfoModal
+ * @param {boolean} isOpen - モーダルが開いているかどうか。
+ * @param {() => void} onClose - モーダルを閉じるためのコールバック関数。背景オーバーレイのクリックでも呼び出されます。
+ * @param {string} title - モーダルのタイトル。
+ * @param {React.ReactNode} children - モーダルの本体として表示されるコンテンツ。
+ *
+ * @returns {JSX.Element | null} モーダルが開いている場合は、モーダルダイアログのUIを返します。開いていない場合はnullを返します。
+ */
 "use client";
 
 import React from 'react';

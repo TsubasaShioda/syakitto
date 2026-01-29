@@ -1,3 +1,12 @@
+/**
+ * @file このCSSファイルは、アプリケーションの初回起動時に表示されるチュートリアルのスタイリングを担当します。
+ *
+ * 主なスタイル定義：
+ * - .tutorial-overlay: 画面全体を覆うオーバーレイ。
+ * - .tutorial-highlight: 特定のUI要素をハイライトするための「穴」を、巨大な`box-shadow`を使って作成します。
+ * - .tutorial-message: ハイライトされた要素を説明するテキストメッセージのスタイル。
+ * - .tutorial-arrow: ユーザーの注意を引くための、バウンドする矢印アニメーション。
+ */
 .tutorial-overlay {
   position: fixed;
   top: 0;

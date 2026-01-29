@@ -1,3 +1,23 @@
+/**
+ * @file このファイルは、リアルタイムの「猫背スコア」をユーザーに表示するためのUIを定義するReactコンポーネントです。
+ * スコアに応じて色やラベル（良好、注意、要改善）が動的に変化し、ユーザーに視覚的なフィードバックを提供します。
+ *
+ * 主な機能：
+ * - 猫背検出機能のON/OFFを切り替えるトグルスイッチ。
+ * - スコアをパーセンテージ、プログレスバー、および評価ラベルで表示。
+ * - スコアの解説モーダルを開くための情報ボタン。
+ * - 姿勢設定モーダルを開くための設定ボタン。
+ * - 検出機能がオフの場合のプレースホルダー表示。
+ *
+ * @component ScoreDisplay
+ * @param {number} slouchScore - 現在の猫背スコア（0-100）。
+ * @param {boolean} isSlouchDetectionEnabled - 猫背検出が有効かどうか。
+ * @param {() => void} onToggleSlouch - 検出機能のON/OFFを切り替えるコールバック関数。
+ * @param {() => void} onInfoClick - スコア解説モーダルを開くコールバック関数。
+ * @param {() => void} onSettingsClick - 姿勢設定モーダルを開くコールバック関数。
+ *
+ * @returns {JSX.Element} 猫背スコアの表示と関連するコントロールを含むコンテナ要素。
+ */
 "use client";
 import ToggleSwitch from "./ToggleSwitch";
 import InfoButton from "./InfoButton";

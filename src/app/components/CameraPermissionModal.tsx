@@ -1,3 +1,15 @@
+/**
+ * @file このファイルは、アプリケーションでカメラへのアクセス許可をユーザーに促すためのモーダルダイアログを定義するReactコンポーネントです。
+ * ユーザーのブラウザ（Chrome, Safari, Firefox, Edge）を自動的に検出し、
+ * カメラのアクセス許可を有効にするための具体的な手順を表示します。
+ * 主にWeb版で、ユーザーがカメラの使用をブロックしてしまった場合に使用されます。
+ *
+ * @component CameraPermissionModal
+ * @param {boolean} isOpen - モーダルが開いているかどうか。
+ * @param {() => void} onClose - モーダルを閉じるためのコールバック関数。
+ *
+ * @returns {JSX.Element} ユーザーのブラウザ環境に応じたカメラ許可の手順を含むモーダルダイアログ。
+ */
 "use client";
 
 import React, { useEffect, useState } from 'react';

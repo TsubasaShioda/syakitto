@@ -1,3 +1,16 @@
+/**
+ * @file このファイルは、ユーザーのカメラ映像を表示するためのUIを定義するReactコンポーネントです。
+ * 姿勢分析が一時停止している状態や、ユーザーがカメラ映像を非表示に設定した場合のUIも管理します。
+ *
+ * @component CameraView
+ * @param {RefObject<HTMLVideoElement | null>} videoRef - カメラ映像をストリーミングする`<video>`要素への参照。
+ * @param {boolean} isPaused - 姿勢分析が一時停止中かどうかを示すフラグ。
+ * @param {boolean} isCameraViewVisible - カメラ映像を表示するかどうかを示すフラグ。
+ * @param {() => void} onToggleCameraView - カメラ映像の表示/非表示を切り替えるコールバック関数。
+ *
+ * @returns {JSX.Element} カメラ映像、表示切り替えスイッチ、および各種状態（一時停止、非表示）を示すオーバーレイを含むコンテナ要素。
+ * 映像はユーザーにとって直感的なミラー表示になるよう水平方向に反転されています。
+ */
 "use client";
 import { RefObject } from 'react';
 import ToggleSwitch from './ToggleSwitch';

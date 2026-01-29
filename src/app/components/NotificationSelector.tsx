@@ -1,3 +1,25 @@
+/**
+ * @file このファイルは、ユーザーが好みの通知方法を選択するためのUIを定義するReactコンポーネントです。
+ * 「なし」「音声」「デスクトップ」「アニメーション」といった選択肢をボタン形式で表示します。
+ * 選択肢は、アプリケーションがWeb版かElectron版かによって動的に変わります。
+ * 現在選択されている通知タイプに応じて、下部に`NotificationSettings`コンポーネントをレンダリングし、
+ * より詳細な設定項目（例：サウンドの選択、アニメーションの種類）を表示します。
+ *
+ * @component NotificationSelector
+ * @param {string} notificationType - 現在選択されている通知タイプ。
+ * @param {(type: string) => void} setNotificationType - 通知タイプを変更するためのコールバック関数。
+ * @param {boolean} isElectron - Electron環境で実行されているかどうか。
+ * @param {Settings} settings - アプリケーション全体の設定オブジェクト。
+ * @param {(settings: Partial<Settings>) => void} setSettings - 設定を更新するためのコールバック関数。
+ * @param {string} notificationSound - 現在選択されている通知音。
+ * @param {(sound: string) => void} setNotificationSound - 通知音を変更するためのコールバック関数。
+ * @param {{ value: string; label: string }[]} SOUND_OPTIONS - 選択可能な通知音のリスト。
+ * @param {string} animationType - 現在選択されているアニメーションの種類。
+ * @param {(type: string) => void} setAnimationType - アニメーションの種類を変更するためのコールバック関数。
+ * @param {() => void} onOpenAdvancedSettings - OSやブラウザレベルの詳細な通知設定モーダルを開くためのコールバック関数。
+ *
+ * @returns {JSX.Element} 通知タイプの選択肢と、それに応じた詳細設定項目を含むコンテナ要素。
+ */
 "use client";
 
 import React from 'react';

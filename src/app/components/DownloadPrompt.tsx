@@ -1,3 +1,13 @@
+/**
+ * @file このファイルは、Web版のユーザーに対してデスクトップ版のダウンロードを推奨するための小さな吹き出し風プロンプトを定義するReactコンポーネントです。
+ * ダウンロードボタンの横に表示され、デスクトップ版の利点を簡潔に伝えます。
+ * ユーザーはこのプロンプトを閉じることができます。
+ *
+ * @component DownloadPrompt
+ * @param {() => void} onClose - プロンプトを閉じるためのコールバック関数。
+ *
+ * @returns {JSX.Element} 吹き出しのデザインを持つプロンプトUI。
+ */
 import React from 'react';
 
 interface DownloadPromptProps {

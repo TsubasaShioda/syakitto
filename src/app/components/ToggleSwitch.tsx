@@ -1,3 +1,13 @@
+/**
+ * @file このファイルは、アプリケーション全体で再利用可能な、
+ * ON/OFFの状態を切り替えるためのトグルスイッチUIを定義するReactコンポーネントです。
+ *
+ * @component ToggleSwitch
+ * @param {boolean} isEnabled - スイッチがON（有効）の状態であるかどうか。
+ * @param {() => void} onToggle - スイッチがクリックされたときに実行されるコールバック関数。
+ *
+ * @returns {JSX.Element} アニメーション付きのトグルスイッチUI。
+ */
 "use client";
 
 interface ToggleSwitchProps {

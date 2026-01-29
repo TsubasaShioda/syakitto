@@ -1,3 +1,19 @@
+/**
+ * @file このファイルは、キーボードショートカットを宣言的に扱うためのカスタムReactフック `useKeyboardShortcuts` を定義します。
+ * `../config/shortcuts` からショートカット定義を読み込み、`keydown`イベントをリッスンします。
+ *
+ * 主な機能：
+ * - 設定ファイルに基づいたショートカットのマッチング。
+ * - `handler`コールバック関数を通じて、一致したショートカットのアクションを通知。
+ * - オプションにより、フックの有効/無効の切り替えや、テキスト入力中の無効化が可能。
+ * - 修飾キー（Ctrl, Cmd, Shift）を考慮した柔軟なマッチングロジック。
+ *
+ * @hook useKeyboardShortcuts
+ * @param {ShortcutHandler} handler - ショートカットがトリガーされたときに、対応するアクション文字列を引数として呼び出される関数。
+ * @param {{ enabled?: boolean; ignoreInputs?: boolean; }} [options] - フックの動作を制御するオプション。
+ *
+ * @returns {void}
+ */
 import { useEffect, useCallback } from 'react';
 import { shortcuts, ShortcutKey } from '../config/shortcuts';
 

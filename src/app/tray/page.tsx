@@ -1,3 +1,17 @@
+/**
+ * @file このファイルは、Electronのトレイ（macOSのメニューバーやWindowsのシステムトレイ）アイコンをクリックした際に表示される、
+ * 小さなポップアップウィンドウのUIを定義するReactコンポーネントです。
+ *
+ * 主な機能：
+ * - `preload`スクリプト経由で公開された`trayAPI`や`electron`オブジェクトを使い、メインプロセスと通信する。
+ * - リアルタイムで猫背スコアを表示する。
+ * - トグルスイッチでアプリケーション全体の通知のON/OFFを切り替える。
+ * - アプリケーションを終了するためのボタンを提供する。
+ * - システムのライト/ダークモードに追従する、コンパクトで専用設計のUI。
+ *
+ * @component TrayPage
+ * @returns {JSX.Element} トレイウィンドウのUI全体。
+ */
 "use client";
 
 import { useState, useEffect, useCallback } from "react";

@@ -1,3 +1,15 @@
+/**
+ * @file このファイルは、アプリケーションのデスクトップ版（Electron版）のダウンロードを案内するためのモーダルダイアログを定義するReactコンポーネントです。
+ * ダウンロード版の追加機能や利点をリストアップし、特にmacOSユーザー向けに、
+ * Gatekeeper（セキュリティ機能）を回避してアプリケーションを初回起動するための詳細な手順を説明します。
+ *
+ * @component DownloadModal
+ * @param {boolean} isOpen - モーダルが開いているかどうか。
+ * @param {() => void} onClose - モーダルを閉じるためのコールバック関数。
+ * @param {() => void} onDownload - ダウンロードボタンがクリックされたときに実行されるコールバック関数。
+ *
+ * @returns {JSX.Element | null} モーダルが開いている場合は、ダウンロード情報と手順を含むモーダルダイアログを返します。開いていない場合はnullを返します。
+ */
 "use client";
 
 import React, { useRef } from 'react'; // useRefをインポート

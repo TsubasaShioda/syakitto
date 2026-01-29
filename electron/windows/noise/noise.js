@@ -1,3 +1,9 @@
+/**
+ * @file このJavaScriptファイルは、`<canvas>`要素に砂嵐（ノイズ）エフェクトを生成および描画するロジックを実装しています。
+ * `requestAnimationFrame`を利用したループ処理内で、キャンバスの各ピクセルをランダムに黒または白で塗りつぶすことで、
+ * テレビの砂嵐のような動的なエフェクトを生成します。
+ * ウィンドウのリサイズにも対応しており、パフォーマンスへの影響を考慮して2.5秒後にアニメーションを自動的に停止する機能も含まれています。
+ */
 const canvas = document.getElementById('noise-canvas');
 const ctx = canvas.getContext('2d');
 

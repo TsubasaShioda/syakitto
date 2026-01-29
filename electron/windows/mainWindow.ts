@@ -1,3 +1,10 @@
+/**
+ * @file このファイルは、Electronアプリケーションのメインブラウザウィンドウを作成および設定する役割を担います。
+ * `createMainWindow`関数をエクスポートし、この関数が呼び出されると、
+ * アプリケーションの主要なUIコンポーネントを表示するための`BrowserWindow`インスタンスを生成します。
+ * ウィンドウの寸法、Webコンテンツのセキュリティ設定（preloadスクリプトの指定など）、
+ * 開発環境と本番環境でロードするURLの分岐処理、外部リンクの挙動、ウィンドウが閉じられる際の動作などが定義されています。
+ */
 import { BrowserWindow, shell, app } from 'electron';
 import * as path from 'path';
 

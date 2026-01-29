@@ -1,3 +1,12 @@
+/**
+ * @file このファイルは、情報（インフォメーション）を示すためのシンプルなアイコンボタンを定義するReactコンポーネントです。
+ * 主に、クリックすると情報モーダルやヘルプテキストなどを表示する目的で使用されます。
+ *
+ * @component InfoButton
+ * @param {() => void} onClick - ボタンがクリックされたときに実行されるコールバック関数。
+ *
+ * @returns {JSX.Element} "i"の形をしたSVGアイコンを含むボタン要素。
+ */
 "use client";
 
 interface InfoButtonProps {
